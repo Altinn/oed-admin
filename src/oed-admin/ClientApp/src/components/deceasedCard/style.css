@@ -1,0 +1,11 @@
+.deceased-card {
+  width: 100%;
+  .flex-between {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .tab-nums:not(.ds-label) {
+    font-variant-numeric: tabular-nums;
+  }
+}
