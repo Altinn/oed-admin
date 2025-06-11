@@ -1,11 +1,19 @@
 using Azure.Monitor.OpenTelemetry.Exporter;
+using oed_admin.Features.Estate;
+using oed_admin.Infrastructure.Database;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Scalar.AspNetCore;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
+builder.Services.AddOedDatabase(
+    (builder.Environment.IsDevelopment()
+        ? builder.Configuration.GetConnectionString("Postgres")
+        : builder.Configuration.GetSection("OedConfig:Postgres:ConnectionString").Value) 
+    ?? string.Empty);
 
 var ai_connstr = builder.Configuration.GetValue<string>("APPLICATIONINSIGHTS_CONNECTION_STRING", string.Empty);
 if (!string.IsNullOrEmpty(ai_connstr))
@@ -52,6 +60,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
     app.MapScalarApiReference();
 }
 
+app.MapEstateEndpoints();
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
