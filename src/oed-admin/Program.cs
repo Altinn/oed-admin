@@ -1,10 +1,11 @@
 using Azure.Monitor.OpenTelemetry.Exporter;
-using oed_admin.Extensions;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddOpenApi();
 
 var ai_connstr = builder.Configuration.GetValue<string>("APPLICATIONINSIGHTS_CONNECTION_STRING", string.Empty);
 if (!string.IsNullOrEmpty(ai_connstr))
@@ -34,7 +35,7 @@ if (!string.IsNullOrEmpty(ai_connstr))
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
 
 var app = builder.Build();
 
@@ -47,9 +48,10 @@ if (!app.Environment.IsDevelopment())
 
 if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(); // tilgjengelig på /swagger
+    app.MapOpenApi();
+    app.MapScalarApiReference();
 }
+
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
