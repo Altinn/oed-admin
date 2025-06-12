@@ -36,16 +36,12 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [data, setData] = useState<ResponseBody | null>(null);
 
-
   const mutation = useMutation({ mutationFn: getEstateData });
 
   const handleSearch = async () => {
     const body: RequestBody = {
       Nin: searchType === "ssn" ? searchQuery : undefined,
       PartyId: searchType === "partyid" ? parseInt(searchQuery) : undefined,
-      Name: undefined, // Not used in this search
-      Page: 1,
-      PageSize: 10,
     };
 
     const data: ResponseBody = await mutation.mutateAsync(body);
