@@ -23,7 +23,7 @@ public record Request(string? Nin, int? PartyId, string? Name, int? Page, int? P
             return false;
         }
 
-        if (Page is not null and not > 1)
+        if (Page is not null and not > 0)
         {
             return false;
         }
