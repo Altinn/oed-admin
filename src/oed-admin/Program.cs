@@ -8,19 +8,10 @@ using oed_admin.Infrastructure.Database.Authz;
 using oed_admin.Infrastructure.Database.Oed;
 
 var builder = WebApplication.CreateBuilder(args);
+
 builder.Services.AddOpenApi();
-builder.Services.AddOedDatabase(
-    (builder.Environment.IsDevelopment()
-        ? builder.Configuration.GetConnectionString("OedDb")
-        : builder.Configuration.GetSection("OedConfig:Postgres:ConnectionString").Value) 
-    ?? string.Empty);
-
-builder.Services.AddAuthzDatabase(
-    (builder.Environment.IsDevelopment()
-        ? builder.Configuration.GetConnectionString("OedAuthzDb")
-        : builder.Configuration.GetSection("Secrets:PostgreSqlUserConnectionString").Value)
-    ?? string.Empty);
-
+builder.Services.AddOedDatabase(builder.Configuration.GetConnectionString("OedDb") ?? string.Empty);
+builder.Services.AddAuthzDatabase(builder.Configuration.GetConnectionString("OedAuthzDb") ?? string.Empty);
 
 var ai_connstr = builder.Configuration.GetValue<string>("APPLICATIONINSIGHTS_CONNECTION_STRING", string.Empty);
 if (!string.IsNullOrEmpty(ai_connstr))
