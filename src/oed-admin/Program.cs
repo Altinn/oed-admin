@@ -6,6 +6,7 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Scalar.AspNetCore;
 using System;
+using oed_admin.Features;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
@@ -60,7 +61,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
     app.MapScalarApiReference();
 }
 
-app.MapEstateEndpoints();
+app.MapFeatureEndpoints();
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
