@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using oed_admin.Infrastructure.Database;
+using oed_admin.Infrastructure.Database.Oed;
 using oed_admin.Infrastructure.Mapping;
 
 namespace oed_admin.Features.Estate.GetEstate;
@@ -16,12 +16,12 @@ public static class Endpoint
 
         var estate = await dbContext.Estate
             .AsNoTracking()
-            .SingleOrDefaultAsync(e => e.Id == request.Id);
+            .SingleOrDefaultAsync(e => e.Id == request.EstateId);
 
         if (estate is null)
             return TypedResults.Ok(new Response(null));
 
-        var dto = PoorMansMapper.Map<Infrastructure.Database.Model.Estate, EstateDto>(estate);
+        var dto = PoorMansMapper.Map<Infrastructure.Database.Oed.Model.Estate, EstateDto>(estate);
         return TypedResults.Ok(new Response(dto));
     }
 }

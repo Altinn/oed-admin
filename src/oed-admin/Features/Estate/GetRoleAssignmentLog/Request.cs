@@ -1,4 +1,4 @@
-﻿namespace oed_admin.Features.Estate.GetEstate;
+﻿namespace oed_admin.Features.Estate.GetRoleAssignmentLog;
 
 public record Request(Guid EstateId)
 {

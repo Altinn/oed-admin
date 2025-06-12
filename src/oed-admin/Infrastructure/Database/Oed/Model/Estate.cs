@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
 
-namespace oed_admin.Infrastructure.Database.Model;
+namespace oed_admin.Infrastructure.Database.Oed.Model;
 
 public class Estate
 {

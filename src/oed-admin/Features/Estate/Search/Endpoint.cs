@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using oed_admin.Infrastructure.Database;
+using oed_admin.Infrastructure.Database.Oed;
 using oed_admin.Infrastructure.Mapping;
 
 namespace oed_admin.Features.Estate.Search
@@ -25,7 +25,7 @@ namespace oed_admin.Features.Estate.Search
                 .ToListAsync();
 
             var dtos = estates
-                .Select(PoorMansMapper.Map<Infrastructure.Database.Model.Estate, EstateDto>)
+                .Select(PoorMansMapper.Map<Infrastructure.Database.Oed.Model.Estate, EstateDto>)
                 .ToList();
             
             return TypedResults.Ok(new Response(page, pageSize, dtos!));
