@@ -6,42 +6,53 @@ import {
   Search,
   ToggleGroup,
 } from "@digdir/designsystemet-react";
-import DeceasedCard from "./deceasedCard";
+import EstateCard from "./estateCard";
 import { PersonIcon, RobotIcon } from "@navikt/aksel-icons";
+import { useMutation } from "@tanstack/react-query";
+import { RequestBody, ResponseBody } from "../types/IEstate";
+
+const getEstateData = async (body: RequestBody) => {
+  try {
+    const response = await fetch("/api/estate/search", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      console.error("Error fetching estate data:");
+      return null;
+    }
+    return response.json();
+  } catch (error) {
+    console.error("Error fetching estate data:", error);
+  }
+};
 
 export default function Home() {
-  const [searchType, setSearchType] = useState<string>("partyid");
+  const [searchType, setSearchType] = useState("partyid");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [data, setData] = useState<ResponseBody | null>(null);
 
-  const deceasedJson = [
-    {
-      name: "Ola Nordmann",
-      partyId: "123456789",
-      ssn: "01010112345",
-      deathDate: new Date(),
-      status: "Opprettet",
-    },
-    {
-      name: "Kari Nordmann",
-      partyId: "987654321",
-      ssn: "02020298765",
-      deathDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
-      status: "Erklæring opprettet",
-    },
-    {
-      name: "Per Hansen",
-      partyId: "1122334455",
-      ssn: "03030311223",
-      deathDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), // 14 days ago
-      status: "Erklæring innsendt",
-    },
-    {
-      name: "Anne Jensen",
-      partyId: "5566778899",
-      ssn: "04040455667",
-      deathDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
-      status: "Skifteattest mottatt",
-    },
-  ];
+
+  const mutation = useMutation({ mutationFn: getEstateData });
+
+  const handleSearch = async () => {
+    const body: RequestBody = {
+      Nin: searchType === "ssn" ? searchQuery : undefined,
+      PartyId: searchType === "partyid" ? parseInt(searchQuery) : undefined,
+      Name: undefined, // Not used in this search
+      Page: 1,
+      PageSize: 10,
+    };
+
+    const data: ResponseBody = await mutation.mutateAsync(body);
+    if (data) {
+      setData(data);
+    }
+  };
 
   return (
     <>
@@ -78,28 +89,36 @@ export default function Home() {
 
         <Field>
           <Search data-size="lg" className="search-field">
-            <Search.Input aria-label="Søk" />
+            <Search.Input
+              aria-label="Søk"
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
             <Search.Clear />
-            <Search.Button />
+            <Search.Button onClick={() => handleSearch()} />
           </Search>
         </Field>
       </Fieldset>
 
       <section className="card-grid">
-        <Heading
-          level={2}
-          data-size="sm"
-          style={{ paddingBottom: "var(--ds-size-2)" }}
-        >
-          Søkeresultater
-        </Heading>
-        <ul>
-          {deceasedJson.map((deceased, index) => (
-            <li key={index}>
-              <DeceasedCard deceased={deceased} />
-            </li>
-          ))}
-        </ul>
+        {data && data.estates.length > 0 && (
+          <>
+            <Heading
+              level={2}
+              data-size="sm"
+              style={{ paddingBottom: "var(--ds-size-2)" }}
+            >
+              Søkeresultater
+            </Heading>
+
+            <ul>
+              {data?.estates.map((estate, index) => (
+                <li key={index}>
+                  <EstateCard estate={estate} />
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </section>
     </>
   );

@@ -2,7 +2,7 @@ import { Breadcrumbs, Heading, Paragraph } from "@digdir/designsystemet-react";
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 
-export default function DeceasedDetails() {
+export default function EstateDetails() {
   const deceased = useLocation().state?.deceased;
 
   return (

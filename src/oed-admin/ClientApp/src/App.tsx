@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Routes, Route, Outlet } from "react-router-dom";
 import Home from "./components/Home";
-import DeceasedDetails from "./components/deceasedDetails";
+import EstateDetails from "./components/estateDetails";
 import {
   Avatar,
   Heading,
@@ -68,7 +68,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
-        <Route path="/deceased/:partyId" element={<DeceasedDetails />} />
+        <Route path="/deceased/:partyId" element={<EstateDetails />} />
       </Route>
     </Routes>
   );
