@@ -56,51 +56,58 @@ export default function Home() {
         Søk etter dødsbo
       </Heading>
 
-      <Fieldset data-color="neutral" className="search-fieldset">
-        <Fieldset.Legend>
-          Søk etter dødsbo med partyid eller fødselsnummer
-        </Fieldset.Legend>
-        <Fieldset.Description>
-          Du kan søke etter dødsbo ved å bruke enten party ID eller
-          fødselsnummer. Velg ønsket søkemodus og skriv inn søketermen i feltet
-          under.
-        </Fieldset.Description>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSearch();
+        }}
+      >
+        <Fieldset data-color="neutral" className="search-fieldset">
+          <Fieldset.Legend>
+            Søk etter dødsbo med partyid eller fødselsnummer
+          </Fieldset.Legend>
+          <Fieldset.Description>
+            Du kan søke etter dødsbo ved å bruke enten party ID eller
+            fødselsnummer. Velg ønsket søkemodus og skriv inn søketermen i
+            feltet under.
+          </Fieldset.Description>
 
-        <Field>
-          <ToggleGroup
-            value={searchType}
-            defaultValue="partyid"
-            name="toggle-group-search"
-            onChange={setSearchType}
-          >
-            <ToggleGroup.Item value="partyid">
-              <RobotIcon aria-hidden /> Party ID
-            </ToggleGroup.Item>
-            <ToggleGroup.Item value="ssn">
-              <PersonIcon aria-hidden />
-              Fødselsnummer
-            </ToggleGroup.Item>
-          </ToggleGroup>
-        </Field>
+          <Field>
+            <ToggleGroup
+              value={searchType}
+              defaultValue="partyid"
+              name="toggle-group-search"
+              onChange={setSearchType}
+            >
+              <ToggleGroup.Item value="partyid">
+                <RobotIcon aria-hidden /> Party ID
+              </ToggleGroup.Item>
+              <ToggleGroup.Item value="ssn">
+                <PersonIcon aria-hidden />
+                Fødselsnummer
+              </ToggleGroup.Item>
+            </ToggleGroup>
+          </Field>
 
-        <Field>
-          <Search data-size="lg" className="search-field">
-            <Search.Input
-              aria-label="Søk"
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <Search.Clear />
-            <Search.Button onClick={() => handleSearch()} />
-          </Search>
-        </Field>
-      </Fieldset>
+          <Field>
+            <Search data-size="lg" className="search-field">
+              <Search.Input
+                aria-label="Søk"
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <Search.Clear />
+              <Search.Button />
+            </Search>
+          </Field>
+        </Fieldset>
+      </form>
 
       <section className="card-grid">
-        {data && data.estates.length > 0 && (
+        {data && data?.estates?.length > 0 && (
           <>
             <Heading
               level={2}
-              data-size="sm"
+              data-size="xs"
               style={{ paddingBottom: "var(--ds-size-2)" }}
             >
               Søkeresultater
