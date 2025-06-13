@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using oed_admin.Infrastructure.Database.Authz.Model;
+using oed_admin.Server.Infrastructure.Database.Authz.Model;
 
-namespace oed_admin.Infrastructure.Database.Authz;
+namespace oed_admin.Server.Infrastructure.Database.Authz;
 
 public class AuthzDbContext(DbContextOptions<AuthzDbContext> options) : DbContext(options)
 {

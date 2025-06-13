@@ -1,7 +1,7 @@
 using Azure.Monitor.OpenTelemetry.Exporter;
-using oed_admin.Features;
-using oed_admin.Infrastructure.Database.Authz;
-using oed_admin.Infrastructure.Database.Oed;
+using oed_admin.Server.Features;
+using oed_admin.Server.Infrastructure.Database.Authz;
+using oed_admin.Server.Infrastructure.Database.Oed;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;

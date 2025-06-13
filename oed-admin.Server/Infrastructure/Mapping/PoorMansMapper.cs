@@ -1,4 +1,4 @@
-﻿namespace oed_admin.Infrastructure.Mapping;
+﻿namespace oed_admin.Server.Infrastructure.Mapping;
 
 public static class PoorMansMapper
 {

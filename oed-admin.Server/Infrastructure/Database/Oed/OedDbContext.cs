@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using oed_admin.Infrastructure.Database.Oed.Model;
+using oed_admin.Server.Infrastructure.Database.Oed.Model;
 
-namespace oed_admin.Infrastructure.Database.Oed;
+namespace oed_admin.Server.Infrastructure.Database.Oed;
 
 public class OedDbContext(DbContextOptions<OedDbContext> options) : DbContext(options)
 {

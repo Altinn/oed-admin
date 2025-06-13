@@ -1,4 +1,4 @@
-﻿namespace oed_admin.Features;
+﻿namespace oed_admin.Server.Features;
 
 public static class Endpoints
 {

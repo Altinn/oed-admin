@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace oed_admin.Infrastructure.Database.Oed;
+namespace oed_admin.Server.Infrastructure.Database.Oed;
 
 public static class ServiceCollectionExtension
 {

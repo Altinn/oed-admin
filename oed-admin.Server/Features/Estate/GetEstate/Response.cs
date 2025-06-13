@@ -1,3 +1,3 @@
-﻿namespace oed_admin.Features.Estate.GetEstate;
+﻿namespace oed_admin.Server.Features.Estate.GetEstate;
 
 public record Response(EstateDto? Estate);

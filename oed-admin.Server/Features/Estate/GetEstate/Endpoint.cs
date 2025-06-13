@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using oed_admin.Infrastructure.Database.Oed;
-using oed_admin.Infrastructure.Mapping;
+using oed_admin.Server.Infrastructure.Database.Oed;
+using oed_admin.Server.Infrastructure.Mapping;
 
-namespace oed_admin.Features.Estate.GetEstate;
+namespace oed_admin.Server.Features.Estate.GetEstate;
 
 public static class Endpoint
 {

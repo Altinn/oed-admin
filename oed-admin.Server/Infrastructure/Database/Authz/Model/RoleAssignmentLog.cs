@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
 
-namespace oed_admin.Infrastructure.Database.Authz.Model;
+namespace oed_admin.Server.Infrastructure.Database.Authz.Model;
 
 public class RoleAssignmentLog
 {

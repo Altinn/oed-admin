@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using oed_admin.Infrastructure.Database.Authz;
-using oed_admin.Infrastructure.Database.Oed;
-using oed_admin.Infrastructure.Mapping;
+using oed_admin.Server.Infrastructure.Database.Authz;
+using oed_admin.Server.Infrastructure.Database.Oed;
+using oed_admin.Server.Infrastructure.Mapping;
 
-namespace oed_admin.Features.Estate.GetRoleAssignmentLog;
+namespace oed_admin.Server.Features.Estate.GetRoleAssignmentLog;
 
 public static class Endpoint
 {

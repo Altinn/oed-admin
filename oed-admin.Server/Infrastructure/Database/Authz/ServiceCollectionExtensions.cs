@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using oed_admin.Infrastructure.Database.Oed;
+using oed_admin.Server.Infrastructure.Database.Oed;
 
-namespace oed_admin.Infrastructure.Database.Authz;
+namespace oed_admin.Server.Infrastructure.Database.Authz;
 
 public static class ServiceCollectionExtension
 {

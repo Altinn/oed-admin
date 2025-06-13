@@ -1,4 +1,4 @@
-﻿namespace oed_admin.Features.Estate;
+﻿namespace oed_admin.Server.Features.Estate;
 
 
 public class EstateDto

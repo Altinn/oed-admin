@@ -1,4 +1,4 @@
-﻿namespace oed_admin.Features.Estate.Search;
+﻿namespace oed_admin.Server.Features.Estate.Search;
 
 public record Request(string? Nin, int? PartyId, string? Name, int? Page, int? PageSize)
 {

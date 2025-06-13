@@ -1,4 +1,4 @@
-﻿namespace oed_admin.Features.Estate.GetRoleAssignmentLog;
+﻿namespace oed_admin.Server.Features.Estate.GetRoleAssignmentLog;
 
 public class RoleAssignmentLogDto
 {
