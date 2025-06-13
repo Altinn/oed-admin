@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Field,
   Fieldset,
@@ -10,6 +10,7 @@ import EstateCard from "./estateCard";
 import { PersonIcon, RobotIcon } from "@navikt/aksel-icons";
 import { useMutation } from "@tanstack/react-query";
 import type { RequestBody, ResponseBody } from "../types/IEstate";
+
 
 
 const getEstateData = async (body: RequestBody) => {
