@@ -44,10 +44,15 @@ export default function Home() {
       PartyId: searchType === "partyid" ? parseInt(searchQuery) : undefined,
     };
 
-    const data: ResponseBody = await mutation.mutateAsync(body);
-    if (data) {
-      setData(data);
+    const result = await mutation.mutateAsync(body);
+    if (result) {
+      setData(result);
     }
+  };
+
+  const handleReset = () => {
+    setSearchQuery("");
+    setData(null);
   };
 
   return (
@@ -94,10 +99,12 @@ export default function Home() {
               <Search.Input
                 aria-label="Søk"
                 onChange={(e) => setSearchQuery(e.target.value)}
+                pattern="^[0-9]+$"
               />
-              <Search.Clear />
+              <Search.Clear onClick={handleReset} />
               <Search.Button />
             </Search>
+            {/* error on search input should give an validation msg */}
           </Field>
         </Fieldset>
       </form>

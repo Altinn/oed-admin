@@ -16,44 +16,52 @@ interface Props {
 
 export default function EstateCard({ estate }: Props) {
   const navigate = useNavigate();
+  const {
+    deceasedName,
+    dateOfDeath,
+    deceasedPartyId,
+    deceasedNin,
+    caseStatus,
+    id,
+  } = estate;
 
-  // temporary status colors mapping
+  // TODO: Use a more comprehensive mapping for case statuses
   const statusColors: Record<string, string> = {
-    Opprettet: "accent",
-    "Erklæring opprettet": "accent",
-    "Erklæring innsendt": "warning",
-    "Skifteattest mottatt": "success",
+    MOTTATT: "neutral",
+    FERDIGBEHANDLET: "success",
+    FEILFORT: "error",
+    ERKLÆRING_OPPRETTET: "warning",
+    ERKLÆRING_INNSENDT: "info",
   };
-  const statusColor = estate.caseStatus
-    ? statusColors[estate.caseStatus]
-    : "neutral";
+  const statusColor = caseStatus ? statusColors[caseStatus] : "neutral";
 
   const handleClick = () => {
-    navigate(`/deceased/${estate.deceasedPartyId}`);
+    navigate(`/estate/${id}`);
   };
 
   if (!estate) {
     return null;
   }
+
   return (
     <Card asChild data-color="neutral" className="deceased-card">
       <button type="button" onClick={handleClick}>
         <Card.Block>
-          <Tag data-color={statusColor}>{estate.caseStatus}</Tag>
-          <Heading>{estate.deceasedName}</Heading>
+          <Tag data-color={statusColor}>{caseStatus}</Tag>
+          <Heading>{deceasedName}</Heading>
           <Paragraph data-size="sm">
             <Label>Dødsdato: </Label>
-            {new Intl.DateTimeFormat("nb").format(new Date(estate.dateOfDeath))}
+            {new Intl.DateTimeFormat("nb").format(new Date(dateOfDeath))}
           </Paragraph>
         </Card.Block>
         <Card.Block>
-          <Paragraph className="flex-between tab-nums">
-            <Label>Party ID: </Label>
-            {estate.deceasedPartyId}
+          <Paragraph className="flex-between ">
+            <Label>Party ID</Label>
+            {deceasedPartyId}
           </Paragraph>
-          <Paragraph className="flex-between tab-nums">
-            <Label>SSN: </Label>
-            {estate.deceasedNin}
+          <Paragraph className="flex-between ">
+            <Label>SSN</Label>
+            {deceasedNin}
           </Paragraph>
         </Card.Block>
       </button>
