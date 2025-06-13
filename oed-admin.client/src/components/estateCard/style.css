@@ -1,0 +1,7 @@
+.deceased-card {
+  width: 100%;
+
+  .tab-nums:not(.ds-label) {
+    font-variant-numeric: tabular-nums;
+  }
+}

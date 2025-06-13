@@ -1,68 +1,99 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import "@digdir/designsystemet-theme";
+@import "@digdir/designsystemet-css";
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+html {
+  height: 100vh;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
+body,
+#root {
+  font-family: "Inter", sans-serif;
+  font-feature-settings: "cv05" 1;
+  height: 100%;
   margin: 0;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+span,
+a,
+label,
+input,
+textarea {
+  max-width: 70ch;
+}
+
+.header {
   display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--ds-size-10);
+  padding: var(--ds-size-5) var(--ds-size-10);
+  background-color: var(--ds-color-neutral-background-tinted);
+  .username {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-size-2);
   }
-  a:hover {
-    color: #747bff;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-5);
+}
+
+.flex-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-5);
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--ds-size-5);
+}
+
+.container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  text-align: left;
+  max-width: 1200px;
+  margin: 0 auto;
+  flex-direction: column;
+  gap: var(--ds-size-10);
+  padding: var(--ds-size-10);
+
+  .card-grid {
+    width: 100%;
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: var(--ds-size-10);
+    }
   }
-  button {
-    background-color: #f9f9f9;
+}
+
+@media screen and (max-width: 768px) {
+  .header {
+    padding: var(--ds-size-4);
+    gap: var(--ds-size-4);
+    position: relative;
+  }
+
+  .container {
+    padding: var(--ds-size-4);
   }
 }
