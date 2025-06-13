@@ -27,8 +27,8 @@ export default function EstateDetails() {
     queryFn: () => getEstateData(id),
     enabled: !!id, // Only run the query if id is available
   });
-  const { estate } = data;
-  const { deceasedName } = (estate as Estate) || {};
+
+  const { deceasedName } = (data?.estate as Estate) || {};
 
   return (
     <>
@@ -46,8 +46,8 @@ export default function EstateDetails() {
           Kunne ikke hente detaljer for dødsbo: {error.message}
         </Paragraph>
       )}
-      {!estate && <Paragraph>Ingen dødsbo funnet med ID: {id}</Paragraph>}
-      {estate && (
+      {!data?.estate && <Paragraph>Ingen dødsbo funnet med ID: {id}</Paragraph>}
+      {data?.estate && (
         <>
           <Heading level={1} data-size="xl">
             Dødsbo etter {deceasedName}
