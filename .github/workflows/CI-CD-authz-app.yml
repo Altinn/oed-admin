@@ -36,7 +36,7 @@ jobs:
       run: dotnet test -c Release --no-build --verbosity normal
 
     - name: Publish
-      run: dotnet publish ./src/oed-admin/oed-admin.csproj --no-build -c Release -o ./publish
+      run: dotnet publish ./oed-admin.Server/oed-admin.Server.csproj --no-build -c Release -o ./publish
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4

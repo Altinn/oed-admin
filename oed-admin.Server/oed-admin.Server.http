@@ -1,0 +1,6 @@
+@oed_admin.Server_HostAddress = http://localhost:5199
+
+GET {{oed_admin.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
