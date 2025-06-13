@@ -65,28 +65,28 @@ jobs:
         publish-profile: ${{ secrets.PUBLISH_PROFILE }}
         package: ./publish/
 
-  deploy-to-prod:
-    name: Deploy to Production Environment
-    needs: deploy-to-test
-    runs-on: ubuntu-latest
-    environment:
-      name: production
+  # deploy-to-prod:
+  #   name: Deploy to Production Environment
+  #   needs: deploy-to-test
+  #   runs-on: ubuntu-latest
+  #   environment:
+  #     name: production
 
-    steps:
-    - name: Await Manual Approval
-      if: ${{ github.ref == 'refs/heads/main' }}
-      run: |
-        echo "Waiting for manual approval"
-        echo "::pause::"
-    - name: Download Build Artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: published-artifacts
-        path: ./publish/
+  #   steps:
+  #   - name: Await Manual Approval
+  #     if: ${{ github.ref == 'refs/heads/main' }}
+  #     run: |
+  #       echo "Waiting for manual approval"
+  #       echo "::pause::"
+  #   - name: Download Build Artifacts
+  #     uses: actions/download-artifact@v4
+  #     with:
+  #       name: published-artifacts
+  #       path: ./publish/
 
-    - name: Deploy to Azure App Service Staging Slot
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: '${{ vars.APP_SERVICE_NAME}}'
-        publish-profile: ${{ secrets.PUBLISH_PROFILE }}
-        package: ./publish/
+  #   - name: Deploy to Azure App Service Staging Slot
+  #     uses: azure/webapps-deploy@v2
+  #     with:
+  #       app-name: '${{ vars.APP_SERVICE_NAME}}'
+  #       publish-profile: ${{ secrets.PUBLISH_PROFILE }}
+  #       package: ./publish/
