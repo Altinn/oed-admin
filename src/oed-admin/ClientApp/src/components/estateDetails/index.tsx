@@ -1,4 +1,11 @@
-import { Breadcrumbs, Heading, Paragraph } from "@digdir/designsystemet-react";
+import {
+  Breadcrumbs,
+  Divider,
+  Heading,
+  Label,
+  Paragraph,
+  Skeleton,
+} from "@digdir/designsystemet-react";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -28,7 +35,8 @@ export default function EstateDetails() {
     enabled: !!id, // Only run the query if id is available
   });
 
-  const { deceasedName } = (data?.estate as Estate) || {};
+  const { deceasedName, deceasedNin, deceasedPartyId, dateOfDeath } =
+    (data?.estate as Estate) || {};
 
   return (
     <>
@@ -40,13 +48,28 @@ export default function EstateDetails() {
         </Breadcrumbs.Link>
       </Breadcrumbs>
 
-      {isLoading && <Paragraph>Henter detaljer for dødsbo...</Paragraph>}
+      {isLoading && (
+        <>
+          <Heading data-size="xl">
+            <Skeleton variant="text" width={32} />
+          </Heading>
+          <Paragraph>
+            <Skeleton variant="text" width={320} />
+          </Paragraph>
+          <Paragraph>
+            <Skeleton variant="text" width={240} />
+          </Paragraph>
+        </>
+      )}
+
       {error && (
         <Paragraph>
           Kunne ikke hente detaljer for dødsbo: {error.message}
         </Paragraph>
       )}
-      {!data?.estate && <Paragraph>Ingen dødsbo funnet med ID: {id}</Paragraph>}
+      {data?.estate?.length === 0 && (
+        <Paragraph>Ingen dødsbo funnet med ID: {id}</Paragraph>
+      )}
       {data?.estate && (
         <>
           <Heading level={1} data-size="xl">
@@ -57,7 +80,37 @@ export default function EstateDetails() {
             også navigere tilbake til oversikten for å se andre dødsbo.
           </Paragraph>
 
-          <section></section>
+          <section>
+            <Heading
+              level={2}
+              data-size="md"
+              style={{ marginBottom: "var(--ds-size-2)" }}
+            >
+              Detaljer
+            </Heading>
+
+            <Divider />
+            <Paragraph className="flex-between ">
+              <Label>Party ID</Label>
+              {deceasedPartyId}
+            </Paragraph>
+            <Divider />
+            <Paragraph className="flex-between ">
+              <Label>Fødselsnummer</Label>
+              {deceasedNin}
+            </Paragraph>
+            <Divider />
+            <Paragraph className="flex-between ">
+              <Label>Navn</Label>
+              {deceasedName}
+            </Paragraph>
+            <Divider />
+            <Paragraph className="flex-between ">
+              <Label>Dato for dødsfall</Label>
+              {new Intl.DateTimeFormat("nb").format(new Date(dateOfDeath))}
+            </Paragraph>
+            <Divider />
+          </section>
         </>
       )}
     </>

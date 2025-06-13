@@ -13,7 +13,18 @@ body,
   margin: 0;
 }
 
-p, h1, h2, h3, h4, h5, h6, span, a, label, input, textarea {
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+span,
+a,
+label,
+input,
+textarea {
   max-width: 70ch;
 }
 
@@ -26,7 +37,7 @@ p, h1, h2, h3, h4, h5, h6, span, a, label, input, textarea {
   padding: var(--ds-size-5) var(--ds-size-10);
   background-color: var(--ds-color-neutral-background-tinted);
   .username {
-    display: flex ;
+    display: flex;
     align-items: center;
     gap: var(--ds-size-2);
   }
@@ -44,6 +55,12 @@ p, h1, h2, h3, h4, h5, h6, span, a, label, input, textarea {
   gap: var(--ds-size-5);
 }
 
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--ds-size-5);
+}
+
 .container {
   display: flex;
   justify-content: flex-start;
@@ -57,7 +74,6 @@ p, h1, h2, h3, h4, h5, h6, span, a, label, input, textarea {
 
   .card-grid {
     width: 100%;
-    
 
     ul {
       list-style: none;
