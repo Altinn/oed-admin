@@ -16,7 +16,11 @@ var app = builder.Build();
 app.UseDefaultFiles();
 app.MapStaticAssets();
 
-app.MapFeatureEndpoints();
+// Registrerer IKKE endepunktene i PROD før vi har validert auth i miljøet
+if (!app.Environment.IsProduction())
+{
+    app.MapFeatureEndpoints();
+}
 
 if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
 {
