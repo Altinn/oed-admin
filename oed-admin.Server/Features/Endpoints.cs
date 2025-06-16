@@ -19,6 +19,9 @@ public static class Endpoints
         group.MapGet("/{estateId:guid}/roleassignments", Estate.GetRoleAssignments.Endpoint.Get);
         group.MapGet("/{estateId:guid}/roleassignmentlog", Estate.GetRoleAssignmentLog.Endpoint.Get);
 
+        group.MapPost("/{estateId:guid}/superadmin", Estate.GrantSuperadmin.Endpoint.Post);
+        group.MapDelete("/{estateId:guid}/superadmin", Estate.RevokeSuperadmin.Endpoint.Delete);
+
         return group;
     }
 
