@@ -46,7 +46,6 @@ textarea {
 .flex-col {
   display: flex;
   flex-direction: column;
-  gap: var(--ds-size-5);
 }
 
 .flex-row {

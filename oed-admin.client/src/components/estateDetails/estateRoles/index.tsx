@@ -1,8 +1,7 @@
 import {
-  Heading,
-  Label,
-  Paragraph,
   Spinner,
+  Table,
+  Tag,
   ValidationMessage,
 } from "@digdir/designsystemet-react";
 import { useQuery } from "@tanstack/react-query";
@@ -41,6 +40,10 @@ export default function EstateRoles({ estateId }: Props) {
     },
   });
 
+  const formatRoleCode = (roleCode: string) => {
+    return roleCode.split(":").pop();
+  };
+
   if (isLoading) {
     return <Spinner data-size="md" aria-label="Henter roller" />;
   }
@@ -63,24 +66,28 @@ export default function EstateRoles({ estateId }: Props) {
 
   return (
     <>
-      <Heading
-        level={2}
-        data-size="sm"
-        style={{ marginBottom: "var(--ds-size-2)" }}
-      >
-        Roller
-      </Heading>
-
-      <ul>
-        {data.roleAssignments.map((role) => (
-          <li key={role.id}>
-            <Paragraph className="flex-between">
-              <Label>Rolle</Label>
-              {role.roleCode}
-            </Paragraph>
-          </li>
-        ))}
-      </ul>
+      <Table>
+        <Table.Head>
+          <Table.Row>
+            <Table.HeaderCell>SSN</Table.HeaderCell>
+            <Table.HeaderCell>Rolle</Table.HeaderCell>
+            <Table.HeaderCell>Opprettet</Table.HeaderCell>
+          </Table.Row>
+        </Table.Head>
+        <Table.Body>
+          {data.roleAssignments.map((role) => (
+            <Table.Row key={role.id}>
+              <Table.Cell>{role.recipientSsn}</Table.Cell>
+              <Table.Cell>
+                <Tag>{formatRoleCode(role.roleCode)}</Tag>
+              </Table.Cell>
+              <Table.Cell>
+                {new Intl.DateTimeFormat("nb").format(new Date(role.created))}
+              </Table.Cell>
+            </Table.Row>
+          ))}
+        </Table.Body>
+      </Table>
     </>
   );
 }

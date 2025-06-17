@@ -126,10 +126,10 @@ export default function EstateDetails() {
           )}
         </Tabs.Panel>
 
-        <Tabs.Panel value="roles">
+        <Tabs.Panel value="roles" id="tab-roles">
           <EstateRoles estateId={id} />
         </Tabs.Panel>
-        <Tabs.Panel value="events">
+        <Tabs.Panel value="events" id="tab-events">
           <EstateEvents />
         </Tabs.Panel>
       </Tabs>

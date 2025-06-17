@@ -1,7 +1,17 @@
-#tab-details {
+#tab-details, #tab-roles, #tab-events {
   width: 70ch;
   max-width: 100%;
 }
+
+#tab-roles {
+    ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+}
+
+
 
 /* mobile devices */
 @media screen and (max-width: 768px) {
