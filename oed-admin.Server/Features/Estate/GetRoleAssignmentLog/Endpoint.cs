@@ -9,22 +9,24 @@ namespace oed_admin.Server.Features.Estate.GetRoleAssignmentLog;
 public static class Endpoint
 {
     public static async Task<IResult> Get(
-            [AsParameters] Request request,
-            [FromServices] OedDbContext oedDbContext,
-            [FromServices] AuthzDbContext authzDbContext)
+        [AsParameters] Request request,
+        [FromServices] OedDbContext oedDbContext,
+        [FromServices] AuthzDbContext authzDbContext)
     {
         if (!request.IsValid())
             return TypedResults.BadRequest();
 
-        var estate = await oedDbContext.Estate
+        var estateSsn = await oedDbContext.Estate
             .AsNoTracking()
-            .SingleOrDefaultAsync(e => e.Id == request.EstateId);
+            .Where(e => e.Id == request.EstateId)
+            .Select(e => e.DeceasedNin)
+            .SingleOrDefaultAsync();
 
-        if (estate is null)
-            return TypedResults.Ok(new Response([]));
+        if (estateSsn is null)
+            return TypedResults.Ok(new Response(request.EstateId, []));
 
         var log = await authzDbContext.RoleAssignmentLog
-            .Where(ral => ral.EstateSsn == estate.DeceasedNin)
+            .Where(ral => ral.EstateSsn == estateSsn)
             .AsNoTracking()
             .ToListAsync();
 
@@ -32,6 +34,6 @@ public static class Endpoint
             .Select(PoorMansMapper.Map<Infrastructure.Database.Authz.Model.RoleAssignmentLog, RoleAssignmentLogDto>)
             .ToList();
 
-        return TypedResults.Ok(new Response(dtos!));
+        return TypedResults.Ok(new Response(request.EstateId, dtos!));
     }
 }
