@@ -6,7 +6,7 @@ import {
   Heading,
   Label,
   Paragraph,
-  Spinner,
+  Skeleton,
   Tabs,
   ValidationMessage,
 } from "@digdir/designsystemet-react";
@@ -76,7 +76,7 @@ export default function EstateDetails() {
         </Tabs.List>
 
         <Tabs.Panel value="details" id="tab-details">
-          {isLoading && <Spinner data-size="md" aria-label="Henter roller" />}
+          {isLoading && <Skeleton aria-label="Henter roller" />}
 
           {error && (
             <ValidationMessage>

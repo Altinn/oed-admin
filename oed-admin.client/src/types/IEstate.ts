@@ -35,3 +35,25 @@ export interface Estate {
   declarationSubmitted?: string; // ISO date string
   probateIssued?: string; // ISO date string
 }
+
+export interface RoleAssignment {
+  id: number;
+  roleCode: string;
+  estateSsn: string;
+  heirSsn?: string;
+  recipientSsn: string;
+  created: string;
+  justification?: string;
+}
+
+export interface RoleAssignmentLog extends RoleAssignment {
+  action: "GRANT" | "REVOKE";
+}
+
+export interface RoleAssignmentsResponse {
+  roleAssignments: RoleAssignment[];
+}
+
+export interface RoleAssignmentLogResponse {
+  roleAssignmentLog: RoleAssignmentLog[];
+}
