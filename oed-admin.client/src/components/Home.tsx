@@ -4,14 +4,13 @@ import {
   Fieldset,
   Heading,
   Search,
+  Skeleton,
   ToggleGroup,
 } from "@digdir/designsystemet-react";
 import EstateCard from "./estateCard";
 import { PersonIcon, RobotIcon } from "@navikt/aksel-icons";
 import { useMutation } from "@tanstack/react-query";
 import type { RequestBody, ResponseBody } from "../types/IEstate";
-
-
 
 const getEstateData = async (body: RequestBody) => {
   try {
@@ -24,9 +23,9 @@ const getEstateData = async (body: RequestBody) => {
     });
 
     if (!response.ok) {
-      console.error("Error fetching estate data:");
-      return null;
+      throw new Error("noe gikk galt");
     }
+
     return response.json();
   } catch (error) {
     console.error("Error fetching estate data:", error);
@@ -38,7 +37,10 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [data, setData] = useState<ResponseBody | null>(null);
 
-  const mutation = useMutation({ mutationFn: getEstateData });
+  const mutation = useMutation({
+    mutationKey: ["estates"],
+    mutationFn: getEstateData,
+  });
 
   const handleSearch = async () => {
     const body: RequestBody = {
@@ -106,12 +108,29 @@ export default function Home() {
               <Search.Clear onClick={handleReset} />
               <Search.Button />
             </Search>
-            {/* error on search input should give an validation msg */}
           </Field>
         </Fieldset>
       </form>
 
       <section className="card-grid">
+        {mutation.isPending && (
+          <>
+            <Heading
+              data-size="xs"
+              style={{ marginBottom: "var(--ds-size-4)" }}
+            >
+              <Skeleton variant="text" width={30} />
+            </Heading>
+            <ul>
+              {Array.from({ length: 3 }).map((_, index) => (
+                <li key={index}>
+                  <Skeleton variant="rectangle" height={240} />
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+
         {data && data?.estates?.length > 0 && (
           <>
             <Heading

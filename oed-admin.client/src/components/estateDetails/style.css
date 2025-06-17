@@ -1,0 +1,11 @@
+#tab-details {
+  width: 70ch;
+  max-width: 100%;
+}
+
+/* mobile devices */
+@media screen and (max-width: 768px) {
+  #tab-details {
+    width: 100%;
+  }
+}
