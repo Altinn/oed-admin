@@ -73,7 +73,7 @@ export default function RoleLogTable({ estateId }: Props) {
                 <Tag>{formatRoleCode(log.roleCode)}</Tag>
               </Table.Cell>
               <Table.Cell>{log.action}</Table.Cell>
-              <Table.Cell>{formatDate(log.created)}</Table.Cell>
+              <Table.Cell>{formatDate(log.timestamp)}</Table.Cell>
               <Table.Cell>{log.justification || "-"}</Table.Cell>
             </Table.Row>
           ))}

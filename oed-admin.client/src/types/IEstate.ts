@@ -46,8 +46,10 @@ export interface RoleAssignment {
   justification?: string;
 }
 
+
 export interface RoleAssignmentLog extends RoleAssignment {
   action: "GRANT" | "REVOKE";
+  timestamp: string; 
 }
 
 export interface RoleAssignmentsResponse {
