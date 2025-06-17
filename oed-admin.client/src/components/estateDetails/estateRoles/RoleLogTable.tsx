@@ -13,6 +13,7 @@ import type {
 import { useQuery } from "@tanstack/react-query";
 import { formatDateTime, formatRoleCode } from "../../../utils/formatters";
 import { useState } from "react";
+import { CheckmarkCircleIcon, CircleSlashIcon } from "@navikt/aksel-icons";
 
 interface Props {
   estateId: string;
@@ -24,7 +25,7 @@ export default function RoleLogTable({ estateId }: Props) {
   );
   const [sortDirection, setSortDirection] =
     useState<TableHeaderCellProps["sort"]>(undefined);
-    
+
   const { data, isLoading, error } = useQuery<RoleAssignmentLogResponse>({
     queryKey: ["estateRolesLog", estateId],
     queryFn: async () => {
@@ -85,7 +86,7 @@ export default function RoleLogTable({ estateId }: Props) {
         data-size="sm"
         style={{ marginTop: "var(--ds-size-3)" }}
       >
-        Rollehistorikk
+        Historikk
       </Heading>
 
       <Table>
@@ -98,7 +99,7 @@ export default function RoleLogTable({ estateId }: Props) {
               sort={sortField === "timestamp" ? sortDirection : "none"}
               onClick={() => handleSort("timestamp")}
             >
-              Opprettet
+              Tidspunkt
             </Table.HeaderCell>
             <Table.HeaderCell>Begrunnelse</Table.HeaderCell>
           </Table.Row>
@@ -112,6 +113,16 @@ export default function RoleLogTable({ estateId }: Props) {
               </Table.Cell>
               <Table.Cell>
                 <Tag data-color={log.action === "GRANT" ? "success" : "danger"}>
+                  {log.action === "GRANT" ? (
+                    <CheckmarkCircleIcon
+                      style={{ paddingRight: "var(--ds-size-1)" }}
+                    />
+                  ) : (
+                    <CircleSlashIcon
+                      style={{ paddingRight: "var(--ds-size-1)" }}
+                    />
+                  )}
+
                   {log.action}
                 </Tag>
               </Table.Cell>
