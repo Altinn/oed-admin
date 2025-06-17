@@ -5,7 +5,7 @@ public static class Endpoints
     public static void MapFeatureEndpoints(this WebApplication app)
     {
         app.MapEstateEndpoints();
-        app.MapInstanceEndpoints();
+        app.MapTaskEndpoints();
     }
 
     public static RouteGroupBuilder MapEstateEndpoints(this WebApplication app)
@@ -27,13 +27,12 @@ public static class Endpoints
         return group;
     }
 
-    public static RouteGroupBuilder MapInstanceEndpoints(this WebApplication app)
+    public static RouteGroupBuilder MapTaskEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/api/instance");
+        var group = app.MapGroup("/api/tasks");
         //.RequireAuthorization();
 
-        //group.MapGet("/{instanceOwnerPartyId:int}/{instanceGuid:guid}", Instance.GetInstance.Endpoint.Get);
-        //group.MapGet("/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid}", Instance.GetInstanceData.Endpoint.Get);
+        group.MapGet("/", Tasks.GetTasks.Endpoint.Get);
 
         return group;
     }

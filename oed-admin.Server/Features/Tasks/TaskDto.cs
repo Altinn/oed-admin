@@ -1,21 +1,19 @@
-﻿using System.Reflection.Metadata.Ecma335;
-using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Mvc.Filters;
+﻿using System.Text.Json.Serialization;
 
-namespace oed_admin.Server.Features.Estate.GetTasks;
+namespace oed_admin.Server.Features.Tasks;
 
 public class TaskDto
 {
     public Guid Id { get; set; }
-    public string Type { get; set; }
-    public string JsonPayload { get; set; }
-    public DateTimeOffset Created { get; set; }
+    public required string Type { get; set; }
+    public string? JsonPayload { get; set; }
+    public required DateTimeOffset Created { get; set; }
     public DateTimeOffset? Scheduled { get; set; }
     public DateTimeOffset? Executed { get; set; }
     public DateTimeOffset? LastAttempt { get; set; }
-    public string LastError { get; set; }
+    public string? LastError { get; set; }
     public int Attempts { get; set; }
-    public string EstateSsn { get; set; }
+    public string? EstateSsn { get; set; }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public TaskStatus Status

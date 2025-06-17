@@ -6,15 +6,15 @@ namespace oed_admin.Server.Infrastructure.Database.Oed.Model;
 public class TaskQueueItem
 {
     public Guid Id { get; set; }
-    public string Type { get; set; }
-    public string JsonPayload { get; set; }
-    public DateTimeOffset Created { get; set; }
+    public required string Type { get; set; }
+    public string? JsonPayload { get; set; }
+    public required DateTimeOffset Created { get; set; }
     public DateTimeOffset? Scheduled { get; set; }
     public DateTimeOffset? Executed { get; set; }
     public DateTimeOffset? LastAttempt { get; set; }
-    public string LastError { get; set; }
+    public string? LastError { get; set; }
     public int Attempts { get; set; }
-    public string EstateSsn { get; set; }
+    public string? EstateSsn { get; set; }
 }
 
 public class TaskQueueItemConfiguration : IEntityTypeConfiguration<TaskQueueItem>
