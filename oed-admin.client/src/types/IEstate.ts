@@ -40,16 +40,15 @@ export interface RoleAssignment {
   id: number;
   roleCode: string;
   estateSsn: string;
-  heirSsn?: string;
+  heirSsn?: string | null;
   recipientSsn: string;
-  created: string;
-  justification?: string;
+  created?: string;
+  justification?: string | null;
 }
-
 
 export interface RoleAssignmentLog extends RoleAssignment {
   action: "GRANT" | "REVOKE";
-  timestamp: string; 
+  timestamp: string;
 }
 
 export interface RoleAssignmentsResponse {

@@ -6,7 +6,7 @@ import {
 } from "@digdir/designsystemet-react";
 import { useQuery } from "@tanstack/react-query";
 import type { RoleAssignmentsResponse } from "../../../types/IEstate";
-import { formatDate, formatRoleCode } from "../../../utils/formatters";
+import { formatDateTime, formatRoleCode } from "../../../utils/formatters";
 
 interface Props {
   estateId: string;
@@ -60,7 +60,9 @@ export default function RoleTable({ estateId }: Props) {
             <Table.Cell>
               <Tag>{formatRoleCode(role.roleCode)}</Tag>
             </Table.Cell>
-            <Table.Cell>{formatDate(role.created)}</Table.Cell>
+            <Table.Cell>
+              {role.created ? formatDateTime(role.created) : "-"}
+            </Table.Cell>
           </Table.Row>
         ))}
       </Table.Body>

@@ -4,16 +4,27 @@ import {
   Table,
   Tag,
   Skeleton,
+  type TableHeaderCellProps,
 } from "@digdir/designsystemet-react";
-import type { RoleAssignmentLogResponse } from "../../../types/IEstate";
+import type {
+  RoleAssignmentLog,
+  RoleAssignmentLogResponse,
+} from "../../../types/IEstate";
 import { useQuery } from "@tanstack/react-query";
-import { formatDate, formatRoleCode } from "../../../utils/formatters";
+import { formatDateTime, formatRoleCode } from "../../../utils/formatters";
+import { useState } from "react";
 
 interface Props {
   estateId: string;
 }
 
 export default function RoleLogTable({ estateId }: Props) {
+  const [sortField, setSortField] = useState<keyof RoleAssignmentLog | null>(
+    "timestamp"
+  );
+  const [sortDirection, setSortDirection] =
+    useState<TableHeaderCellProps["sort"]>(undefined);
+    
   const { data, isLoading, error } = useQuery<RoleAssignmentLogResponse>({
     queryKey: ["estateRolesLog", estateId],
     queryFn: async () => {
@@ -25,6 +36,28 @@ export default function RoleLogTable({ estateId }: Props) {
     },
   });
 
+  const handleSort = (field: keyof RoleAssignmentLog) => {
+    if (sortField === field && sortDirection === "descending") {
+      setSortField(null);
+      setSortDirection(undefined);
+    } else {
+      setSortField(field);
+      setSortDirection(
+        sortField === field && sortDirection === "ascending"
+          ? "descending"
+          : "ascending"
+      );
+    }
+  };
+  const sortedData = [...(data?.roleAssignmentLog || [])].sort((a, b) => {
+    if (sortField === null) return 0;
+    const aValue = a[sortField] ?? "";
+    const bValue = b[sortField] ?? "";
+    if (aValue < bValue) return sortDirection === "ascending" ? -1 : 1;
+    if (aValue > bValue) return sortDirection === "ascending" ? 1 : -1;
+    return 0;
+  });
+
   if (isLoading) {
     return <Skeleton aria-label="Henter roller" />;
   }
@@ -32,7 +65,7 @@ export default function RoleLogTable({ estateId }: Props) {
   if (error) {
     return (
       <ValidationMessage>
-        Det oppstod en feil under henting av rollehistorikk: {error.message}
+        Det oppstod en feil under henting av rollehistorikk: {error?.message}
       </ValidationMessage>
     );
   }
@@ -61,19 +94,28 @@ export default function RoleLogTable({ estateId }: Props) {
             <Table.HeaderCell>SSN</Table.HeaderCell>
             <Table.HeaderCell>Rolle</Table.HeaderCell>
             <Table.HeaderCell>Handling</Table.HeaderCell>
-            <Table.HeaderCell>Opprettet</Table.HeaderCell>
+            <Table.HeaderCell
+              sort={sortField === "timestamp" ? sortDirection : "none"}
+              onClick={() => handleSort("timestamp")}
+            >
+              Opprettet
+            </Table.HeaderCell>
             <Table.HeaderCell>Begrunnelse</Table.HeaderCell>
           </Table.Row>
         </Table.Head>
         <Table.Body>
-          {data.roleAssignmentLog.map((log) => (
+          {sortedData.map((log) => (
             <Table.Row key={log.id}>
               <Table.Cell>{log.recipientSsn}</Table.Cell>
               <Table.Cell>
                 <Tag>{formatRoleCode(log.roleCode)}</Tag>
               </Table.Cell>
-              <Table.Cell>{log.action}</Table.Cell>
-              <Table.Cell>{formatDate(log.timestamp)}</Table.Cell>
+              <Table.Cell>
+                <Tag data-color={log.action === "GRANT" ? "success" : "danger"}>
+                  {log.action}
+                </Tag>
+              </Table.Cell>
+              <Table.Cell>{formatDateTime(log.timestamp)}</Table.Cell>
               <Table.Cell>{log.justification || "-"}</Table.Cell>
             </Table.Row>
           ))}
