@@ -5,7 +5,7 @@
   max-width: 100%;
 }
 
-#tab-roles {
+#tab-roles, #tab-super-admin {
   display: flex;
   flex-direction: column;
   gap: var(--ds-size-5);

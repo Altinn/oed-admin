@@ -10,16 +10,17 @@ import {
   Tabs,
   ValidationMessage,
 } from "@digdir/designsystemet-react";
-/* import type { Estate } from "../../types/IEstate"; */
 import {
   EnvelopeClosedIcon,
   InformationSquareIcon,
+  KeyVerticalIcon,
   ShieldCheckmarkIcon,
 } from "@navikt/aksel-icons";
 import "./style.css";
 import EstateRoles from "./estateRoles";
 import EstateEvents from "./estateEvents";
 import type { Estate } from "../../types/IEstate";
+import SuperAdmin from "./superAdmin";
 
 interface EstateDetailsResponse {
   estate: Estate;
@@ -72,6 +73,10 @@ export default function EstateDetails() {
           <Tabs.Tab value="events">
             <EnvelopeClosedIcon />
             Eventer
+          </Tabs.Tab>
+          <Tabs.Tab value="super-admin">
+            <KeyVerticalIcon />
+            Super-admin
           </Tabs.Tab>
         </Tabs.List>
 
@@ -131,6 +136,9 @@ export default function EstateDetails() {
         </Tabs.Panel>
         <Tabs.Panel value="events" id="tab-events">
           <EstateEvents />
+        </Tabs.Panel>
+        <Tabs.Panel value="super-admin" id="tab-super-admin">
+          <SuperAdmin estateId={id} />
         </Tabs.Panel>
       </Tabs>
     </>
