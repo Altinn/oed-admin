@@ -12,9 +12,19 @@ import {
 } from "@digdir/designsystemet-react";
 import RoleTable from "../estateRoles/RoleTable";
 import { EnterIcon, LeaveIcon } from "@navikt/aksel-icons";
+import { useMutation } from "@tanstack/react-query";
 
 interface Props {
   estateId: string;
+}
+
+type Method = "POST" | "DELETE";
+
+interface SuperadminPayload {
+  estateId: string;
+  ssn?: string;
+  justification?: string;
+  method: Method;
 }
 
 export default function SuperAdmin({ estateId }: Props) {
@@ -22,6 +32,69 @@ export default function SuperAdmin({ estateId }: Props) {
   const [justification, setJustification] = React.useState<string>("");
   const [isValid, setIsValid] = React.useState<boolean>(true);
   const [popoverOpen, setPopoverOpen] = React.useState<boolean>(false);
+
+  const isFormValid = isValid && ssn && justification;
+
+  const superadminMutationFn = async ({
+    estateId,
+    ssn,
+    justification,
+    method,
+  }: SuperadminPayload) => {
+    const response = await fetch(`/api/estate/${estateId}/superadmin`, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body:
+        method === "POST" ? JSON.stringify({ ssn, justification }) : undefined,
+    });
+
+    if (!response.ok) {
+      const errorMessage =
+        method === "POST"
+          ? "Failed to give admin access"
+          : "Failed to remove admin access";
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  };
+
+  const addMutation = useMutation({
+    mutationKey: ["add-superadmin", ssn],
+    mutationFn: () =>
+      superadminMutationFn({
+        estateId,
+        ssn,
+        justification,
+        method: "POST",
+      }),
+    onSuccess: () => {
+      setSsn("");
+      setJustification("");
+      setPopoverOpen(false);
+    },
+    onError: (error) => {
+      console.error("Error granting admin access:", error);
+    },
+  });
+
+  const removeMutation = useMutation({
+    mutationKey: ["remove-superadmin", estateId],
+    mutationFn: () =>
+      superadminMutationFn({
+        estateId,
+        method: "DELETE",
+      }),
+    onSuccess: () => {
+      setSsn("");
+      setJustification("");
+    },
+    onError: (error) => {
+      console.error("Error removing admin access:", error);
+    },
+  });
 
   const validateSsn = (ssn: string): boolean => {
     const ssnPattern = /^[0-9]{11}$/;
@@ -34,16 +107,16 @@ export default function SuperAdmin({ estateId }: Props) {
       console.error("Form is invalid");
       return;
     }
-    console.log("Giving admin access for SSN:", ssn);
-  };
 
-  const handleRemoveAdminAccess = () => {
-    console.log("Removing admin access for SSN:", ssn);
+    addMutation.mutate();
+    setPopoverOpen(false);
     setSsn("");
     setJustification("");
   };
 
-  const isFormValid = isValid && ssn && justification;
+  const handleRemove = () => {
+    removeMutation.mutate();
+  };
 
   return (
     <>
@@ -79,7 +152,6 @@ export default function SuperAdmin({ estateId }: Props) {
           <div className="flex-row" style={{ marginTop: "var(--ds-size-8)" }}>
             <Popover.TriggerContext>
               <Popover.Trigger
-                type="submit"
                 disabled={!isFormValid}
                 aria-label="Gi tilgang"
                 onClick={() => setPopoverOpen(true)}
@@ -102,7 +174,9 @@ export default function SuperAdmin({ estateId }: Props) {
                   }}
                   className="flex-row"
                 >
-                  <Button data-size="sm">Ja, gi tilgang</Button>
+                  <Button data-size="sm" type="submit">
+                    Ja, gi tilgang
+                  </Button>
                   <Button
                     data-size="sm"
                     variant="tertiary"
@@ -113,7 +187,7 @@ export default function SuperAdmin({ estateId }: Props) {
                 </div>
               </Popover>
             </Popover.TriggerContext>
-            <Button variant="secondary" onClick={handleRemoveAdminAccess}>
+            <Button variant="secondary" onClick={handleRemove}>
               <LeaveIcon />
               Fjern tilgang
             </Button>
