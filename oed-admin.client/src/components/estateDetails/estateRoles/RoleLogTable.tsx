@@ -92,21 +92,38 @@ export default function RoleLogTable({ estateId }: Props) {
       <Table>
         <Table.Head>
           <Table.Row>
-            <Table.HeaderCell>SSN</Table.HeaderCell>
-            <Table.HeaderCell>Rolle</Table.HeaderCell>
-            <Table.HeaderCell>Handling</Table.HeaderCell>
             <Table.HeaderCell
               sort={sortField === "timestamp" ? sortDirection : "none"}
               onClick={() => handleSort("timestamp")}
             >
               Tidspunkt
             </Table.HeaderCell>
+            <Table.HeaderCell>SSN</Table.HeaderCell>
+            <Table.HeaderCell>Rolle</Table.HeaderCell>
             <Table.HeaderCell>Begrunnelse</Table.HeaderCell>
           </Table.Row>
         </Table.Head>
         <Table.Body>
           {sortedData.map((log) => (
             <Table.Row key={log.id}>
+              <Table.Cell>
+                <div className="flex-row">
+                  {log.action === "GRANT" ? (
+                    <EnterIcon
+                      color="var(--ds-color-success-base-default)"
+                      fontSize={"var(--ds-font-size-6)"}
+                      aria-label="Tilgang gitt"
+                    />
+                  ) : (
+                    <LeaveIcon
+                      color="var(--ds-color-danger-base-default)"
+                      fontSize={"var(--ds-font-size-6)"}
+                      aria-label="Tilgang fjernet"
+                    />
+                  )}
+                  {formatDateTime(log.timestamp)}
+                </div>
+              </Table.Cell>
               <Table.Cell>{log.recipientSsn}</Table.Cell>
               <Table.Cell>
                 <Tag
@@ -119,18 +136,7 @@ export default function RoleLogTable({ estateId }: Props) {
                   {formatRoleCode(log.roleCode)}
                 </Tag>
               </Table.Cell>
-              <Table.Cell>
-                <Tag data-color={log.action === "GRANT" ? "success" : "danger"}>
-                  {log.action === "GRANT" ? (
-                    <EnterIcon style={{ paddingRight: "var(--ds-size-1)" }} />
-                  ) : (
-                    <LeaveIcon style={{ paddingRight: "var(--ds-size-1)" }} />
-                  )}
 
-                  {log.action}
-                </Tag>
-              </Table.Cell>
-              <Table.Cell>{formatDateTime(log.timestamp)}</Table.Cell>
               <Table.Cell>{log.justification || "-"}</Table.Cell>
             </Table.Row>
           ))}
