@@ -33,6 +33,8 @@ public static class Endpoints
         //.RequireAuthorization();
 
         group.MapGet("/", Tasks.GetTasks.Endpoint.Get);
+        group.MapPatch("/{taskId:guid}", Tasks.PatchTask.Endpoint.Patch);
+
 
         return group;
     }
