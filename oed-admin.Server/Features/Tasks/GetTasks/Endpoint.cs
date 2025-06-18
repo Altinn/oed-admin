@@ -23,7 +23,7 @@ public static class Endpoint
         {
             TaskStatus.DeadLetterQueue =>
                 query.Where(tqi =>
-                    tqi.Executed != null &&
+                    tqi.Executed == null &&
                     (tqi.Scheduled == null ||
                     tqi.Attempts >= 10)),
             TaskStatus.Executed =>
