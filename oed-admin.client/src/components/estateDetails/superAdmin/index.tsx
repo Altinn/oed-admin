@@ -110,17 +110,19 @@ export default function SuperAdmin({ estateId }: Props) {
     }
 
     addMutation.mutate();
-    setPopoverOpen(false);
-    setNin("");
-    setJustification("");
-
     queryClient.invalidateQueries({
       queryKey: ["estateRoles", estateId],
     });
+    setPopoverOpen(false);
+    setNin("");
+    setJustification("");
   };
 
   const handleRemove = () => {
     removeMutation.mutate();
+    queryClient.invalidateQueries({
+      queryKey: ["estateRoles", estateId],
+    });
   };
 
   return (
