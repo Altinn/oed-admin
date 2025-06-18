@@ -58,7 +58,6 @@ export default function SuperAdmin({ estateId }: Props) {
           : "Failed to remove admin access";
       throw new Error(errorMessage);
     }
-
     return response.json();
   };
 
@@ -75,6 +74,9 @@ export default function SuperAdmin({ estateId }: Props) {
       setNin("");
       setJustification("");
       setPopoverOpen(false);
+      queryClient.invalidateQueries({
+        queryKey: ["estateRoles", estateId],
+      });
     },
     onError: (error) => {
       console.error("Error granting admin access:", error);
@@ -91,6 +93,9 @@ export default function SuperAdmin({ estateId }: Props) {
     onSuccess: () => {
       setNin("");
       setJustification("");
+      queryClient.invalidateQueries({
+        queryKey: ["estateRoles", estateId],
+      });
     },
     onError: (error) => {
       console.error("Error removing admin access:", error);
@@ -108,21 +113,11 @@ export default function SuperAdmin({ estateId }: Props) {
       console.error("Form is invalid");
       return;
     }
-
     addMutation.mutate();
-    queryClient.invalidateQueries({
-      queryKey: ["estateRoles", estateId],
-    });
-    setPopoverOpen(false);
-    setNin("");
-    setJustification("");
   };
 
   const handleRemove = () => {
     removeMutation.mutate();
-    queryClient.invalidateQueries({
-      queryKey: ["estateRoles", estateId],
-    });
   };
 
   return (
