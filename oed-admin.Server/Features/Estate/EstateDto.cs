@@ -1,4 +1,6 @@
-﻿namespace oed_admin.Server.Features.Estate;
+﻿using System.Text.Json.Serialization;
+
+namespace oed_admin.Server.Features.Estate;
 
 
 public class EstateDto
@@ -24,4 +26,28 @@ public class EstateDto
     public DateTimeOffset? DelarationCreated { get; set; }
     public DateTimeOffset? DeclarationSubmitted { get; set; }
     public DateTimeOffset? ProbateIssued { get; set; }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public EstateStatus Status
+    {
+        get
+        {
+            if (ProbateIssued is null) return EstateStatus.ProbateIssued;
+            if (DeclarationSubmitted is not null) return EstateStatus.DeclarationSubmitted;
+            if (DelarationCreated is not null) return EstateStatus.DeclarationCreated;
+            if (FirstHeirReceived is not null) return EstateStatus.FirstHeirReceived;
+
+            return EstateStatus.Created;
+        }
+    }
+}
+
+public enum EstateStatus
+{
+    Unknown = 0,
+    Created,
+    FirstHeirReceived,
+    DeclarationCreated,
+    DeclarationSubmitted,
+    ProbateIssued,
 }
