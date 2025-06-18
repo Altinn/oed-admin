@@ -109,7 +109,15 @@ export default function RoleLogTable({ estateId }: Props) {
             <Table.Row key={log.id}>
               <Table.Cell>{log.recipientSsn}</Table.Cell>
               <Table.Cell>
-                <Tag>{formatRoleCode(log.roleCode)}</Tag>
+                <Tag
+                  data-color={
+                    formatRoleCode(log.roleCode) === "superadmin"
+                      ? "brand1"
+                      : "accent"
+                  }
+                >
+                  {formatRoleCode(log.roleCode)}
+                </Tag>
               </Table.Cell>
               <Table.Cell>
                 <Tag data-color={log.action === "GRANT" ? "success" : "danger"}>
