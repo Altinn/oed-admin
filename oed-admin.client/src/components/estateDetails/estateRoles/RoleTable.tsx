@@ -58,7 +58,15 @@ export default function RoleTable({ estateId }: Props) {
           <Table.Row key={role.id}>
             <Table.Cell>{role.recipientSsn}</Table.Cell>
             <Table.Cell>
-              <Tag>{formatRoleCode(role.roleCode)}</Tag>
+              <Tag
+                data-color={
+                  formatRoleCode(role.roleCode) === "superadmin"
+                    ? "brand1"
+                    : "accent"
+                }
+              >
+                {formatRoleCode(role.roleCode)}
+              </Tag>
             </Table.Cell>
             <Table.Cell>
               {role.created ? formatDateTime(role.created) : "-"}

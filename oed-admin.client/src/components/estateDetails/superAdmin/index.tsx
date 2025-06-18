@@ -12,7 +12,7 @@ import {
 } from "@digdir/designsystemet-react";
 import RoleTable from "../estateRoles/RoleTable";
 import { EnterIcon, LeaveIcon } from "@navikt/aksel-icons";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface Props {
   estateId: string;
@@ -28,6 +28,7 @@ interface SuperadminPayload {
 }
 
 export default function SuperAdmin({ estateId }: Props) {
+  const queryClient = useQueryClient();
   const [nin, setNin] = React.useState<string>("");
   const [justification, setJustification] = React.useState<string>("");
   const [isValid, setIsValid] = React.useState<boolean>(true);
@@ -112,6 +113,10 @@ export default function SuperAdmin({ estateId }: Props) {
     setPopoverOpen(false);
     setNin("");
     setJustification("");
+
+    queryClient.invalidateQueries({
+      queryKey: ["estateRoles", estateId],
+    });
   };
 
   const handleRemove = () => {
