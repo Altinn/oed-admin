@@ -22,22 +22,22 @@ type Method = "POST" | "DELETE";
 
 interface SuperadminPayload {
   estateId: string;
-  ssn?: string;
+  nin?: string;
   justification?: string;
   method: Method;
 }
 
 export default function SuperAdmin({ estateId }: Props) {
-  const [ssn, setSsn] = React.useState<string>("");
+  const [nin, setNin] = React.useState<string>("");
   const [justification, setJustification] = React.useState<string>("");
   const [isValid, setIsValid] = React.useState<boolean>(true);
   const [popoverOpen, setPopoverOpen] = React.useState<boolean>(false);
 
-  const isFormValid = isValid && ssn && justification;
+  const isFormValid = isValid && nin && justification;
 
   const superadminMutationFn = async ({
     estateId,
-    ssn,
+    nin,
     justification,
     method,
   }: SuperadminPayload) => {
@@ -47,7 +47,7 @@ export default function SuperAdmin({ estateId }: Props) {
         "Content-Type": "application/json",
       },
       body:
-        method === "POST" ? JSON.stringify({ ssn, justification }) : undefined,
+        method === "POST" ? JSON.stringify({ nin, justification }) : undefined,
     });
 
     if (!response.ok) {
@@ -62,16 +62,16 @@ export default function SuperAdmin({ estateId }: Props) {
   };
 
   const addMutation = useMutation({
-    mutationKey: ["add-superadmin", ssn],
+    mutationKey: ["add-superadmin", nin],
     mutationFn: () =>
       superadminMutationFn({
         estateId,
-        ssn,
+        nin: nin,
         justification,
         method: "POST",
       }),
     onSuccess: () => {
-      setSsn("");
+      setNin("");
       setJustification("");
       setPopoverOpen(false);
     },
@@ -88,7 +88,7 @@ export default function SuperAdmin({ estateId }: Props) {
         method: "DELETE",
       }),
     onSuccess: () => {
-      setSsn("");
+      setNin("");
       setJustification("");
     },
     onError: (error) => {
@@ -96,9 +96,9 @@ export default function SuperAdmin({ estateId }: Props) {
     },
   });
 
-  const validateSsn = (ssn: string): boolean => {
-    const ssnPattern = /^[0-9]{11}$/;
-    return ssnPattern.test(ssn);
+  const validateNin = (nin: string): boolean => {
+    const ninPattern = /^[0-9]{11}$/;
+    return ninPattern.test(nin);
   };
 
   const handleSubmit = (event: React.FormEvent) => {
@@ -110,7 +110,7 @@ export default function SuperAdmin({ estateId }: Props) {
 
     addMutation.mutate();
     setPopoverOpen(false);
-    setSsn("");
+    setNin("");
     setJustification("");
   };
 
@@ -132,13 +132,13 @@ export default function SuperAdmin({ estateId }: Props) {
           </Fieldset.Description>
           <Textfield
             label="Fødselsnummer"
-            onChange={(e) => setSsn(e.target.value)}
-            onBlur={(e) => setIsValid(validateSsn(e.target.value))}
-            value={ssn}
+            onChange={(e) => setNin(e.target.value)}
+            onBlur={(e) => setIsValid(validateNin(e.target.value))}
+            value={nin}
             required
             size={11}
             error={
-              !isValid && ssn ? "Fødselsnummeret må være 11 siffer." : undefined
+              !isValid && nin ? "Fødselsnummeret må være 11 siffer." : undefined
             }
           />
 
