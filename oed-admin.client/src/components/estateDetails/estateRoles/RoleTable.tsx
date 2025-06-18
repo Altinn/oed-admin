@@ -31,7 +31,7 @@ export default function RoleTable({ estateId }: Props) {
   if (error) {
     return (
       <ValidationMessage>
-        Det oppstod en feil under henting av roller: {error.message}
+        Det oppstod en feil under henting av roller
       </ValidationMessage>
     );
   }

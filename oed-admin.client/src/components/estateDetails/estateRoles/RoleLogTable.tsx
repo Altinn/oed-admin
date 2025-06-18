@@ -13,7 +13,7 @@ import type {
 import { useQuery } from "@tanstack/react-query";
 import { formatDateTime, formatRoleCode } from "../../../utils/formatters";
 import { useState } from "react";
-import { CheckmarkCircleIcon, CircleSlashIcon } from "@navikt/aksel-icons";
+import { EnterIcon, LeaveIcon } from "@navikt/aksel-icons";
 
 interface Props {
   estateId: string;
@@ -66,7 +66,7 @@ export default function RoleLogTable({ estateId }: Props) {
   if (error) {
     return (
       <ValidationMessage>
-        Det oppstod en feil under henting av rollehistorikk: {error?.message}
+        Det oppstod en feil under henting av rollehistorikk
       </ValidationMessage>
     );
   }
@@ -84,7 +84,7 @@ export default function RoleLogTable({ estateId }: Props) {
       <Heading
         level={2}
         data-size="sm"
-        style={{ marginTop: "var(--ds-size-3)" }}
+        style={{ marginTop: "var(--ds-size-2)" }}
       >
         Historikk
       </Heading>
@@ -114,13 +114,9 @@ export default function RoleLogTable({ estateId }: Props) {
               <Table.Cell>
                 <Tag data-color={log.action === "GRANT" ? "success" : "danger"}>
                   {log.action === "GRANT" ? (
-                    <CheckmarkCircleIcon
-                      style={{ paddingRight: "var(--ds-size-1)" }}
-                    />
+                    <EnterIcon style={{ paddingRight: "var(--ds-size-1)" }} />
                   ) : (
-                    <CircleSlashIcon
-                      style={{ paddingRight: "var(--ds-size-1)" }}
-                    />
+                    <LeaveIcon style={{ paddingRight: "var(--ds-size-1)" }} />
                   )}
 
                   {log.action}
