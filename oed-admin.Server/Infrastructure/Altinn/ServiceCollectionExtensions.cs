@@ -35,6 +35,24 @@ public static class ServiceCollectionExtensions
             });
 
 
+        services
+            .AddMaskinportenHttpClient<SettingsJwkClientDefinition, IEventsClient, EventsClient>(
+                maskinportenSettings,
+                clientDefinition =>
+                {
+                    clientDefinition.ClientSettings.Scope =
+                        "altinn:events.publish altinn:events.subscribe";
+                    clientDefinition.ClientSettings.ExhangeToAltinnToken = true;
+                    clientDefinition.ClientSettings.OverwriteAuthorizationHeader = true;
+                    clientDefinition.ClientSettings.EnableDebugLogging = true;
+                })
+            .ConfigureHttpClient((provider, client) =>
+            {
+                var settings = provider.GetRequiredService<IOptionsMonitor<AltinnSettings>>();
+                client.BaseAddress = new Uri(settings.CurrentValue.PlatformUrl);
+            });
+
+
         return services;
     }
 }

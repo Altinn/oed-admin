@@ -22,6 +22,8 @@ public static class Endpoints
 
         group.MapGet("/{estateId:guid}/tasks", Estate.GetTasks.Endpoint.Get);
 
+        group.MapGet("/{estateId:guid}/events", Estate.GetEvents.Endpoint.Get);
+
         group.MapPost("/{estateId:guid}/superadmin", Estate.GrantSuperadmin.Endpoint.Post);
         group.MapDelete("/{estateId:guid}/superadmin", Estate.RevokeSuperadmin.Endpoint.Delete);
 
