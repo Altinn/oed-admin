@@ -8,9 +8,12 @@
     <SpaRoot>..\oed-admin.client</SpaRoot>
     <SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>
     <SpaProxyServerUrl>https://localhost:60475</SpaProxyServerUrl>
+    <UserSecretsId>42960fe2-3130-4e13-a1f7-74da08f71fd8</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="9.2.1" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="4.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.6" />
     <PackageReference Include="Microsoft.AspNetCore.SpaProxy">
       <Version>9.*-*</Version>
