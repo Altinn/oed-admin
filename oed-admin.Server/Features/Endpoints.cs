@@ -1,20 +1,26 @@
-﻿namespace oed_admin.Server.Features;
+﻿using oed_admin.Server.Infrastructure.Authz;
+
+namespace oed_admin.Server.Features;
 
 public static class Endpoints
 {
     public static void MapFeatureEndpoints(this WebApplication app)
     {
-        app.MapEstateEndpoints();
-        app.MapTaskEndpoints();
-        app.MapInstanceEndpoints();
+        app.MapEstateEndpoints()
+            .RequireAuthorization(AuthorizationPolicies.DigitaltDodsboAdmins);
 
-        app.MapGet("/api/debug", Dbg.Endpoint.Get);
+        app.MapTaskEndpoints()
+            .RequireAuthorization(AuthorizationPolicies.DigitaltDodsboAdmins);
+
+        app.MapInstanceEndpoints()
+            .RequireAuthorization(AuthorizationPolicies.DigitaltDodsboAdmins);
+
+        app.MapGet("/api/whoami", Dbg.Endpoint.Get);
     }
 
     public static RouteGroupBuilder MapEstateEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/api/estate");
-        //.RequireAuthorization();
 
         group.MapGet("/{estateId:guid}", Estate.GetEstate.Endpoint.Get);
         group.MapPost("/search", Estate.Search.Endpoint.Post);
@@ -39,11 +45,9 @@ public static class Endpoints
     public static RouteGroupBuilder MapTaskEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/api/tasks");
-        //.RequireAuthorization();
 
         group.MapGet("/", Tasks.GetTasks.Endpoint.Get);
         group.MapPatch("/{taskId:guid}", Tasks.PatchTask.Endpoint.Patch);
-
 
         return group;
     }
@@ -51,7 +55,6 @@ public static class Endpoints
     public static RouteGroupBuilder MapInstanceEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/api/instances");
-        //.RequireAuthorization();
 
         group.MapGet("/{instanceOwnerPartyId:int}/{instanceGuid:guid}", Instances.GetInstance.Endpoint.Get);
         group.MapGet("/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid}", Instances.GetInstanceData.Endpoint.Get);

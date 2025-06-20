@@ -1,11 +1,14 @@
 using oed_admin.Server.Features;
 using oed_admin.Server.Infrastructure.Altinn;
+using oed_admin.Server.Infrastructure.Authz;
 using oed_admin.Server.Infrastructure.Database.Authz;
 using oed_admin.Server.Infrastructure.Database.Oed;
 using oed_admin.Server.Infrastructure.Telemetry;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddAuth(builder.Environment, builder.Configuration);
 
 builder.Services.AddTelemetry(builder.Configuration);
 builder.Services.AddOpenApi();
