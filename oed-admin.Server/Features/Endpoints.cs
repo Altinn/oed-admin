@@ -8,7 +8,7 @@ public static class Endpoints
         app.MapTaskEndpoints();
         app.MapInstanceEndpoints();
 
-        app.MapGet("/api/debug", Debug.Endpoint.Get);
+        app.MapGet("/api/debug", Dbg.Endpoint.Get);
     }
 
     public static RouteGroupBuilder MapEstateEndpoints(this WebApplication app)
