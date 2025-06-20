@@ -13,6 +13,8 @@ builder.Services.AddOedDatabase(builder.Configuration.GetConnectionString("OedDb
 builder.Services.AddAuthzDatabase(builder.Configuration.GetConnectionString("OedAuthzDb") ?? string.Empty);
 builder.Services.AddAltinnClients(builder.Configuration);
 
+builder.Services.AddHttpContextAccessor();
+
 var app = builder.Build();
 
 app.UseDefaultFiles();

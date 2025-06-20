@@ -7,6 +7,8 @@ public static class Endpoints
         app.MapEstateEndpoints();
         app.MapTaskEndpoints();
         app.MapInstanceEndpoints();
+
+        app.MapGet("/api/debug", Debug.Endpoint.Get);
     }
 
     public static RouteGroupBuilder MapEstateEndpoints(this WebApplication app)
@@ -54,8 +56,6 @@ public static class Endpoints
         group.MapGet("/{instanceOwnerPartyId:int}/{instanceGuid:guid}", Instances.GetInstance.Endpoint.Get);
         group.MapGet("/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid}", Instances.GetInstanceData.Endpoint.Get);
 
-
         return group;
     }
-
 }
