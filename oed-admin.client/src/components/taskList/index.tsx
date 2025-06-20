@@ -58,7 +58,7 @@ export default function TaskList({ estateId }: Props) {
   const getTaskStatusColor = (status: string) => {
     const statusColors: { [key: string]: string } = {
       Executed: "success",
-      Failed: "error",
+      Failed: "danger",
       Scheduled: "warning",
       InProgress: "info",
     };
