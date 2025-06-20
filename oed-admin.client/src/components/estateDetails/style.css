@@ -1,11 +1,10 @@
-#tab-details,
-#tab-roles,
-#tab-events {
+#tab-details {
   width: 70ch;
   max-width: 100%;
 }
 
-#tab-roles, #tab-super-admin {
+#tab-roles,
+#tab-super-admin {
   display: flex;
   flex-direction: column;
   gap: var(--ds-size-5);
