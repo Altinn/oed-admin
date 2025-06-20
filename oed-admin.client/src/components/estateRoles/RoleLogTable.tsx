@@ -9,9 +9,9 @@ import {
 import type {
   RoleAssignmentLog,
   RoleAssignmentLogResponse,
-} from "../../../types/IEstate";
+} from "../../types/IEstate";
 import { useQuery } from "@tanstack/react-query";
-import { formatDateTime, formatRoleCode } from "../../../utils/formatters";
+import { formatDateTime, formatRoleCode } from "../../utils/formatters";
 import { useState } from "react";
 import { EnterIcon, LeaveIcon } from "@navikt/aksel-icons";
 

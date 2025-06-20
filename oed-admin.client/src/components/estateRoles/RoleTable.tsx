@@ -5,8 +5,8 @@ import {
   Skeleton,
 } from "@digdir/designsystemet-react";
 import { useQuery } from "@tanstack/react-query";
-import type { RoleAssignmentsResponse } from "../../../types/IEstate";
-import { formatDateTime, formatRoleCode } from "../../../utils/formatters";
+import type { RoleAssignmentsResponse } from "../../types/IEstate";
+import { formatDateTime, formatRoleCode } from "../../utils/formatters";
 
 interface Props {
   estateId: string;

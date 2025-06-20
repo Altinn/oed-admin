@@ -15,12 +15,14 @@ import {
   InformationSquareIcon,
   KeyVerticalIcon,
   ShieldCheckmarkIcon,
+  TasklistIcon,
 } from "@navikt/aksel-icons";
 import "./style.css";
-import EstateRoles from "./estateRoles";
-import EstateEvents from "./estateEvents";
+import EstateRoles from "../estateRoles";
+import EstateEvents from "../estateEvents";
 import type { Estate } from "../../types/IEstate";
-import SuperAdmin from "./superAdmin";
+import SuperAdmin from "../superAdmin";
+import TaskList from "../taskList";
 
 interface EstateDetailsResponse {
   estate: Estate;
@@ -61,7 +63,7 @@ export default function EstateDetails() {
         Her kan du se detaljer om dødsboet til den avdøde personen. Du kan også
         navigere tilbake til oversikten for å se andre dødsbo.
       </Paragraph>
-      <Tabs defaultValue="details" data-color="accent">
+      <Tabs defaultValue="details">
         <Tabs.List style={{ marginBottom: "var(--ds-size-4)" }}>
           <Tabs.Tab value="details">
             <InformationSquareIcon /> Detaljer
@@ -77,6 +79,10 @@ export default function EstateDetails() {
           <Tabs.Tab value="super-admin">
             <KeyVerticalIcon />
             Super-admin
+          </Tabs.Tab>
+          <Tabs.Tab value="tasks">
+            <TasklistIcon />
+            Oppgaveliste
           </Tabs.Tab>
         </Tabs.List>
 
@@ -139,6 +145,9 @@ export default function EstateDetails() {
         </Tabs.Panel>
         <Tabs.Panel value="super-admin" id="tab-super-admin">
           <SuperAdmin estateId={id} />
+        </Tabs.Panel>
+        <Tabs.Panel value="tasks" id="tab-tasks">
+          <TaskList estateId={id} />
         </Tabs.Panel>
       </Tabs>
     </>
