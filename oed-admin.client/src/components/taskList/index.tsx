@@ -1,6 +1,7 @@
 import {
   Badge,
   Dialog,
+  Heading,
   Skeleton,
   Table,
   Tag,
@@ -127,16 +128,28 @@ export default function TaskList({ estateId }: Props) {
             </Table.Cell>
             <Table.Cell>
               <Dialog.TriggerContext>
-                <Dialog.Trigger variant="tertiary" data-size="lg">
+                <Dialog.Trigger
+                  variant="tertiary"
+                  data-size="lg"
+                  disabled={!task.jsonPayload}
+                >
                   <CodeIcon />
                 </Dialog.Trigger>
-                <Dialog style={{ maxWidth: 800 }} data-size="sm">
-                  <pre
-                    style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}
-                  >
-                    {task.jsonPayload}
-                  </pre>
-                </Dialog>
+                {task.jsonPayload && (
+                  <Dialog style={{ maxWidth: 1200 }} data-size="sm">
+                    <Heading
+                      level={3}
+                      style={{ marginBottom: "var(--ds-size-2)" }}
+                    >
+                      JSON Payload
+                    </Heading>
+                    <pre
+                      style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}
+                    >
+                      {JSON.stringify(JSON.parse(task.jsonPayload), null, 2)}
+                    </pre>
+                  </Dialog>
+                )}
               </Dialog.TriggerContext>
             </Table.Cell>
           </Table.Row>
