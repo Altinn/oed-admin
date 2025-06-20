@@ -23,12 +23,9 @@ h6,
 span,
 a,
 label,
-input,
 textarea {
   max-width: 70ch;
 }
-
-
 
 .header {
   display: flex;

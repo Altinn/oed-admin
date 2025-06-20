@@ -63,7 +63,7 @@ export default function EstateDetails() {
         Her kan du se detaljer om dødsboet til den avdøde personen. Du kan også
         navigere tilbake til oversikten for å se andre dødsbo.
       </Paragraph>
-      <Tabs defaultValue="details">
+      <Tabs defaultValue="details" style={{ width: "100%" }}>
         <Tabs.List style={{ marginBottom: "var(--ds-size-4)" }}>
           <Tabs.Tab value="details">
             <InformationSquareIcon /> Detaljer
