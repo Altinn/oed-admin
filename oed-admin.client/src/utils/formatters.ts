@@ -29,3 +29,9 @@ export const formatDateTime = (dateString: string) => {
     minute: "2-digit",
   }).format(date);
 };
+
+export const isValidDateTime = (val: unknown): val is string =>
+  typeof val === "string" && val.includes("T") && !isNaN(Date.parse(val));
+
+export const isValidDate = (val: unknown): val is string =>
+  typeof val === "string" && !isNaN(Date.parse(val));

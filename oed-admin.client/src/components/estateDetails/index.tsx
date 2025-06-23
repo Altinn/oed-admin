@@ -1,13 +1,15 @@
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "react-router-dom";
 import {
   Breadcrumbs,
   Divider,
+  Fieldset,
   Heading,
-  Label,
   Paragraph,
   Skeleton,
   Tabs,
+  Textfield,
   ValidationMessage,
 } from "@digdir/designsystemet-react";
 import {
@@ -23,6 +25,7 @@ import EstateEvents from "../estateEvents";
 import type { Estate } from "../../types/IEstate";
 import SuperAdmin from "../superAdmin";
 import EstateTasks from "../estateTasks";
+import { isValidDate, isValidDateTime } from "../../utils/formatters";
 
 interface EstateDetailsResponse {
   estate: Estate;
@@ -43,8 +46,23 @@ export default function EstateDetails() {
     },
   });
 
-  const { deceasedName, deceasedNin, deceasedPartyId, dateOfDeath } =
-    (data?.estate as Estate) || {};
+  const formatValue = (val: unknown): { type: string; value: string } => {
+    if (isValidDateTime(val)) {
+      return {
+        type: "datetime-local",
+        value: new Date(val).toISOString().slice(0, 16),
+      };
+    }
+
+    if (isValidDate(val)) {
+      return {
+        type: "date",
+        value: new Date(val).toISOString().slice(0, 10),
+      };
+    }
+
+    return { type: "text", value: String(val ?? "-") };
+  };
 
   return (
     <>
@@ -57,7 +75,7 @@ export default function EstateDetails() {
       </Breadcrumbs>
 
       <Heading level={1} data-size="xl">
-        Dødsbo etter {deceasedName}
+        Dødsbo etter {data?.estate.deceasedName || "ukjent"}
       </Heading>
       <Paragraph>
         Her kan du se detaljer om dødsboet til den avdøde personen. Du kan også
@@ -113,26 +131,18 @@ export default function EstateDetails() {
               </Heading>
               <Divider />
 
-              <Paragraph className="flex-between ">
-                <Label>Party ID</Label>
-                {deceasedPartyId}
-              </Paragraph>
-              <Divider />
-
-              <Paragraph className="flex-between ">
-                <Label>Fødselsnummer</Label>
-                {deceasedNin}
-              </Paragraph>
-              <Divider />
-              <Paragraph className="flex-between ">
-                <Label>Navn</Label>
-                {deceasedName}
-              </Paragraph>
-              <Divider />
-              <Paragraph className="flex-between ">
-                <Label>Dato for dødsfall</Label>
-                {new Intl.DateTimeFormat("nb").format(new Date(dateOfDeath))}
-              </Paragraph>
+              <Fieldset data-size="sm">
+                {Object.entries(data.estate).map(([key, value]) => {
+                  return (
+                    <Textfield
+                      label={key}
+                      key={key}
+                      type={formatValue(value).type}
+                      value={formatValue(value).value}
+                    />
+                  );
+                })}
+              </Fieldset>
             </>
           )}
         </Tabs.Panel>
