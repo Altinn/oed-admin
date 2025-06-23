@@ -32,7 +32,7 @@ public class EstateDto
     {
         get
         {
-            if (ProbateIssued is null) return EstateStatus.ProbateIssued;
+            if (ProbateIssued is not null) return EstateStatus.ProbateIssued;
             if (DeclarationSubmitted is not null) return EstateStatus.DeclarationSubmitted;
             if (DelarationCreated is not null) return EstateStatus.DeclarationCreated;
             if (FirstHeirReceived is not null) return EstateStatus.FirstHeirReceived;
