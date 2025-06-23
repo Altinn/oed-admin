@@ -105,34 +105,41 @@ export default function TaskList({ estateId }: Props) {
 
   return (
     <section className="flex-col">
-      <Label style={{ marginRight: "var(--ds-size-2)" }} htmlFor="task-status">
-        Filtrer oppgaver
-      </Label>
-
-      <div className="flex-row">
-        <Chip.Radio
-          name="task-status"
-          defaultChecked
-          value="All"
-          onChange={(e) => {
-            handleChangeChip(e);
-          }}
-        >
-          All
-        </Chip.Radio>
-        {uniqueStatuses.map((status) => (
-          <Chip.Radio
-            key={status}
-            name="task-status"
-            value={status}
-            onChange={(e) => {
-              handleChangeChip(e);
-            }}
+      {uniqueStatuses.length > 1 && (
+        <>
+          <Label
+            style={{ marginRight: "var(--ds-size-2)" }}
+            htmlFor="task-status"
           >
-            {status}
-          </Chip.Radio>
-        ))}
-      </div>
+            Filtrer oppgaver
+          </Label>
+
+          <div className="flex-row">
+            <Chip.Radio
+              name="task-status"
+              defaultChecked
+              value="All"
+              onChange={(e) => {
+                handleChangeChip(e);
+              }}
+            >
+              All
+            </Chip.Radio>
+            {uniqueStatuses.map((status) => (
+              <Chip.Radio
+                key={status}
+                name="task-status"
+                value={status}
+                onChange={(e) => {
+                  handleChangeChip(e);
+                }}
+              >
+                {status}
+              </Chip.Radio>
+            ))}
+          </div>
+        </>
+      )}
       <Table>
         <Table.Head>
           <Table.Row>
