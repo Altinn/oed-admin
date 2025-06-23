@@ -59,8 +59,7 @@ export interface RoleAssignmentLogResponse {
   roleAssignmentLog: RoleAssignmentLog[];
 }
 
-export interface TaskResponse {
-  tasks: Array<{
+export interface Task {
     id: string;
     type: string;
     jsonPayload?: string;
@@ -72,7 +71,10 @@ export interface TaskResponse {
     attempts: number;
     estateSsn?: string;
     status: TaskStatus;
-  }>;
+}
+
+export interface TaskResponse {
+  tasks: Array<Task>;
 }
 
 export type TaskStatus =

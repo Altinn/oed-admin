@@ -11,6 +11,7 @@ import EstateCard from "./estateCard";
 import { PersonIcon, RobotIcon } from "@navikt/aksel-icons";
 import { useMutation } from "@tanstack/react-query";
 import type { RequestBody, ResponseBody } from "../types/IEstate";
+import Tasks from "./tasks";
 
 const getEstateData = async (body: RequestBody) => {
   try {
@@ -152,6 +153,17 @@ export default function Home() {
         )}
       </section>
 
+      <section id="retrying-tasks">
+        <Heading
+          level={2}
+          data-size="sm"
+          style={{ paddingBottom: "var(--ds-size-2)" }}
+        >
+          Retrying
+        </Heading>
+        <Tasks status="Retrying"/>
+      </section>
+
       <section id="dead-letter-queue">
         <Heading
           level={2}
@@ -160,6 +172,7 @@ export default function Home() {
         >
           DLQ
         </Heading>
+        <Tasks status="DeadLetterQueue"/>
       </section>
     </>
   );

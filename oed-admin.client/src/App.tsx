@@ -57,7 +57,7 @@ export default function App() {
             />
           </div>
         </header>
-        <main className="container">
+        <main className="container" style={{maxWidth: 1600}}>
           <Outlet />
         </main>
       </>

@@ -7,12 +7,14 @@ import {
   Label,
   Skeleton,
   Table,
-  Tag,
+  Tag,  
   ValidationMessage,
 } from "@digdir/designsystemet-react";
 import { formatDateTime } from "../../utils/formatters";
 import { CodeIcon } from "@navikt/aksel-icons";
-import type { TaskResponse, TaskStatus } from "../../types/IEstate";
+import type { Task, TaskResponse, TaskStatus } from "../../types/IEstate";
+import RescheduleDialog from "../rescheduleTaskDialog";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface Props {
   data?: TaskResponse | null;
@@ -20,8 +22,41 @@ interface Props {
   error: Error | null;
 }
 
+interface PatchTaskResponse {
+  Task: Task
+}
+
 export default function TaskList({ data, isLoading, error }: Props) {
+  const queryClient = useQueryClient();
   const [filter, setFilter] = React.useState<TaskStatus | "All">("All");
+
+  const rescheduleMutationFn = async ({taskId, scheduled, attempts} : {taskId: string, scheduled: string, attempts: number}): Promise<PatchTaskResponse> => {
+    const response = await fetch(`/api/tasks/${taskId}`, {
+      method: 'PATCH',
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ taskId, scheduled, attempts }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to rescehdule task");
+    }
+    return response.json(); 
+  }
+
+  const rescheduleMutation = useMutation({
+    mutationFn: (data: {taskId: string, scheduled: string, attempts: number}) => 
+      rescheduleMutationFn(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["tasks"],
+      });
+    },
+    onError: (error) => {
+      console.error("Error reschdeduling task:", error);
+    },
+  });
 
   const formatTaskType = (type: string) => {
     const parts = type.split(".");
@@ -66,7 +101,7 @@ export default function TaskList({ data, isLoading, error }: Props) {
   if (!data || data.tasks.length === 0) {
     return (
       <ValidationMessage data-color="info">
-        Ingen oppgaver funnet for dette boet.
+        Ingen oppgaver funnet.
       </ValidationMessage>
     );
   }
@@ -116,7 +151,9 @@ export default function TaskList({ data, isLoading, error }: Props) {
             <Table.HeaderCell>Opprettet</Table.HeaderCell>
             <Table.HeaderCell>Planlagt</Table.HeaderCell>
             <Table.HeaderCell>Utført</Table.HeaderCell>
+            <Table.HeaderCell>Dødsbo</Table.HeaderCell>
             <Table.HeaderCell>JSON</Table.HeaderCell>
+            <Table.HeaderCell>Actions</Table.HeaderCell>
           </Table.Row>
         </Table.Head>
         <Table.Body>
@@ -149,6 +186,9 @@ export default function TaskList({ data, isLoading, error }: Props) {
                 {task.executed ? formatDateTime(task.executed) : "-"}
               </Table.Cell>
               <Table.Cell>
+                {task.estateSsn ? task.estateSsn : "-"}
+              </Table.Cell>
+              <Table.Cell>
                 <Dialog.TriggerContext>
                   <Dialog.Trigger
                     variant="tertiary"
@@ -176,6 +216,9 @@ export default function TaskList({ data, isLoading, error }: Props) {
                     </Dialog>
                   )}
                 </Dialog.TriggerContext>
+              </Table.Cell>
+              <Table.Cell>
+                <RescheduleDialog task={task} onChange={(val) => rescheduleMutation.mutate({taskId: task.id, scheduled: val, attempts: 0})}/>                          
               </Table.Cell>
             </Table.Row>
           ))}
