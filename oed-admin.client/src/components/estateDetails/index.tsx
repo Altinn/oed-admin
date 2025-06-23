@@ -22,7 +22,7 @@ import EstateRoles from "../estateRoles";
 import EstateEvents from "../estateEvents";
 import type { Estate } from "../../types/IEstate";
 import SuperAdmin from "../superAdmin";
-import TaskList from "../taskList";
+import EstateTasks from "../estateTasks";
 
 interface EstateDetailsResponse {
   estate: Estate;
@@ -147,7 +147,7 @@ export default function EstateDetails() {
           <SuperAdmin estateId={id} />
         </Tabs.Panel>
         <Tabs.Panel value="tasks" id="tab-tasks">
-          <TaskList estateId={id} />
+          <EstateTasks estateId={id} />
         </Tabs.Panel>
       </Tabs>
     </>

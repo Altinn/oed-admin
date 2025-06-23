@@ -58,3 +58,26 @@ export interface RoleAssignmentsResponse {
 export interface RoleAssignmentLogResponse {
   roleAssignmentLog: RoleAssignmentLog[];
 }
+
+export interface TaskResponse {
+  tasks: Array<{
+    id: string;
+    type: string;
+    jsonPayload?: string;
+    created: string;
+    scheduled?: string;
+    executed?: string;
+    lastAttempt?: string;
+    lastError?: string;
+    attempts: number;
+    estateSsn?: string;
+    status: TaskStatus;
+  }>;
+}
+
+export type TaskStatus =
+  | "Scheduled"
+  | "Executed"
+  | "Retrying"
+  | "DeadLetterQueue"
+  | "Unknown";

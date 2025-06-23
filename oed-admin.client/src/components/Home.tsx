@@ -151,6 +151,16 @@ export default function Home() {
           </>
         )}
       </section>
+
+      <section id="dead-letter-queue">
+        <Heading
+          level={2}
+          data-size="sm"
+          style={{ paddingBottom: "var(--ds-size-2)" }}
+        >
+          DLQ
+        </Heading>
+      </section>
     </>
   );
 }

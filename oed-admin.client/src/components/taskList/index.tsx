@@ -10,50 +10,18 @@ import {
   Tag,
   ValidationMessage,
 } from "@digdir/designsystemet-react";
-import { useQuery } from "@tanstack/react-query";
 import { formatDateTime } from "../../utils/formatters";
 import { CodeIcon } from "@navikt/aksel-icons";
+import type { TaskResponse, TaskStatus } from "../../types/IEstate";
 
 interface Props {
-  estateId: string;
+  data?: TaskResponse | null;
+  isLoading: boolean;
+  error: Error | null;
 }
 
-interface TaskResponse {
-  tasks: Array<{
-    id: string;
-    type: string;
-    jsonPayload?: string;
-    created: string;
-    scheduled?: string;
-    executed?: string;
-    lastAttempt?: string;
-    lastError?: string;
-    attempts: number;
-    estateSsn?: string;
-    status: TaskStatus;
-  }>;
-}
-
-type TaskStatus =
-  | "Scheduled"
-  | "Executed"
-  | "Retrying"
-  | "DeadLetterQueue"
-  | "Unknown";
-
-export default function TaskList({ estateId }: Props) {
+export default function TaskList({ data, isLoading, error }: Props) {
   const [filter, setFilter] = React.useState<TaskStatus | "All">("All");
-
-  const { data, isLoading, error } = useQuery<TaskResponse>({
-    queryKey: ["tasks", estateId],
-    queryFn: async () => {
-      const response = await fetch(`/api/estate/${estateId}/tasks`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch tasks");
-      }
-      return response.json();
-    },
-  });
 
   const formatTaskType = (type: string) => {
     const parts = type.split(".");
