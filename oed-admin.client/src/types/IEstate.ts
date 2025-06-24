@@ -1,6 +1,7 @@
 export interface RequestBody {
   Nin?: string;
   PartyId?: number;
+  CaseNumber?: string;
   Name?: string;
   Page?: number;
   PageSize?: number;

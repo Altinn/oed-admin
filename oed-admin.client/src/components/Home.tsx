@@ -8,7 +8,7 @@ import {
   ToggleGroup,
 } from "@digdir/designsystemet-react";
 import EstateCard from "./estateCard";
-import { PersonIcon, RobotIcon } from "@navikt/aksel-icons";
+import { GavelIcon, PersonIcon, RobotIcon, TagIcon } from "@navikt/aksel-icons";
 import { useMutation } from "@tanstack/react-query";
 import type { RequestBody, ResponseBody } from "../types/IEstate";
 import Tasks from "./tasks";
@@ -47,6 +47,8 @@ export default function Home() {
     const body: RequestBody = {
       Nin: searchType === "ssn" ? searchQuery : undefined,
       PartyId: searchType === "partyid" ? parseInt(searchQuery) : undefined,
+      CaseNumber: searchType === "casenumber" ? searchQuery : undefined,
+      Name: searchType === "name" ? searchQuery : undefined,
     };
 
     const result = await mutation.mutateAsync(body);
@@ -58,6 +60,17 @@ export default function Home() {
   const handleReset = () => {
     setSearchQuery("");
     setData(null);
+  };
+
+  const getInputPattern = (searchType: string): string => {
+    switch (searchType) {
+      case "ssn":
+        return "^[0-9]{11}$";
+      case "partyid":
+        return "^[0-9]+$";
+      default:
+        return "^.*$";
+    }
   };
 
   return (
@@ -96,6 +109,14 @@ export default function Home() {
                 <PersonIcon aria-hidden />
                 Fødselsnummer
               </ToggleGroup.Item>
+              <ToggleGroup.Item value="casenumber">
+                <GavelIcon aria-hidden />
+                Saksnummer
+              </ToggleGroup.Item>
+              <ToggleGroup.Item value="name">
+                <TagIcon aria-hidden />
+                Navn
+              </ToggleGroup.Item>
             </ToggleGroup>
           </Field>
 
@@ -104,7 +125,7 @@ export default function Home() {
               <Search.Input
                 aria-label="Søk"
                 onChange={(e) => setSearchQuery(e.target.value)}
-                pattern="^[0-9]+$"
+                pattern={getInputPattern(searchType)}
               />
               <Search.Clear onClick={handleReset} />
               <Search.Button />

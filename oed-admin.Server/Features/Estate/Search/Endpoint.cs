@@ -26,9 +26,14 @@ namespace oed_admin.Server.Features.Estate.Search
                 { PartyId: not null } =>
                     query.Where(e => e.DeceasedPartyId == request.PartyId),
                 { Name: not null } =>
-                    query.Where(e => EF.Functions.Like(
-                        e.DeceasedName.ToLower(),
-                        $"%{request.Name.ToLower()}%")),
+                    query.Where(e =>
+                        EF.Functions.Like(
+                            e.DeceasedName.ToLower(),
+                            $"%{request.Name.ToLower()}%")),
+                { CaseNumber: not null } =>
+                    query.Where(e =>
+                        e.CaseNumber != null &&
+                        e.CaseNumber.ToLower() == request.CaseNumber.ToLower()),
                 _ => query
             };
 
