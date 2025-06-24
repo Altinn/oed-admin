@@ -30,7 +30,7 @@ export interface Estate {
   caseNumber?: string;
   caseStatus?: string;
   districtCourtName?: string;
-
+  status: string;
   probateResult?: string;
 
   created: string; // ISO date string
