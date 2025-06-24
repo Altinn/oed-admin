@@ -35,3 +35,7 @@ export const isValidDateTime = (val: unknown): val is string =>
 
 export const isValidDate = (val: unknown): val is string =>
   typeof val === "string" && !isNaN(Date.parse(val));
+
+const pad2 = (num: number) : string => num.toString().padStart(2, "0");
+export const formatLocalDateTime = (dateTime: Date) => 
+    `${dateTime.getFullYear()}-${pad2((dateTime.getMonth() + 1))}-${pad2((dateTime.getDate()))}T${pad2((dateTime.getHours()))}:${pad2((dateTime.getMinutes()))}`;

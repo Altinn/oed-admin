@@ -1,7 +1,8 @@
-import React, { useCallback } from "react";
+import React from "react";
 import { Button, Dialog, Heading, Paragraph, Popover, Textfield } from "@digdir/designsystemet-react";
 import type { Task } from "../../types/IEstate";
 import { CalendarIcon } from "@navikt/aksel-icons";
+import { formatLocalDateTime } from "../../utils/formatters";
 
 interface Props {
   task: Task,
@@ -9,19 +10,13 @@ interface Props {
 };
 
 export default function RescheduleDialog({ task, onChange }: Props) {
-  const pad2 = (num: number) : string => num.toString().padStart(2, "0");
-  const formatLocalDateTime = useCallback((dateTime: Date) => 
-    `${dateTime.getFullYear()}-${pad2((dateTime.getMonth() + 1))}-${pad2((dateTime.getDate()))}T${pad2((dateTime.getHours()))}:${pad2((dateTime.getMinutes()))}`, [])
 
-  const [value, setValue] = React.useState<string>(formatLocalDateTime(new Date()));
+  const [value, setValue] = React.useState<string>(
+    task.scheduled 
+      ? formatLocalDateTime(new Date(task.scheduled)) 
+      : formatLocalDateTime(new Date()));
+
   const dialogRef = React.useRef<HTMLDialogElement>(null);
-
-  React.useEffect(() => {
-    if (task.scheduled)
-      setValue(formatLocalDateTime(new Date(task.scheduled as string)));
-    else 
-      setValue(formatLocalDateTime(new Date()));
-  }, [formatLocalDateTime, task]);
   
   return (
     <Dialog.TriggerContext>
