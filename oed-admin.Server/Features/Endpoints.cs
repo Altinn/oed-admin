@@ -16,6 +16,7 @@ public static class Endpoints
             .RequireAuthorization(AuthorizationPolicies.DigitaltDodsboAdmins);
 
         app.MapGet("/api/whoami", Dbg.Endpoint.Get);
+        app.MapGet("/api/headers", Dbg.HeadersEndpoint.Get);
     }
 
     public static RouteGroupBuilder MapEstateEndpoints(this WebApplication app)
