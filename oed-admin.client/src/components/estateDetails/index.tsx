@@ -24,7 +24,7 @@ import EstateEvents from "../estateEvents";
 import type { Estate } from "../../types/IEstate";
 import SuperAdmin from "../superAdmin";
 import EstateTasks from "../estateTasks";
-import { isValidDate, isValidDateTime } from "../../utils/formatters";
+import { formatDateTimeLocal, isValidDate, isValidDateTime } from "../../utils/formatters";
 
 interface EstateDetailsResponse {
   estate: Estate;
@@ -49,7 +49,7 @@ export default function EstateDetails() {
     if (isValidDateTime(val)) {
       return {
         type: "datetime-local",
-        value: new Date(val).toISOString().slice(0, 16),
+        value: formatDateTimeLocal(new Date(val))
       };
     }
 

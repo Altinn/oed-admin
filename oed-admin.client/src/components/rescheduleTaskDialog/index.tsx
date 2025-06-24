@@ -2,7 +2,7 @@ import React from "react";
 import { Button, Dialog, Heading, Paragraph, Popover, Textfield } from "@digdir/designsystemet-react";
 import type { Task } from "../../types/IEstate";
 import { CalendarIcon } from "@navikt/aksel-icons";
-import { formatLocalDateTime } from "../../utils/formatters";
+import { formatDateTimeLocal } from "../../utils/formatters";
 
 interface Props {
   task: Task,
@@ -13,8 +13,8 @@ export default function RescheduleDialog({ task, onChange }: Props) {
 
   const [value, setValue] = React.useState<string>(
     task.scheduled 
-      ? formatLocalDateTime(new Date(task.scheduled)) 
-      : formatLocalDateTime(new Date()));
+      ? formatDateTimeLocal(new Date(task.scheduled)) 
+      : formatDateTimeLocal(new Date()));
 
   const dialogRef = React.useRef<HTMLDialogElement>(null);
   
