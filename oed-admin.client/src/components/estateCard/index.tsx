@@ -75,7 +75,7 @@ export default function EstateCard({ estate }: Props) {
             <Label>Dødsdato: </Label>
             {new Intl.DateTimeFormat("nb").format(new Date(dateOfDeath))}
           </Paragraph>
-          <Paragraph  data-size="sm" className="flex-between">
+          <Paragraph data-size="sm" className="flex-row">
             <Tag data-color={caseStatusColor} >{caseStatusText}</Tag>
             <Tag data-color={ddStatusColor} >{ddStatusText}</Tag>
           </Paragraph>
