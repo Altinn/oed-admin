@@ -1,3 +1,7 @@
+export interface WhoAmIResponse {
+  name: string;
+}
+
 export interface RequestBody {
   Nin?: string;
   PartyId?: number;
