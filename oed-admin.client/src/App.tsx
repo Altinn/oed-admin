@@ -4,12 +4,14 @@ import Home from "./components/Home";
 import EstateDetails from "./components/estateDetails";
 import {
   Avatar,
+  Divider,
+  Dropdown,
   Heading,
-  Paragraph,
   Switch,
 } from "@digdir/designsystemet-react";
 import type { WhoAmIResponse } from "./types/IEstate";
 import { useQuery } from "@tanstack/react-query";
+import { DoorOpenIcon } from "@navikt/aksel-icons";
 
 export default function App() {
   const [darkMode, setDarkMode] = React.useState<boolean>(
@@ -62,14 +64,28 @@ export default function App() {
               id="dark-mode"
             />
           </div>
-          <div className="username">
-            <Paragraph>{data?.name}</Paragraph>
-            <Avatar
-              data-size="sm"
-              data-color="neutral"
-              aria-label="Ola Nordmann"
-            />
-          </div>
+          <Dropdown.TriggerContext>
+            <Dropdown.Trigger variant='tertiary'>
+              <Avatar
+                data-size="sm"
+                data-color="neutral"
+                aria-label={data?.name || "Username"}
+              />
+
+            </Dropdown.Trigger>
+            <Dropdown>
+              <Dropdown.Heading>{data?.name}</Dropdown.Heading>
+              <Divider />
+              <Dropdown.List>
+                <Dropdown.Item>
+                  <Dropdown.Button onClick={() => window.location.href='/.auth/logout'}>
+                    <DoorOpenIcon />
+                    Logg ut!
+                  </Dropdown.Button>
+                </Dropdown.Item>
+              </Dropdown.List>
+            </Dropdown>
+          </Dropdown.TriggerContext>
         </header>
         <main className="container" style={{maxWidth: 1600}}>
           <Outlet />
