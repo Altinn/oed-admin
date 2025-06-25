@@ -1,5 +1,4 @@
-﻿using System.Net;
-using Altinn.Platform.Storage.Interface.Models;
+﻿using Altinn.Platform.Storage.Interface.Models;
 using oed_testdata.Server.Infrastructure.Altinn;
 
 namespace oed_admin.Server.Infrastructure.Altinn;
