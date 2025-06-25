@@ -18,14 +18,13 @@ public static class ServiceCollectionExtensions
         services.Configure<AltinnSettings>(configuration.GetSection("AltinnSettings"));
 
         services
-            .AddMaskinportenHttpClient<SettingsJwkClientDefinition, IStorageClient, StorageClient>(
+            .AddMaskinportenHttpClient<SettingsJwkClientDefinition, IAltinnClient, AltinnClient>(
                 maskinportenSettings,
                 clientDefinition =>
                 {
                     clientDefinition.ClientSettings.Scope =
-                        "altinn:serviceowner/instances.read altinn:serviceowner/instances.write";
+                        "altinn:serviceowner/instances.read altinn:serviceowner/instances.write altinn:events.publish altinn:events.subscribe";
                     clientDefinition.ClientSettings.ExhangeToAltinnToken = true;
-                    clientDefinition.ClientSettings.OverwriteAuthorizationHeader = true;
                     clientDefinition.ClientSettings.EnableDebugLogging = true;
                 })
             .ConfigureHttpClient((provider, client) =>
@@ -33,25 +32,6 @@ public static class ServiceCollectionExtensions
                 var settings = provider.GetRequiredService<IOptionsMonitor<AltinnSettings>>();
                 client.BaseAddress = new Uri(settings.CurrentValue.PlatformUrl);
             });
-
-
-        services
-            .AddMaskinportenHttpClient<SettingsJwkClientDefinition, IEventsClient, EventsClient>(
-                maskinportenSettings,
-                clientDefinition =>
-                {
-                    clientDefinition.ClientSettings.Scope =
-                        "altinn:events.publish altinn:events.subscribe";
-                    clientDefinition.ClientSettings.ExhangeToAltinnToken = true;
-                    clientDefinition.ClientSettings.OverwriteAuthorizationHeader = true;
-                    clientDefinition.ClientSettings.EnableDebugLogging = true;
-                })
-            .ConfigureHttpClient((provider, client) =>
-            {
-                var settings = provider.GetRequiredService<IOptionsMonitor<AltinnSettings>>();
-                client.BaseAddress = new Uri(settings.CurrentValue.PlatformUrl);
-            });
-
 
         return services;
     }

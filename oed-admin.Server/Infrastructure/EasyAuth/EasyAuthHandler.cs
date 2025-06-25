@@ -32,10 +32,10 @@ public class EasyAuthHandler : AuthenticationHandler<EasyAuthOptions>
             var clientPrincipal = JsonSerializer.Deserialize<EasyAuthPrincipal>(msClientPrincipalDecoded);
 
             var principal = new ClaimsPrincipal();
-            var claims = clientPrincipal.Claims.Select(x => new Claim(x.Type, x.Value));
+            var claims = clientPrincipal!.Claims.Select(x => new Claim(x.Type, x.Value));
             principal.AddIdentity(new ClaimsIdentity(claims, clientPrincipal.AuthenticationType, "preferred_username", clientPrincipal.RoleType));
 
-            var ticket = new AuthenticationTicket(principal, idProvider);
+            var ticket = new AuthenticationTicket(principal, idProvider!);
             var success = AuthenticateResult.Success(ticket);
             Context.User = principal;
 

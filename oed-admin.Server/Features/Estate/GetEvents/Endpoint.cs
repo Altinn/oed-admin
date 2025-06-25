@@ -10,7 +10,7 @@ public static class Endpoint
     public static async Task<IResult> Get(
         [AsParameters] Request request,
         [FromServices] OedDbContext dbContext,
-        [FromServices] IEventsClient eventsClient)
+        [FromServices] IAltinnClient eventsClient)
     {
         if (!request.IsValid())
             return TypedResults.BadRequest();

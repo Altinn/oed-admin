@@ -7,7 +7,7 @@ public static class Endpoint
 {
     public static async Task<IResult> Get(
         [AsParameters] Request request,
-        [FromServices] IStorageClient storageClient)
+        [FromServices] IAltinnClient storageClient)
     {
         if (!request.IsValid())
             return TypedResults.BadRequest();

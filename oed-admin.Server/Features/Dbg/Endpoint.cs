@@ -4,22 +4,25 @@ namespace oed_admin.Server.Features.Dbg;
 
 public static class Endpoint
 {
-    public static async Task<Response> Get([FromServices] IHttpContextAccessor contextAccessor)
+    public static Task<Response> Get([FromServices] IHttpContextAccessor contextAccessor)
     {
         var context = contextAccessor.HttpContext;
-        return new Response(context.User.Identity.Name);
+        return Task.FromResult(new Response(context?.User?.Identity?.Name ?? string.Empty));
         //return new Response(context.Request.Headers.ToDictionary(pair => pair.Key, pair => pair.Value.ToString()));
     }
 }
 
-
 public static class HeadersEndpoint
 {
-    public static async Task<HeadersResponse> Get([FromServices] IHttpContextAccessor contextAccessor)
+    public static Task<HeadersResponse> Get([FromServices] IHttpContextAccessor contextAccessor)
     {
         var context = contextAccessor.HttpContext;
-        
-        return new HeadersResponse(context.Request.Headers.ToDictionary(pair => pair.Key, pair => pair.Value.ToString()));
+
+        return Task.FromResult(
+            new HeadersResponse(
+                context?.Request.Headers.ToDictionary(pair =>
+                    pair.Key, pair => pair.Value.ToString()) ??
+                new Dictionary<string, string>()));
     }
 }
 

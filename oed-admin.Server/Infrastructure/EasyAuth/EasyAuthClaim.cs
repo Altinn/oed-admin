@@ -5,9 +5,9 @@ namespace oed_admin.Server.Infrastructure.EasyAuth;
 public class EasyAuthClaim
 {
     [JsonPropertyName("typ")]
-    public string Type { get; set; }
+    public required string Type { get; set; }
     [JsonPropertyName("val")]
-    public string Value { get; set; }
+    public required string Value { get; set; }
 }
 
 public static class EasyAuthClaims
