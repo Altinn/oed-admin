@@ -1,4 +1,4 @@
-import { Details, Heading } from "@digdir/designsystemet-react";
+import { Details } from "@digdir/designsystemet-react";
 import { CodeIcon, FileJsonIcon } from "@navikt/aksel-icons";
 import { prettifyXml } from "../../utils/formatters";
 
