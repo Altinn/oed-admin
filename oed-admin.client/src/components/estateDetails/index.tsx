@@ -168,7 +168,7 @@ export default function EstateDetails() {
           <EstateDeclaration estateId={id} />
         </Tabs.Panel>
         <Tabs.Panel value="events" id="tab-events">
-          <EstateEvents />
+          <EstateEvents estateId={id} />
         </Tabs.Panel>
         <Tabs.Panel value="tasks" id="tab-tasks">
           <EstateTasks estateId={id} />
