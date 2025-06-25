@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import Instance from "../instance";
-import { Heading } from "@digdir/designsystemet-react";
+import { Heading, Skeleton, ValidationMessage } from "@digdir/designsystemet-react";
 
 interface Props {
   estateId: string;
 }
 
 export default function EstateInstance({ estateId }: Props) {
-    const { data } = useQuery({
+    const { data, isLoading, error } = useQuery({
     queryKey: ["instance", estateId],
     queryFn: async () => {
       const response = await fetch(`/api/estate/${estateId}/instance`);
@@ -27,7 +27,19 @@ export default function EstateInstance({ estateId }: Props) {
       >
         Oed instans
       </Heading>
-      <Instance data={data} />
+      {isLoading && 
+        <Skeleton variant="rectangle" aria-label="Henter instans" />
+      }
+      {error && (
+        <ValidationMessage>
+          Det oppstod en feil under henting av instans:
+          {error.message}
+        </ValidationMessage>
+      )}
+
+      {data && (
+        <Instance data={data} />
+      )}      
     </>    
   );
 }

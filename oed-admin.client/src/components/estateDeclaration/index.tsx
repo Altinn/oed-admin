@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import Instance from "../instance";
-import { Heading } from "@digdir/designsystemet-react";
+import { Heading, Skeleton, ValidationMessage } from "@digdir/designsystemet-react";
 
 interface Props {
   estateId: string;
 }
 
 export default function EstateDeclaration({ estateId }: Props) {
-    const { data } = useQuery({
+    const { data, isLoading, error } = useQuery({
     queryKey: ["declarationinstance", estateId],
     queryFn: async () => {
       const response = await fetch(`/api/estate/${estateId}/declarationinstance`);
@@ -27,7 +27,19 @@ export default function EstateDeclaration({ estateId }: Props) {
       >
         Skifteerklæring
       </Heading>
-      <Instance data={data} />
+      {isLoading && 
+        <Skeleton variant="rectangle" aria-label="Henter skifteerklæring" />
+      }
+      {error && (
+        <ValidationMessage>
+          Det oppstod en feil under henting av skifteerklæring:
+          {error.message}
+        </ValidationMessage>
+      )}
+
+      {data && (
+        <Instance data={data} />
+      )}      
     </>
   );
 }
