@@ -88,3 +88,7 @@ export type TaskStatus =
   | "Retrying"
   | "DeadLetterQueue"
   | "Unknown";
+
+export interface InstanceResponse {
+  data: unknown;
+}

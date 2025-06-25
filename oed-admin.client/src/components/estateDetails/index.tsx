@@ -12,6 +12,8 @@ import {
   ValidationMessage,
 } from "@digdir/designsystemet-react";
 import {
+  DatabaseIcon,
+  DocPencilIcon,
   EnvelopeClosedIcon,
   InformationSquareIcon,
   KeyVerticalIcon,
@@ -25,6 +27,8 @@ import type { Estate } from "../../types/IEstate";
 import SuperAdmin from "../superAdmin";
 import EstateTasks from "../estateTasks";
 import { formatDateTimeLocal, isValidDate, isValidDateTime } from "../../utils/formatters";
+import EstateInstance from "../estateInstance";
+import EstateDeclaration from "../estateDeclaration";
 
 interface EstateDetailsResponse {
   estate: Estate;
@@ -89,17 +93,25 @@ export default function EstateDetails() {
             <ShieldCheckmarkIcon />
             Roller
           </Tabs.Tab>
+          <Tabs.Tab value="instance">
+            <DatabaseIcon />
+            Instans
+          </Tabs.Tab>
+          <Tabs.Tab value="declaration">
+            <DocPencilIcon />
+            Skifteerklæring
+          </Tabs.Tab>
           <Tabs.Tab value="events">
             <EnvelopeClosedIcon />
             Eventer
           </Tabs.Tab>
-          <Tabs.Tab value="super-admin">
-            <KeyVerticalIcon />
-            Super-admin
-          </Tabs.Tab>
           <Tabs.Tab value="tasks">
             <TasklistIcon />
             Oppgaveliste
+          </Tabs.Tab>
+          <Tabs.Tab value="super-admin">
+            <KeyVerticalIcon />
+            Super-admin
           </Tabs.Tab>
         </Tabs.List>
 
@@ -149,14 +161,20 @@ export default function EstateDetails() {
         <Tabs.Panel value="roles" id="tab-roles">
           <EstateRoles estateId={id} />
         </Tabs.Panel>
+        <Tabs.Panel value="instance" id="tab-instance">
+          <EstateInstance estateId={id} />
+        </Tabs.Panel>
+        <Tabs.Panel value="declaration" id="tab-declaration">
+          <EstateDeclaration estateId={id} />
+        </Tabs.Panel>
         <Tabs.Panel value="events" id="tab-events">
           <EstateEvents />
         </Tabs.Panel>
-        <Tabs.Panel value="super-admin" id="tab-super-admin">
-          <SuperAdmin estateId={id} />
-        </Tabs.Panel>
         <Tabs.Panel value="tasks" id="tab-tasks">
           <EstateTasks estateId={id} />
+        </Tabs.Panel>
+        <Tabs.Panel value="super-admin" id="tab-super-admin">
+          <SuperAdmin estateId={id} />
         </Tabs.Panel>
       </Tabs>
     </>
