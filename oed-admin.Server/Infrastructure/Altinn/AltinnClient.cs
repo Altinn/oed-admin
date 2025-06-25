@@ -30,12 +30,6 @@ public class AltinnClient(HttpClient httpClient) : IAltinnClient
         var path = $"/storage/api/v1/instances/{instanceOwnerPartyId}/{instanceGuid}";
         var response = await httpClient.GetAsync(path);
 
-        if (response.StatusCode != HttpStatusCode.OK)
-        {
-            var error = await response.Content.ReadAsStringAsync();
-            Console.WriteLine("WHAT!");
-        }
-
         response.EnsureSuccessStatusCode();
 
         await using var contentStream = await response.Content.ReadAsStreamAsync();
