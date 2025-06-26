@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Builder;
 using oed_admin.Server.Features;
 using oed_admin.Server.Infrastructure.Altinn;
 using oed_admin.Server.Infrastructure.Authz;
@@ -10,11 +11,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddAuth(builder.Environment, builder.Configuration);
 
-builder.Services.AddTelemetry(builder.Configuration);
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Services.AddTelemetry(builder.Configuration);
+}
 builder.Services.AddOpenApi();
 builder.Services.AddOedDatabase(builder.Configuration.GetConnectionString("OedDb") ?? string.Empty);
 builder.Services.AddAuthzDatabase(builder.Configuration.GetConnectionString("OedAuthzDb") ?? string.Empty);
 builder.Services.AddAltinnClients(builder.Configuration);
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -33,5 +40,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
 app.UseHttpsRedirection();
 
 app.MapFallbackToFile("/index.html");
+
+app.UseExceptionHandler();
 
 app.Run();
