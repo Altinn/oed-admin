@@ -9,7 +9,7 @@ namespace oed_admin.Server.Infrastructure.Telemetry;
 public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddTelemetry(this IServiceCollection services, IConfiguration config)
-    {
+    {   
         //var ai_connstr = config.GetValue<string>("APPLICATIONINSIGHTS_CONNECTION_STRING", string.Empty);
         //if (!string.IsNullOrEmpty(ai_connstr))
         //{
