@@ -16,6 +16,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface Props {
   estateId: string;
+  instanceId?: string;
 }
 
 type Method = "POST" | "DELETE";
@@ -27,7 +28,7 @@ interface SuperadminPayload {
   method: Method;
 }
 
-export default function SuperAdmin({ estateId }: Props) {
+export default function SuperAdmin({ estateId, instanceId }: Props) {
   const queryClient = useQueryClient();
   const [nin, setNin] = React.useState<string>("");
   const [justification, setJustification] = React.useState<string>("");
@@ -35,6 +36,7 @@ export default function SuperAdmin({ estateId }: Props) {
   const [popoverOpen, setPopoverOpen] = React.useState<boolean>(false);
 
   const isFormValid = isValid && nin && justification;
+  const ddLink = `https://digdir.apps.altinn.no/digdir/oed#/instance/${instanceId}`;
 
   const superadminMutationFn = async ({
     estateId,
@@ -215,7 +217,7 @@ export default function SuperAdmin({ estateId }: Props) {
           </Link>
         </List.Item>
         <List.Item>
-          <Link href="#" target="_blank">
+          <Link href={ddLink} target="_blank">
             Digitalt Dødsbo etter avdøde
           </Link>
         </List.Item>

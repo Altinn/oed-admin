@@ -174,7 +174,7 @@ export default function EstateDetails() {
           <EstateTasks estateId={id} />
         </Tabs.Panel>
         <Tabs.Panel value="super-admin" id="tab-super-admin">
-          <SuperAdmin estateId={id} />
+          <SuperAdmin estateId={id} instanceId={data?.estate.instanceId} />
         </Tabs.Panel>
       </Tabs>
     </>
