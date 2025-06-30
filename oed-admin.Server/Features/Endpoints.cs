@@ -15,10 +15,12 @@ public static class Endpoints
         app.MapInstanceEndpoints()
             .RequireAuthorization(AuthorizationPolicies.DigitaltDodsboAdmins);
 
+        app.MapMaintenanceEndpoints()
+            .RequireAuthorization(AuthorizationPolicies.DigitaltDodsboAdmins);
+
         app.MapGet("/api/whoami", Dbg.Endpoint.Get);
 
-        app.MapGet("/api/exception", Features.Debug.ExceptionRaiser.Endpoint.Get);
-        
+        //app.MapGet("/api/exception", Features.Debug.ExceptionRaiser.Endpoint.Get);
         //app.MapGet("/api/headers", Dbg.HeadersEndpoint.Get);
     }
 
@@ -62,6 +64,15 @@ public static class Endpoints
 
         group.MapGet("/{instanceOwnerPartyId:int}/{instanceGuid:guid}", Instances.GetInstance.Endpoint.Get);
         group.MapGet("/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid}", Instances.GetInstanceData.Endpoint.Get);
+
+        return group;
+    }
+
+    public static RouteGroupBuilder MapMaintenanceEndpoints(this WebApplication app)
+    {
+        var group = app.MapGroup("/api/maintenance");
+
+        group.MapPost("/datamigration", Maintenance.DataMigration.Endpoint.Post);
 
         return group;
     }

@@ -5,27 +5,27 @@ namespace oed_admin.Server.Infrastructure.Database.Oed.Model;
 
 public class Estate
 {
-    public Guid Id { get; init; }
-    public required string DeceasedNin { get; init; }
-    public int DeceasedPartyId { get; init; }
-    public required string DeceasedName { get; init; }
+    public Guid Id { get; set; }
+    public string DeceasedNin { get; set; }
+    public int DeceasedPartyId { get; set; }
+    public string DeceasedName { get; set; }
     public DateOnly DateOfDeath { get; set; }
-    public required string InstanceId { get; init; }
-    public string? DeclarationInstanceId { get; private set; }
+    public string InstanceId { get; set; }
+    public string? DeclarationInstanceId { get; set; }
 
-    public string? CaseId { get; private set; }
-    public string? CaseNumber { get; private set; }
-    public string? CaseStatus { get; private set; }
-    public string? DistrictCourtName { get; private set; }
+    public string? CaseId { get; set; }
+    public string? CaseNumber { get; set; }
+    public string? CaseStatus { get; set; }
+    public string? DistrictCourtName { get; set; }
 
-    public string? ProbateResult { get; private set; } = null;
+    public string? ProbateResult { get; set; } = null;
 
-    public DateTimeOffset Created { get; init; }
-    public DateTimeOffset? ProbateDeadline { get; private set; } = null;
-    public DateTimeOffset? FirstHeirReceived { get; private set; } = null;
-    public DateTimeOffset? DelarationCreated { get; private set; } = null;
-    public DateTimeOffset? DeclarationSubmitted { get; private set; } = null;
-    public DateTimeOffset? ProbateIssued { get; private set; } = null;
+    public DateTimeOffset Created { get; set; }
+    public DateTimeOffset? ProbateDeadline { get; set; } = null;
+    public DateTimeOffset? FirstHeirReceived { get; set; } = null;
+    public DateTimeOffset? DelarationCreated { get; set; } = null;
+    public DateTimeOffset? DeclarationSubmitted { get; set; } = null;
+    public DateTimeOffset? ProbateIssued { get; set; } = null;
 }
 
 

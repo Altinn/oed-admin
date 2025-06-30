@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Routes, Route, Outlet } from "react-router-dom";
+import { Routes, Route, Outlet, Link } from "react-router-dom";
 import Home from "./components/Home";
 import EstateDetails from "./components/estateDetails";
 import {
@@ -11,7 +11,8 @@ import {
 } from "@digdir/designsystemet-react";
 import type { WhoAmIResponse } from "./types/IEstate";
 import { useQuery } from "@tanstack/react-query";
-import { DoorOpenIcon } from "@navikt/aksel-icons";
+import { DatabaseFillIcon, DoorOpenIcon } from "@navikt/aksel-icons";
+import DataMigration from "./components/dataMigration";
 
 export default function App() {
   const [darkMode, setDarkMode] = React.useState<boolean>(
@@ -71,16 +72,26 @@ export default function App() {
                 data-color="neutral"
                 aria-label={data?.name || "Username"}
               />
-
             </Dropdown.Trigger>
             <Dropdown>
               <Dropdown.Heading>{data?.name}</Dropdown.Heading>
-              <Divider />
               <Dropdown.List>
                 <Dropdown.Item>
                   <Dropdown.Button onClick={() => window.location.href='/.auth/logout'}>
                     <DoorOpenIcon />
                     Logg ut!
+                  </Dropdown.Button>
+                </Dropdown.Item>
+              </Dropdown.List>
+              <Divider />
+              <Dropdown.Heading>Vedlikehold</Dropdown.Heading>
+              <Dropdown.List>
+                <Dropdown.Item>
+                  <Dropdown.Button asChild>
+                    <Link to="/maintenance/datamigration" aria-label="Datamigrering">
+                    <DatabaseFillIcon />
+                      Datamigrering
+                    </Link>
                   </Dropdown.Button>
                 </Dropdown.Item>
               </Dropdown.List>
@@ -99,6 +110,7 @@ export default function App() {
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="/estate/:id" element={<EstateDetails />} />
+        <Route path="/maintenance/datamigration" element={<DataMigration />} />
       </Route>
     </Routes>
   );
