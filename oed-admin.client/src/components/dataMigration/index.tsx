@@ -1,5 +1,5 @@
 import React from "react";
-import { Breadcrumbs, Button, Field, Fieldset, Heading, Input, Label, Paragraph, Radio, Switch, ValidationMessage } from "@digdir/designsystemet-react";
+import { Breadcrumbs, Button, Field, Fieldset, Heading, Input, Label, Paragraph, Switch } from "@digdir/designsystemet-react";
 import { Link } from "react-router-dom";
 
 export default function DataMigration() {
