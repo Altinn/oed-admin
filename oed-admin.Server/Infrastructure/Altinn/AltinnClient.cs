@@ -1,6 +1,5 @@
 ﻿using Altinn.Platform.Storage.Interface.Models;
 using oed_testdata.Server.Infrastructure.Altinn;
-using System.ClientModel;
 
 namespace oed_admin.Server.Infrastructure.Altinn;
 
@@ -10,7 +9,7 @@ public interface IAltinnClient
     public Task<Instance?> GetInstance(int instanceOwnerPartyId, Guid instanceGuid);
     public Task<string> GetInstanceDataAsString(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid);
     public Task<TData> GetInstanceData<TData>(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid);
-    public Task<InstanceSearchResponse> GetInstances(string appId, int count = 100, string? continuationToken = null);
+    public Task<InstanceSearchResponse> GetInstances(string appId, int count, string? continuationToken);
     public Task<List<Instance>> GetInstances(string appId, int instanceOwnerPartyId);
 }
 
@@ -67,12 +66,12 @@ public class AltinnClient(HttpClient httpClient) : IAltinnClient
         return data;
     }
 
-    public async Task<InstanceSearchResponse> GetInstances(string appId, int count = 100, string? continuationToken = null)
+    public async Task<InstanceSearchResponse> GetInstances(string appId, int count, string? continuationToken)
     {
         // digdir/oed
         // digdir/declaration
 
-        var path = $"/storage/api/v1/instances?org=digdir&appId={appId}&status.isHardDeleted=false&status.isSoftDeleted=false&size={count}";
+        var path = $"/storage/api/v1/instances?org=digdir&appId={appId}&size={count}";
 
         if (continuationToken is { Length: > 0 })
             path += $"&continuationToken={continuationToken}";
@@ -89,7 +88,7 @@ public class AltinnClient(HttpClient httpClient) : IAltinnClient
 
     public async Task<List<Instance>> GetInstances(string appId, int instanceOwnerPartyId)
     {
-        var path = $"/storage/api/v1/instances?org=digdir&appId={appId}&instanceOwner.partyId={instanceOwnerPartyId}&status.isHardDeleted=false&status.isSoftDeleted=false";
+        var path = $"/storage/api/v1/instances?org=digdir&appId={appId}&instanceOwner.partyId={instanceOwnerPartyId}";
 
         var response = await httpClient.GetAsync(path);
         response.EnsureSuccessStatusCode();
