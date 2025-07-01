@@ -125,15 +125,14 @@ public class InstanceToDbDataMigration(
                 // Get declaration, if existing
                 var declarationInstance = (await altinnClient.GetInstances(AppIds.Declaration, instanceOwnerPartyId)).FirstOrDefault();
 
-
                 if (!DateOnly.TryParseExact(instanceData.DeceasedInfo.DateOfDeath, "yyyy-MM-dd", out var dateOfDeath))
-                    dateOfDeath = DateOnly.MinValue;
+                    dateOfDeath = default;
                 
                 if (!DateTimeOffset.TryParseExact(instanceData.ProbateDeadline, "O", CultureInfo.InvariantCulture, DateTimeStyles.None, out var probateDeadline))
-                    probateDeadline = DateTimeOffset.MinValue;
+                    probateDeadline = default;
 
                 if (!DateTimeOffset.TryParseExact(instanceData.ProbateResult?.Received, "O", CultureInfo.InvariantCulture, DateTimeStyles.None, out var probateIssued))
-                    probateIssued = DateTimeOffset.MinValue;
+                    probateIssued = default;
                 
                 dbItem.DeceasedNin = instanceData.DeceasedInfo.Deceased.Nin ?? string.Empty;
                 dbItem.DeceasedPartyId = instanceOwnerPartyId;
@@ -143,11 +142,13 @@ public class InstanceToDbDataMigration(
                 dbItem.CaseId = instanceData.CaseId;
                 dbItem.CaseStatus = instanceData.CaseStatus;
                 dbItem.DistrictCourtName = instanceData.DistrictCourtName;
-                dbItem.ProbateDeadline = probateDeadline != DateTimeOffset.MinValue 
+                dbItem.ProbateDeadline = probateDeadline != default
                     ? probateDeadline.ToUniversalTime() 
                     : null;
-                dbItem.ProbateResult = instanceData.ProbateResult?.Result;
-                dbItem.ProbateIssued = probateIssued != DateTimeOffset.MinValue 
+                dbItem.ProbateResult = instanceData.ProbateResult?.Result is { Length: > 0} 
+                    ? instanceData.ProbateResult?.Result
+                    : null;
+                dbItem.ProbateIssued = instanceData.ProbateResult?.Result is { Length: > 0 } && probateIssued != default
                     ? probateIssued.ToUniversalTime() 
                     : null;
                 dbItem.InstanceId = instance.Id;
