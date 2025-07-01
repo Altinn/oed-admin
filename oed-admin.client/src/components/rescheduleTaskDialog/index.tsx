@@ -2,7 +2,7 @@ import React from "react";
 import { Button, Dialog, Heading, Paragraph, Popover, Textfield } from "@digdir/designsystemet-react";
 import type { Task } from "../../types/IEstate";
 import { CalendarIcon } from "@navikt/aksel-icons";
-import { formatDateTimeLocal } from "../../utils/formatters";
+import { formatDateTimeLocal, isValidDateTime } from "../../utils/formatters";
 
 interface Props {
   task: Task,
@@ -17,7 +17,7 @@ export default function RescheduleDialog({ task, onChange }: Props) {
       : formatDateTimeLocal(new Date()));
 
   const dialogRef = React.useRef<HTMLDialogElement>(null);
-  
+
   return (
     <Dialog.TriggerContext>
       <Dialog.Trigger variant="tertiary" disabled={!!task.executed}>
@@ -32,7 +32,7 @@ export default function RescheduleDialog({ task, onChange }: Props) {
           autofocus='true' 
           label='Planlagt tidspunkt' 
           type='datetime-local'
-          value={value} onChange={e => setValue(e.target.value)} />
+          value={value} onChange={e => isValidDateTime(e.target.value) && setValue(e.target.value)} />
         <div style={{display: 'flex', gap: 'var(--ds-size-4)', marginTop: 'var(--ds-size-4)'}}>
           <Popover.TriggerContext>
             <Popover.Trigger data-color='danger' aria-label='Reschedule task'>
