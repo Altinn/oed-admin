@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using oed_admin.Server.Features.Estate.GetRoleAssignments;
+using oed_admin.Server.Infrastructure.Database.Authz;
 using oed_admin.Server.Infrastructure.Database.Oed;
+using oed_admin.Server.Infrastructure.DataMigration.Models.Declaration;
 using oed_admin.Server.Infrastructure.Mapping;
 
 namespace oed_admin.Server.Features.Estate.Search
@@ -9,7 +12,8 @@ namespace oed_admin.Server.Features.Estate.Search
     {
         public static async Task<IResult> Post(
             [FromBody] Request request,
-            [FromServices] OedDbContext dbContext)
+            [FromServices] OedDbContext dbContext,
+            [FromServices] AuthzDbContext authzDBContext)
         {
             if (!request.IsValid())
                 return TypedResults.BadRequest();
@@ -19,10 +23,22 @@ namespace oed_admin.Server.Features.Estate.Search
 
             var query = dbContext.Estate.AsNoTracking();
 
+            List<string> estateNinList = new List<string>();
+
+            if (!string.IsNullOrEmpty( request.HeirNin))
+            {
+                estateNinList = await GetEstateByHeirNin(request.HeirNin, authzDBContext);
+            }
+
             var filteredQuery = request switch
             {
-                { Nin: not null } =>
+                { Nin: string nin } when nin.Length == 11 =>
                     query.Where(e => e.DeceasedNin == request.Nin),
+                { Nin: string nin } when nin.Length == 6 =>
+                    query.Where(e =>
+                        EF.Functions.Like(
+                            e.DeceasedNin,
+                            $"%{request.Nin}%")),
                 { PartyId: not null } =>
                     query.Where(e => e.DeceasedPartyId == request.PartyId),
                 { Name: not null } =>
@@ -37,6 +53,11 @@ namespace oed_admin.Server.Features.Estate.Search
                 _ => query
             };
 
+            if (estateNinList.Count > 0)
+            {
+                query.Where(e => estateNinList.Contains(e.DeceasedNin));
+            }
+
             var estates = await filteredQuery
                 .OrderByDescending(estate => estate.Created)
                 .Skip(pageSize * (page - 1))
@@ -48,6 +69,34 @@ namespace oed_admin.Server.Features.Estate.Search
                 .ToList();
             
             return TypedResults.Ok(new Response(page, pageSize, dtos!));
+        }
+
+        private static async Task<List<string>> GetEstateByHeirNin(string heirNin, AuthzDbContext authzDBContext)
+        {
+            var query = authzDBContext.RoleAssignments.AsNoTracking();
+            var filteredQuery = heirNin switch
+            {
+                string nin when nin.Length == 11 => query.Where(e => e.HeirSsn == nin),
+                string nin when nin.Length == 6 =>
+                    query.Where(e =>
+                        EF.Functions.Like(
+                            e.HeirSsn,
+                            $"%{nin}%")),
+                _ => query
+            };
+
+            var estateAccessRights = await query.ToListAsync();
+
+            var dtos = estateAccessRights.Select(PoorMansMapper.Map<Infrastructure.Database.Authz.Model.RoleAssignment, RoleAssignmentDto>)
+                .ToList();
+            if (dtos != null && dtos.Count > 0)
+            {
+                return dtos.Select(x => x.EstateSsn).ToList();
+            }
+            else
+            {
+                return [];
+            }
         }
     }
 }
