@@ -5,6 +5,7 @@ using oed_admin.Server.Infrastructure.Database.Authz;
 using oed_admin.Server.Infrastructure.Database.Oed;
 using oed_admin.Server.Infrastructure.DataMigration.Models.Declaration;
 using oed_admin.Server.Infrastructure.Mapping;
+using System.Linq;
 
 namespace oed_admin.Server.Features.Estate.Search
 {
@@ -28,6 +29,12 @@ namespace oed_admin.Server.Features.Estate.Search
             if (!string.IsNullOrEmpty( request.HeirNin))
             {
                 estateNinList = await GetEstateByHeirNin(request.HeirNin, authzDBContext);
+
+                if (estateNinList.Count==0)
+                {
+                    return TypedResults.Ok(new Response(page, pageSize, null));
+                }
+
             }
 
             var filteredQuery = request switch
@@ -55,7 +62,7 @@ namespace oed_admin.Server.Features.Estate.Search
 
             if (estateNinList.Count > 0)
             {
-                query.Where(e => estateNinList.Contains(e.DeceasedNin));
+                filteredQuery = filteredQuery.Where(e => estateNinList.Contains( e.DeceasedNin));
             }
 
             var estates = await filteredQuery
@@ -76,16 +83,16 @@ namespace oed_admin.Server.Features.Estate.Search
             var query = authzDBContext.RoleAssignments.AsNoTracking();
             var filteredQuery = heirNin switch
             {
-                string nin when nin.Length == 11 => query.Where(e => e.HeirSsn == nin),
+                string nin when nin.Length == 11 => query.Where(e => e.RecipientSsn == nin),
                 string nin when nin.Length == 6 =>
                     query.Where(e =>
                         EF.Functions.Like(
-                            e.HeirSsn,
-                            $"%{nin}%")),
+                            e.RecipientSsn,
+                            $"{nin}%")),
                 _ => query
             };
 
-            var estateAccessRights = await query.ToListAsync();
+            var estateAccessRights = await filteredQuery.ToListAsync();
 
             var dtos = estateAccessRights.Select(PoorMansMapper.Map<Infrastructure.Database.Authz.Model.RoleAssignment, RoleAssignmentDto>)
                 .ToList();
