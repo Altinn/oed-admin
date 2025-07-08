@@ -1,10 +1,11 @@
 ﻿namespace oed_admin.Server.Features.Estate.Search;
 
-public record Request(string? Nin, int? PartyId, string? Name, string? CaseNumber, int? Page, int? PageSize)
+public record Request(string? Nin, string? HeirNin, int? PartyId, string? Name, string? CaseNumber, int? Page, int? PageSize)
 {
     public bool IsValid()
     {
-        if (string.IsNullOrWhiteSpace(Nin) && 
+        if (string.IsNullOrWhiteSpace(Nin) &&
+            string.IsNullOrWhiteSpace(HeirNin) &&
             PartyId is null && 
             string.IsNullOrWhiteSpace(Name) && 
             string.IsNullOrWhiteSpace(CaseNumber))
@@ -15,7 +16,19 @@ public record Request(string? Nin, int? PartyId, string? Name, string? CaseNumbe
 
         if (!string.IsNullOrWhiteSpace(Nin))
         {
-            if (Nin is not { Length: 11 } || !Nin.All(char.IsDigit))
+            if (Nin is not { Length: 11 } &&
+                Nin is not { Length: 6 } &&
+                !Nin.All(char.IsDigit))
+            {
+                return false;
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(HeirNin))
+        {
+            if (HeirNin is not { Length: 11 } &&
+                HeirNin is not { Length: 6 } &&
+                !HeirNin.All(char.IsDigit))
             {
                 return false;
             }
