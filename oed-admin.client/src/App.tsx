@@ -83,7 +83,7 @@ export default function App() {
                   </Dropdown.Button>
                 </Dropdown.Item>
               </Dropdown.List>
-              <Divider />
+              {/* <Divider />
               <Dropdown.Heading>Vedlikehold</Dropdown.Heading>
               <Dropdown.List>
                 <Dropdown.Item>
@@ -94,7 +94,7 @@ export default function App() {
                     </Link>
                   </Dropdown.Button>
                 </Dropdown.Item>
-              </Dropdown.List>
+              </Dropdown.List> */}
             </Dropdown>
           </Dropdown.TriggerContext>
         </header>
