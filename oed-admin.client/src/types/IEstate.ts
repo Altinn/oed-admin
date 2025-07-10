@@ -4,6 +4,7 @@ export interface WhoAmIResponse {
 
 export interface RequestBody {
   Nin?: string;
+  HeirNin?: string;
   PartyId?: number;
   CaseNumber?: string;
   Name?: string;

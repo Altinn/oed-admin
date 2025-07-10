@@ -5,7 +5,7 @@ public record Request(string? Nin, string? HeirNin, int? PartyId, string? Name, 
     public bool IsValid()
     {
         if (string.IsNullOrWhiteSpace(Nin) &&
-            string.IsNullOrWhiteSpace(HeirNin) &&
+            string.IsNullOrWhiteSpace(HeirNin) && 
             PartyId is null && 
             string.IsNullOrWhiteSpace(Name) && 
             string.IsNullOrWhiteSpace(CaseNumber))
@@ -16,8 +16,7 @@ public record Request(string? Nin, string? HeirNin, int? PartyId, string? Name, 
 
         if (!string.IsNullOrWhiteSpace(Nin))
         {
-            if (Nin is not { Length: 11 } &&
-                Nin is not { Length: 6 } &&
+            if (Nin is not { Length: 6 or 11} || 
                 !Nin.All(char.IsDigit))
             {
                 return false;
@@ -26,8 +25,7 @@ public record Request(string? Nin, string? HeirNin, int? PartyId, string? Name, 
 
         if (!string.IsNullOrWhiteSpace(HeirNin))
         {
-            if (HeirNin is not { Length: 11 } &&
-                HeirNin is not { Length: 6 } &&
+            if (HeirNin is not { Length: 6 or 11 } ||
                 !HeirNin.All(char.IsDigit))
             {
                 return false;

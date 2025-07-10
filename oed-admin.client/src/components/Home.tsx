@@ -8,7 +8,7 @@ import {
   ToggleGroup,
 } from "@digdir/designsystemet-react";
 import EstateCard from "./estateCard";
-import { GavelIcon, PersonIcon, RobotIcon, TagIcon } from "@navikt/aksel-icons";
+import { GavelIcon, PersonGroupIcon, PersonIcon, RobotIcon, TagIcon } from "@navikt/aksel-icons";
 import { useMutation } from "@tanstack/react-query";
 import type { RequestBody, ResponseBody } from "../types/IEstate";
 import Tasks from "./tasks";
@@ -46,6 +46,7 @@ export default function Home() {
   const handleSearch = async () => {
     const body: RequestBody = {
       Nin: searchType === "ssn" ? searchQuery : undefined,
+      HeirNin: searchType === "heir" ? searchQuery : undefined,
       PartyId: searchType === "partyid" ? parseInt(searchQuery) : undefined,
       CaseNumber: searchType === "casenumber" ? searchQuery : undefined,
       Name: searchType === "name" ? searchQuery : undefined,
@@ -65,7 +66,8 @@ export default function Home() {
   const getInputPattern = (searchType: string): string => {
     switch (searchType) {
       case "ssn":
-        return "^[0-9]{11}$";
+      case "heir":
+        return "^([0-9]{6}|[0-9]{11})$";
       case "partyid":
         return "^[0-9]+$";
       default:
@@ -116,6 +118,10 @@ export default function Home() {
               <ToggleGroup.Item value="name">
                 <TagIcon aria-hidden />
                 Navn
+              </ToggleGroup.Item>
+              <ToggleGroup.Item value="heir">
+                <PersonGroupIcon aria-hidden />
+                Arving
               </ToggleGroup.Item>
             </ToggleGroup>
           </Field>
