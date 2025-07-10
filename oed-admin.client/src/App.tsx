@@ -1,17 +1,16 @@
 import React, { useEffect } from "react";
-import { Routes, Route, Outlet, Link } from "react-router-dom";
+import { Routes, Route, Outlet } from "react-router-dom";
 import Home from "./components/Home";
 import EstateDetails from "./components/estateDetails";
 import {
   Avatar,
-  Divider,
   Dropdown,
   Heading,
   Switch,
 } from "@digdir/designsystemet-react";
 import type { WhoAmIResponse } from "./types/IEstate";
 import { useQuery } from "@tanstack/react-query";
-import { DatabaseFillIcon, DoorOpenIcon } from "@navikt/aksel-icons";
+import { DoorOpenIcon } from "@navikt/aksel-icons";
 import DataMigration from "./components/dataMigration";
 
 export default function App() {
@@ -83,18 +82,6 @@ export default function App() {
                   </Dropdown.Button>
                 </Dropdown.Item>
               </Dropdown.List>
-              {/* <Divider />
-              <Dropdown.Heading>Vedlikehold</Dropdown.Heading>
-              <Dropdown.List>
-                <Dropdown.Item>
-                  <Dropdown.Button asChild>
-                    <Link to="/maintenance/datamigration" aria-label="Datamigrering">
-                    <DatabaseFillIcon />
-                      Datamigrering
-                    </Link>
-                  </Dropdown.Button>
-                </Dropdown.Item>
-              </Dropdown.List> */}
             </Dropdown>
           </Dropdown.TriggerContext>
         </header>
