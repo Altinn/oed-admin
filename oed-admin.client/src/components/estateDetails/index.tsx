@@ -15,6 +15,7 @@ import {
   DatabaseIcon,
   DocPencilIcon,
   EnvelopeClosedIcon,
+  GavelIcon,
   InformationSquareIcon,
   KeyVerticalIcon,
   ShieldCheckmarkIcon,
@@ -29,6 +30,7 @@ import EstateTasks from "../estateTasks";
 import { formatDateTimeLocal, isValidDate, isValidDateTime } from "../../utils/formatters";
 import EstateInstance from "../estateInstance";
 import EstateDeclaration from "../estateDeclaration";
+import EstateProbateInformation from "../estateProbateInformation";
 
 interface EstateDetailsResponse {
   estate: Estate;
@@ -101,6 +103,10 @@ export default function EstateDetails() {
             <DocPencilIcon />
             Skifteerklæring
           </Tabs.Tab>
+          <Tabs.Tab value="probateinformation">
+            <GavelIcon />
+            DA Probate Information
+          </Tabs.Tab>
           <Tabs.Tab value="events">
             <EnvelopeClosedIcon />
             Eventer
@@ -166,6 +172,9 @@ export default function EstateDetails() {
         </Tabs.Panel>
         <Tabs.Panel value="declaration" id="tab-declaration">
           <EstateDeclaration estateId={id} />
+        </Tabs.Panel>
+        <Tabs.Panel value="probateinformation" id="tab-probateinformation">
+          <EstateProbateInformation estateId={id} />
         </Tabs.Panel>
         <Tabs.Panel value="events" id="tab-events">
           <EstateEvents estateId={id} />

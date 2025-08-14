@@ -42,6 +42,8 @@ public static class Endpoints
 
         group.MapGet("/{estateId:guid}/declarationinstance", Estate.GetDeclarationInstance.Endpoint.Get);
 
+        group.MapGet("/{estateId:guid}/probateinformation", Estate.GetProbateInformation.Endpoint.Get);
+
         group.MapPost("/{estateId:guid}/superadmin", Estate.GrantSuperadmin.Endpoint.Post);
         group.MapDelete("/{estateId:guid}/superadmin", Estate.RevokeSuperadmin.Endpoint.Delete);
 
