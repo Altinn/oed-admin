@@ -27,7 +27,7 @@ public static class Endpoint
         var tasks = await dbContext.TaskQueue
             .AsNoTracking()
             .Where(item => item.EstateSsn == estateSsn)
-            .OrderBy(item => item.Created)
+            .OrderByDescending(task => task.Created)
             .ToListAsync();
 
         var dtos = tasks

@@ -43,6 +43,7 @@ public static class Endpoint
         };
         
         var tasks = await filteredQuery
+            .AsNoTracking()
             .OrderByDescending(task => task.Created)
             .Skip(pageSize * (page - 1))
             .Take(pageSize)
