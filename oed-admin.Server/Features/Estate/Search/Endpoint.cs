@@ -10,14 +10,16 @@ public static class Endpoint
 {
     public static async Task<IResult> Post(
         [FromBody] Request request,
+        [FromQuery] int pageSize,
+        [FromQuery] int page,
         [FromServices] OedDbContext dbContext,
         [FromServices] AuthzDbContext authzDbContext)
     {
         if (!request.IsValid())
             return TypedResults.BadRequest();
 
-        var page = request.Page ?? 1;
-        var pageSize = request.PageSize ?? 10;
+        if (page <= 0) page = 1;
+        if (pageSize <= 0) pageSize = 10;
 
         var query = dbContext.Estate.AsNoTracking();
 

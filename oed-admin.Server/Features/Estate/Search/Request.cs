@@ -1,6 +1,6 @@
 ﻿namespace oed_admin.Server.Features.Estate.Search;
 
-public record Request(string? Nin, string? HeirNin, int? PartyId, string? Name, string? CaseNumber, int? Page, int? PageSize)
+public record Request(string? Nin, string? HeirNin, int? PartyId, string? Name, string? CaseNumber)
 {
     public bool IsValid()
     {
@@ -52,17 +52,6 @@ public record Request(string? Nin, string? HeirNin, int? PartyId, string? Name, 
         {
             return false;
         }
-
-        if (Page is not null and not > 0)
-        {
-            return false;
-        }
-
-        if (PageSize is not null and not > 0)
-        {
-            return false;
-        }
-
 
         return true;
     }

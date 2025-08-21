@@ -1,18 +1,23 @@
-import { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import type { RequestBody, ResponseBody } from "../../types/IEstate";
-import { useMutation } from "@tanstack/react-query";
-import { Field, Fieldset, Heading, Search, Skeleton, ToggleGroup } from "@digdir/designsystemet-react";
+import { useInfiniteQuery, type InfiniteData } from "@tanstack/react-query";
+import { Button, Field, Fieldset, Heading, Search, Skeleton, ToggleGroup, ValidationMessage } from "@digdir/designsystemet-react";
 import { GavelIcon, PersonGroupIcon, PersonIcon, RobotIcon, TagIcon } from "@navikt/aksel-icons";
 import EstateCard from "../estateCard";
 
-const getEstateData = async (body: RequestBody) => {
-  try {
-    const response = await fetch("/api/estate/search", {
+const estateKeys = {
+  all: ['estates'] as const,
+  search: (params: RequestBody, pageSize: number, page: number) => [...estateKeys.all, params, pageSize, page],
+  searchWithInfiniteScroll: (params: RequestBody) => [...estateKeys.all, params],
+}
+
+const fetchEstates = async (pageParam : EstatePageParam) => {
+  const response = await fetch(`/api/estate/search?pageSize=${pageParam.pageSize}&page=${pageParam.page}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(pageParam.body),
     });
 
     if (!response.ok) {
@@ -20,39 +25,84 @@ const getEstateData = async (body: RequestBody) => {
     }
 
     return response.json();
-  } catch (error) {
-    console.error("Error fetching estate data:", error);
-  }
 };
 
-export default function EstateSearch() {
-  const [searchType, setSearchType] = useState("partyid");
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [data, setData] = useState<ResponseBody | null>(null);
+type EstatePageParam = {
+  body: RequestBody | undefined, 
+  pageSize: number,
+  page: number 
+};
 
-  const mutation = useMutation({
-    mutationKey: ["estates"],
-    mutationFn: getEstateData,
+type SubmittedSearch = {
+  type: string,
+  query: string,
+}
+
+export default function EstateSearch() {
+  const pageSize = 8;
+  const [searchType, setSearchType] = useState("partyid");
+  const [searchQuery, setSearchQuery] = useState<string>("1");
+  const [submittedSearch, setSubmittedSearch] = useState<SubmittedSearch>();
+  
+  const listRef = useRef(null);
+
+  const body: RequestBody = {
+      Nin: submittedSearch?.type === "ssn" && submittedSearch?.query ? submittedSearch.query : undefined,
+      HeirNin: submittedSearch?.type === "heir" && submittedSearch?.query ? submittedSearch.query : undefined,
+      PartyId: submittedSearch?.type === "partyid" && submittedSearch?.query ? parseInt(submittedSearch.query) : undefined,
+      CaseNumber: submittedSearch?.type === "casenumber" && submittedSearch?.query ? submittedSearch.query : undefined,
+      Name: submittedSearch?.type === "name" && submittedSearch?.query ? submittedSearch.query : undefined,
+    };
+ 
+  const {
+    data,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetching,
+    isFetchingNextPage,
+    status
+  } = useInfiniteQuery<ResponseBody, Error, InfiniteData<ResponseBody, unknown>, readonly unknown[], EstatePageParam>({
+    retry: false,
+    enabled: submittedSearch !== undefined,
+    queryKey: estateKeys.searchWithInfiniteScroll(body),
+    queryFn: ({ pageParam }) => fetchEstates(pageParam),
+    initialPageParam: { body: body, pageSize: pageSize, page: 1 } as EstatePageParam,
+    getNextPageParam: (lastPage) => { 
+      if (!lastPage?.estates) return null;
+      if (lastPage.estates.length < pageSize) return null;
+      return { body, pageSize: lastPage?.pageSize || pageSize, page: lastPage ? lastPage.page + 1 : 1 } as EstatePageParam 
+    },
   });
 
-  const handleSearch = async () => {
-    const body: RequestBody = {
-      Nin: searchType === "ssn" ? searchQuery : undefined,
-      HeirNin: searchType === "heir" ? searchQuery : undefined,
-      PartyId: searchType === "partyid" ? parseInt(searchQuery) : undefined,
-      CaseNumber: searchType === "casenumber" ? searchQuery : undefined,
-      Name: searchType === "name" ? searchQuery : undefined,
-    };
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.0 } 
+    );
 
-    const result = await mutation.mutateAsync(body);
-    if (result) {
-      setData(result);
+    if (listRef.current) {
+      observer.observe(listRef.current);
     }
+
+    return () => {
+      if (listRef.current) {
+        observer.unobserve(listRef.current);
+      }
+    };
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const handleSearch = async () => {
+    await setSubmittedSearch({type: searchType, query: searchQuery});
   };
 
   const handleReset = () => {
     setSearchQuery("");
-    setData(null);
+    setSubmittedSearch(undefined);
   };
 
   const getInputPattern = (searchType: string): string => {
@@ -133,7 +183,14 @@ export default function EstateSearch() {
       </form>
 
       <section className="card-grid">
-        {mutation.isPending && (
+        {error && (
+          <ValidationMessage>
+            Det oppstod en feil under henting av skifteerklæring:
+            {error.message}
+          </ValidationMessage>
+        )}
+        
+        {isFetching && (
           <>
             <Heading
               data-size="xs"
@@ -151,26 +208,44 @@ export default function EstateSearch() {
           </>
         )}
 
-        {data && data?.estates?.length > 0 && (
+        {status === "success" && data?.pages.length > 0 &&  data?.pages[0]?.estates?.length > 0 && (
           <>
-            <Heading
+           <Heading
               level={2}
               data-size="xs"
-              style={{ paddingBottom: "var(--ds-size-2)" }}
+              style={{ padding: "1rem 0" }}
             >
               Søkeresultater
             </Heading>
-
             <ul>
-              {data?.estates.map((estate, index) => (
-                <li key={index}>
-                  <EstateCard estate={estate} />
-                </li>
-              ))}
+              {data?.pages && data.pages.map((group, i) => 
+                <React.Fragment key={i}> 
+                  {group?.estates && group?.estates?.length > 0 && (
+                    <>
+                      {group.estates.map((estate, index) => (
+                        <li key={index}>
+                          <EstateCard estate={estate} />
+                        </li>
+                      ))}
+                    </>
+                  )}
+                </React.Fragment>          
+              )}
             </ul>
           </>
         )}
       </section>
+      <div ref={listRef} style={{marginTop: "2rem"}}>
+        {hasNextPage && (
+          <Button onClick={() => fetchNextPage()} disabled={!hasNextPage || isFetching}>
+            {isFetchingNextPage
+              ? 'Laster flere...'
+              : hasNextPage
+                ? 'Last flere'
+                : 'Ikke mer å laste'}
+          </Button >
+        )}
+      </div>
     </>
   );
 }

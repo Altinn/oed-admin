@@ -15,6 +15,7 @@ import { CodeIcon } from "@navikt/aksel-icons";
 import type { Task, TaskResponse, TaskStatus } from "../../types/IEstate";
 import RescheduleDialog from "../rescheduleTaskDialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { taskKeys } from "../../queries/taskQueries";
 
 interface Props {
   data?: TaskResponse | null;
@@ -50,7 +51,7 @@ export default function TaskList({ data, isLoading, error }: Props) {
       rescheduleMutationFn(data),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["tasks"],
+        queryKey: taskKeys.all,
       });
     },
     onError: (error) => {
