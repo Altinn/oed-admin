@@ -190,7 +190,7 @@ export default function EstateSearch() {
           </ValidationMessage>
         )}
         
-        {isFetching && (
+        {isFetching && !isFetchingNextPage && (
           <>
             <Heading
               data-size="xs"
