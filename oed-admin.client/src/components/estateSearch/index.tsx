@@ -61,6 +61,7 @@ export default function EstateSearch() {
     hasNextPage,
     isFetching,
     isFetchingNextPage,
+    isRefetching,
     status
   } = useInfiniteQuery<ResponseBody, Error, InfiniteData<ResponseBody, unknown>, readonly unknown[], EstatePageParam>({
     retry: false,
@@ -190,7 +191,7 @@ export default function EstateSearch() {
           </ValidationMessage>
         )}
         
-        {isFetching && !isFetchingNextPage && (
+        {isFetching && !isFetchingNextPage && !isRefetching && (
           <>
             <Heading
               data-size="xs"
