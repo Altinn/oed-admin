@@ -199,7 +199,7 @@ export default function TaskList({ data, isLoading, error }: Props) {
                     <CodeIcon />
                   </Dialog.Trigger>
                   {task.jsonPayload && (
-                    <Dialog style={{ maxWidth: 1200 }} data-size="sm">
+                    <Dialog style={{ maxWidth: 1200 }} data-size="sm" closedby="any">
                       <Heading
                         level={3}
                         style={{ marginBottom: "var(--ds-size-2)" }}

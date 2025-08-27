@@ -120,7 +120,7 @@ export default function EstateEvents({ estateId }: Props) {
                     <CodeIcon />
                   </Dialog.Trigger>
                   {event.data && (
-                    <Dialog style={{ maxWidth: 1200 }} data-size="sm">
+                    <Dialog style={{ maxWidth: 1200 }} data-size="sm" closedby="any">
                       <Heading
                         level={3}
                         style={{ marginBottom: "var(--ds-size-2)" }}
