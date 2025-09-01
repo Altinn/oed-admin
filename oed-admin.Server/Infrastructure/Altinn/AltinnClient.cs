@@ -17,7 +17,7 @@ public class AltinnClient(HttpClient httpClient) : IAltinnClient
 {
     public async Task<string> GetEvents(string resource, string subject, string? after = "0")
     {
-        var path = $"/events/api/v1/events?resource={resource}&subject={subject}&after={after}";
+        var path = $"/events/api/v1/events?resource={resource}&subject={subject}&size=500&after={after}";
 
         var response = await httpClient.GetAsync(path);
 
