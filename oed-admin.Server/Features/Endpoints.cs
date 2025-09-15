@@ -18,6 +18,9 @@ public static class Endpoints
         app.MapMaintenanceEndpoints()
             .RequireAuthorization(AuthorizationPolicies.DigitaltDodsboAdmins);
 
+        app.MapSuperadminEndpoints()
+            .RequireAuthorization(AuthorizationPolicies.DigitaltDodsboAdmins);
+
         app.MapGet("/api/whoami", Dbg.Endpoint.Get);
 
         //app.MapGet("/api/exception", Features.Debug.ExceptionRaiser.Endpoint.Get);
@@ -75,6 +78,16 @@ public static class Endpoints
         var group = app.MapGroup("/api/maintenance");
 
         group.MapPost("/datamigration", Maintenance.DataMigration.Endpoint.Post);
+
+        return group;
+    }
+
+    public static RouteGroupBuilder MapSuperadminEndpoints(this WebApplication app)
+    {
+        var group = app.MapGroup("/api/superadmins");
+
+        group.MapGet("/", Superadmin.GetSuperadmins.Endpoint.Get);
+        group.MapDelete("/", Superadmin.RevokeSuperadmin.Endpoint.Delete);
 
         return group;
     }
