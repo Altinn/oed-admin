@@ -6,6 +6,7 @@ import {
 import { CircleBrokenIcon, ExclamationmarkTriangleIcon, MagnifyingGlassIcon, TasklistIcon } from "@navikt/aksel-icons";
 import Tasks from "./tasks";
 import EstateSearch from "./estateSearch";
+import SuperAdmins from "./superAdmins";
 
 export default function Home() {
   return (
@@ -17,6 +18,9 @@ export default function Home() {
           </Tabs.Tab>
           <Tabs.Tab value="tasks">
             <TasklistIcon /> Task Queue
+          </Tabs.Tab>
+          <Tabs.Tab value="superadmins">
+            <TasklistIcon /> Super admins
           </Tabs.Tab>
         </Tabs.List>
 
@@ -65,6 +69,9 @@ export default function Home() {
               </section>
             </Tabs.Panel>
           </Tabs>
+        </Tabs.Panel>
+        <Tabs.Panel value="superadmins" id="tab-superadmins">
+          <SuperAdmins />
         </Tabs.Panel>
       </Tabs>
     </>
