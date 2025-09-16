@@ -11,7 +11,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { RoleAssignmentsResponse } from "../../types/IEstate";
 import { formatDateTime, formatRoleCode } from "../../utils/formatters";
 
-export default function SuperAdmins() {
+export function SuperAdmins() {
   const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery<RoleAssignmentsResponse>({
@@ -117,3 +117,5 @@ export default function SuperAdmins() {
     </>
   );
 }
+
+export * from "./SuperAdmin";

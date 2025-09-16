@@ -25,7 +25,7 @@ import "./style.css";
 import EstateRoles from "../estateRoles";
 import EstateEvents from "../estateEvents";
 import type { Estate } from "../../types/IEstate";
-import SuperAdmin from "../superAdmin";
+import { SuperAdmin } from "../superAdmins";
 import EstateTasks from "../estateTasks";
 import { formatDateTimeLocal, isValidDate, isValidDateTime } from "../../utils/formatters";
 import EstateInstance from "../estateInstance";
