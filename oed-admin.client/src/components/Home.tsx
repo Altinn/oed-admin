@@ -3,10 +3,10 @@ import {
   Paragraph,
   Tabs,
 } from "@digdir/designsystemet-react";
-import { CircleBrokenIcon, ExclamationmarkTriangleIcon, MagnifyingGlassIcon, TasklistIcon } from "@navikt/aksel-icons";
+import { KeyVerticalIcon, CircleBrokenIcon, ExclamationmarkTriangleIcon, MagnifyingGlassIcon, TasklistIcon } from "@navikt/aksel-icons";
 import Tasks from "./tasks";
 import EstateSearch from "./estateSearch";
-import SuperAdmins from "./superAdmins";
+import { SuperAdmins } from "./superAdmins";
 
 export default function Home() {
   return (
@@ -20,7 +20,7 @@ export default function Home() {
             <TasklistIcon /> Task Queue
           </Tabs.Tab>
           <Tabs.Tab value="superadmins">
-            <TasklistIcon /> Super admins
+            <KeyVerticalIcon /> Super admins
           </Tabs.Tab>
         </Tabs.List>
 
@@ -46,10 +46,10 @@ export default function Home() {
                 >
                   Dead Letter Queue
                 </Heading>
-                <Paragraph style={{marginBottom: '2rem'}}>
+                <Paragraph style={{ marginBottom: '2rem' }}>
                   Oppgaver i denne listen har feilet maksimalt antall ganger og de vil ikke bli forsøkt igjen automatisk. Når grunnen til at de feiler er løst kan de reschedules manuelt.
                 </Paragraph>
-                <Tasks status="DeadLetterQueue"/>
+                <Tasks status="DeadLetterQueue" />
               </section>
             </Tabs.Panel>
             <Tabs.Panel value="retrying" id="tab-tasks-retrying">
@@ -61,11 +61,11 @@ export default function Home() {
                 >
                   Retrying
                 </Heading>
-                <Paragraph style={{marginBottom: '2rem'}}>
+                <Paragraph style={{ marginBottom: '2rem' }}>
                   Oppgaver i denne listen har feilet, men de har enda ikke nådd maksimalt antall forsøk og de vil derfor automatisk bli forsøkt igjen senere.
                 </Paragraph>
 
-                <Tasks status="Retrying"/>
+                <Tasks status="Retrying" />
               </section>
             </Tabs.Panel>
           </Tabs>

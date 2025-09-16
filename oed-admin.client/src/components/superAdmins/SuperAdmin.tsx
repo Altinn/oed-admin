@@ -28,7 +28,7 @@ interface SuperadminPayload {
   method: Method;
 }
 
-export default function SuperAdmin({ estateId, instanceId }: Props) {
+export function SuperAdmin({ estateId, instanceId }: Props) {
   const queryClient = useQueryClient();
   const [nin, setNin] = React.useState<string>("");
   const [justification, setJustification] = React.useState<string>("");
