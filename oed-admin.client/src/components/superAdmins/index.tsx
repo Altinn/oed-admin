@@ -1,7 +1,5 @@
-import React from "react";
 import {
   Button,
-  Divider,
   Heading,
   Skeleton,
   Table,
