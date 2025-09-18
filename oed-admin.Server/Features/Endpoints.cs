@@ -25,6 +25,8 @@ public static class Endpoints
 
         //app.MapGet("/api/exception", Features.Debug.ExceptionRaiser.Endpoint.Get);
         //app.MapGet("/api/headers", Dbg.HeadersEndpoint.Get);
+
+        app.MapGet("/api/secrets", SecretExpiry.Get.Endpoint.);
     }
 
     public static RouteGroupBuilder MapEstateEndpoints(this WebApplication app)
