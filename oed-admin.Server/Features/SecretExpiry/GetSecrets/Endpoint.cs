@@ -1,25 +1,29 @@
 ﻿using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.AspNetCore.Mvc;
-using oed_admin.Server.Infrastructure.Database.Authz;
+using Microsoft.Extensions.Options;
 
-namespace oed_admin.Server.Features.SecretExpiry.Get
+namespace oed_admin.Server.Features.SecretExpiry.GetSecrets
 {
     public class Endpoint
     {        
-        public static async Task<IResult> Get([FromServices] ILogger<Endpoint> log)
+        public static async Task<IResult> Get(
+            [FromServices] ILogger<Endpoint> log,
+            [FromServices] IOptions<KeyVaultOptions> options)
         {
             try
             {
-                var secrets1 = await GetSecretsFromVault("https://oed-kv.vault.azure.net/");
+                var secretList = new List<KvSecret>();
 
-                var secrets2 = await GetSecretsFromVault("https://digdir-tt02-apps-kv.vault.azure.net/");
-
-                secrets1.AddRange(secrets2);
-                var allSecrets = secrets1.Where(x => x.Expires.HasValue);
+                foreach(var vault in options.Value)
+                {
+                    var secrets = await GetSecretsFromVault(vault.Value);
+                    secretList.AddRange(secrets);
+                }
+                var allSecrets = secretList.Where(x => x.Expires.HasValue);
                 var orderedList = allSecrets.OrderBy(x => x.Expires).ToList();
 
-                var result = TypedResults.Ok(new Response() { Secrets = orderedList });
+                var result = TypedResults.Ok(orderedList);
                 return result;
 
             }

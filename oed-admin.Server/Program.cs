@@ -1,4 +1,5 @@
 using oed_admin.Server.Features;
+using oed_admin.Server.Features.SecretExpiry.GetSecrets;
 using oed_admin.Server.Infrastructure.Altinn;
 using oed_admin.Server.Infrastructure.Authz;
 using oed_admin.Server.Infrastructure.Database.Authz;
@@ -25,6 +26,9 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
 builder.Services.AddHttpContextAccessor();
+
+var dic = builder.Configuration.GetSection("KeyVaults");
+builder.Services.Configure<KeyVaultOptions>(dic);
 
 var app = builder.Build();
 
