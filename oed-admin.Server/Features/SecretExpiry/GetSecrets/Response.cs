@@ -9,10 +9,6 @@ namespace oed_admin.Server.Features.SecretExpiry.Get
 {
     public class Response
     {      
-
-        public static async Task<List<KvSecret>> GetSecrets()
-        {
-            return new List<KvSecret>();
-        }
+        public List<KvSecret> Secrets;
     }
 }

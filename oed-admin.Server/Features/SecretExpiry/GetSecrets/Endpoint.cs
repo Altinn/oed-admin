@@ -7,36 +7,52 @@ namespace oed_admin.Server.Features.SecretExpiry.Get
 {
     public class Endpoint
     {        
-        public static async Task<IResult> Get()
+        public static async Task<IResult> Get([FromServices] ILogger<Endpoint> log)
         {
             try
             {
-                var secretList = new List<KvSecret>();
+                var secrets1 = await GetSecretsFromVault("https://oed-kv.vault.azure.net/");
 
-                var keyVaultUrl = new Uri("https://<ditt-keyvault-navn>.vault.azure.net/");
-                var client = new SecretClient(keyVaultUrl, new DefaultAzureCredential());
+                var secrets2 = await GetSecretsFromVault("https://digdir-tt02-apps-kv.vault.azure.net/");
 
-                await foreach (var secretProperties in client.GetPropertiesOfSecretsAsync())
-                {
-                    KeyVaultSecret secret = await client.GetSecretAsync(secretProperties.Name);
-                    secretList.Add(new KvSecret(secret.Name}");
-                    Console.WriteLine($"Verdi: {secret.Value}");
-                    Console.WriteLine($"Versjon: {secret.Properties.Version}");
-                    Console.WriteLine($"Opprettet: {secret.Properties.CreatedOn}");
-                    Console.WriteLine($"Sist oppdatert: {secret.Properties.UpdatedOn}");
-                    Console.WriteLine($"Gyldig fra: {secret.Properties.NotBefore}");
-                    Console.WriteLine($"Utløper: {secret.Properties.ExpiresOn}");
-                    Console.WriteLine(new string('-', 40));
-                }
+                secrets1.AddRange(secrets2);
+                var allSecrets = secrets1.Where(x => x.Expires.HasValue);
+                var orderedList = allSecrets.OrderBy(x => x.Expires).ToList();
+
+                var result = TypedResults.Ok(new Response() { Secrets = orderedList });
+                return result;
 
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                log.LogError(ex, "Error in SecretExpiry.Get");
             }
             
 
+        }
+
+        private static async Task<List<KvSecret>> GetSecretsFromVault(string vaultUrl)
+        {
+            var keyVaultUrl = new Uri(vaultUrl);
+            var client = new SecretClient(keyVaultUrl, new DefaultAzureCredential());
+
+            var secretList = new List<KvSecret>();
+            
+            await foreach (var secretProperties in client.GetPropertiesOfSecretsAsync())
+            {
+                if (secretProperties.Enabled.HasValue && secretProperties.Enabled.Value)
+                {
+                    KeyVaultSecret secret = await client.GetSecretAsync(secretProperties.Name);
+                    secretList.Add(new KvSecret(
+                        vaultUrl,
+                        secret.Name,
+                        secret.Properties.CreatedOn,
+                        secret.Properties.NotBefore,
+                        secret.Properties.ExpiresOn));
+                }
+            }
+
+            return secretList;
         }
     }
 }

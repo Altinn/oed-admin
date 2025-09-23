@@ -1,4 +1,4 @@
 ﻿namespace oed_admin.Server.Features.SecretExpiry.Get
 {
-    public record KvSecret(string Name, DateTime created, DateTime? ValidFrom, DateTime? Expires);
+    public record KvSecret(string vaultName, string Name, DateTimeOffset? created, DateTimeOffset? ValidFrom, DateTimeOffset? Expires);
 }
