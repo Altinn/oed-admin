@@ -26,6 +26,7 @@ namespace oed_admin.Server.Features.SecretExpiry.Get
             catch (Exception ex)
             {
                 log.LogError(ex, "Error in SecretExpiry.Get");
+                return TypedResults.InternalServerError(ex);
             }
             
 

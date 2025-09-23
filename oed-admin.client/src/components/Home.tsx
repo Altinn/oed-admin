@@ -7,8 +7,9 @@ import { KeyVerticalIcon, CircleBrokenIcon, ExclamationmarkTriangleIcon, Magnify
 import Tasks from "./tasks";
 import EstateSearch from "./estateSearch";
 import { SuperAdmins } from "./superAdmins";
+import { SecretExpirations } from "./secretExpiration"
 
-export default function Home() {
+export default function Home() 
   return (
     <>
       <Tabs defaultValue="search" style={{ width: "100%" }}>
