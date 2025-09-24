@@ -6,13 +6,16 @@ using Microsoft.Extensions.Options;
 namespace oed_admin.Server.Features.SecretExpiry.GetSecrets
 {
     public class Endpoint
-    {        
+    {
+        private static ILogger<Endpoint> logger;
+
         public static async Task<IResult> Get(
             [FromServices] ILogger<Endpoint> log,
             [FromServices] IOptions<KeyVaultOptions> options)
         {
             try
             {
+                logger = log;
                 var secretList = new List<KvSecret>();
 
                 foreach(var vault in options.Value)
@@ -29,7 +32,7 @@ namespace oed_admin.Server.Features.SecretExpiry.GetSecrets
             }
             catch (Exception ex)
             {
-                log.LogError(ex, "Error in SecretExpiry.Get");
+                logger.LogError(ex, "Error in SecretExpiry.Get");
                 return TypedResults.InternalServerError(ex);
             }
             
@@ -38,26 +41,34 @@ namespace oed_admin.Server.Features.SecretExpiry.GetSecrets
 
         private static async Task<List<KvSecret>> GetSecretsFromVault(string vaultUrl)
         {
-            var keyVaultUrl = new Uri(vaultUrl);
-            var client = new SecretClient(keyVaultUrl, new DefaultAzureCredential());
-
-            var secretList = new List<KvSecret>();
-            
-            await foreach (var secretProperties in client.GetPropertiesOfSecretsAsync())
+            try
             {
-                if (secretProperties.Enabled.HasValue && secretProperties.Enabled.Value)
-                {
-                    KeyVaultSecret secret = await client.GetSecretAsync(secretProperties.Name);
-                    secretList.Add(new KvSecret(
-                        vaultUrl,
-                        secret.Name,
-                        secret.Properties.CreatedOn,
-                        secret.Properties.NotBefore,
-                        secret.Properties.ExpiresOn));
-                }
-            }
+                var keyVaultUrl = new Uri(vaultUrl);
+                var client = new SecretClient(keyVaultUrl, new DefaultAzureCredential());
 
-            return secretList;
+                var secretList = new List<KvSecret>();
+
+                await foreach (var secretProperties in client.GetPropertiesOfSecretsAsync())
+                {
+                    if (secretProperties.Enabled.HasValue && secretProperties.Enabled.Value)
+                    {
+                        KeyVaultSecret secret = await client.GetSecretAsync(secretProperties.Name);
+                        secretList.Add(new KvSecret(
+                            vaultUrl,
+                            secret.Name,
+                            secret.Properties.CreatedOn,
+                            secret.Properties.NotBefore,
+                            secret.Properties.ExpiresOn));
+                    }
+                }
+
+                return secretList;
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, $"Failed to access KeyVault - '{vaultUrl}'");
+                return new List<KvSecret>();
+            }            
         }
     }
 }
