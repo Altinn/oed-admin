@@ -7,6 +7,8 @@ import { KeyVerticalIcon, CircleBrokenIcon, ExclamationmarkTriangleIcon, Magnify
 import Tasks from "./tasks";
 import EstateSearch from "./estateSearch";
 import { SuperAdmins } from "./superAdmins";
+import SecretExpiration from "./secretExpiration";
+import { PadlockLockedIcon } from "@navikt/aksel-icons";
 
 export default function Home() {
   return (
@@ -21,6 +23,9 @@ export default function Home() {
           </Tabs.Tab>
           <Tabs.Tab value="superadmins">
             <KeyVerticalIcon /> Super admins
+          </Tabs.Tab>
+          <Tabs.Tab value="secrets">
+            <PadlockLockedIcon/> Hemmeligheter
           </Tabs.Tab>
         </Tabs.List>
 
@@ -72,6 +77,9 @@ export default function Home() {
         </Tabs.Panel>
         <Tabs.Panel value="superadmins" id="tab-superadmins">
           <SuperAdmins />
+        </Tabs.Panel>
+        <Tabs.Panel value="secrets" id="tab-secrets">
+          <SecretExpiration />
         </Tabs.Panel>
       </Tabs>
     </>
