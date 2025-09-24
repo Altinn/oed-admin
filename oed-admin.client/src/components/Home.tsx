@@ -25,7 +25,7 @@ export default function Home() {
             <KeyVerticalIcon /> Super admins
           </Tabs.Tab>
           <Tabs.Tab value="secrets">
-            <PadlockLockedIcon/> Secrets
+            <PadlockLockedIcon/> Hemmeligheter
           </Tabs.Tab>
         </Tabs.List>
 
