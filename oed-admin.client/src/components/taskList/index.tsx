@@ -1,13 +1,16 @@
 import React from "react";
 import {
   Badge,
+  Checkbox,
   Chip,
   Dialog,
   Heading,
   Label,
+  Paragraph,
   Skeleton,
   Table,
   Tag,  
+  useCheckboxGroup,  
   ValidationMessage,
 } from "@digdir/designsystemet-react";
 import { formatDateTime } from "../../utils/formatters";
@@ -16,6 +19,7 @@ import type { Task, TaskResponse, TaskStatus } from "../../types/IEstate";
 import RescheduleDialog from "../rescheduleTaskDialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskKeys } from "../../queries/taskQueries";
+import RescheduleMultipleDialog from "../rescheduleTaskDialog/multiple";
 
 interface Props {
   data?: TaskResponse | null;
@@ -27,9 +31,17 @@ interface PatchTaskResponse {
   Task: Task
 }
 
+interface PatchTasksResponse {
+  updatedCount: number
+}
+
 export default function TaskList({ data, isLoading, error }: Props) {
   const queryClient = useQueryClient();
   const [filter, setFilter] = React.useState<TaskStatus | "All">("All");
+
+  const { getCheckboxProps, value: selectedTasks, setValue: setSelectedTasks } = useCheckboxGroup({
+    name: "tasklist-checkbox-group"
+  });
 
   const rescheduleMutationFn = async ({taskId, scheduled, attempts} : {taskId: string, scheduled: string, attempts: number}): Promise<PatchTaskResponse> => {
     const response = await fetch(`/api/tasks/${taskId}`, {
@@ -46,6 +58,24 @@ export default function TaskList({ data, isLoading, error }: Props) {
     return response.json(); 
   }
 
+    const rescheduleMultipleMutationFn = async ({taskIds, scheduled, attempts} : {taskIds: Array<string>, scheduled: string, attempts: number}): Promise<PatchTasksResponse> => {
+    const response = await fetch(`/api/tasks`, {
+      method: 'PATCH',
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ taskIds, scheduled, attempts }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to rescehdule task");
+    }
+    else {
+      setSelectedTasks([]);
+    }
+    return response.json(); 
+  }
+
   const rescheduleMutation = useMutation({
     mutationFn: (data: {taskId: string, scheduled: string, attempts: number}) => 
       rescheduleMutationFn(data),
@@ -56,6 +86,19 @@ export default function TaskList({ data, isLoading, error }: Props) {
     },
     onError: (error) => {
       console.error("Error reschdeduling task:", error);
+    },
+  });
+
+    const rescheduleMultipleMutation = useMutation({
+    mutationFn: (data: {taskIds: Array<string>, scheduled: string, attempts: number}) => 
+      rescheduleMultipleMutationFn(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: taskKeys.all,
+      });
+    },
+    onError: (error) => {
+      console.error("Error reschdeduling tasks:", error);
     },
   });
 
@@ -80,7 +123,6 @@ export default function TaskList({ data, isLoading, error }: Props) {
 
   const handleChangeChip = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFilter(event.target.value as TaskStatus | "All");
-    console.log("Selected filter:", event.target.value);
   };
 
   const filteredTasks = data?.tasks.filter(
@@ -109,44 +151,70 @@ export default function TaskList({ data, isLoading, error }: Props) {
 
   return (
     <section className="flex-col">
-      {uniqueStatuses.length > 1 && (
-        <>
-          <Label
-            style={{ marginRight: "var(--ds-size-2)" }}
-            htmlFor="task-status"
-          >
-            Filtrer oppgaver
-          </Label>
-
-          <div className="flex-row">
-            <Chip.Radio
-              name="task-status"
-              defaultChecked
-              value="All"
-              onChange={(e) => {
-                handleChangeChip(e);
-              }}
+      <div className="flex-row" style={{justifyContent: "space-between"}}>
+        {uniqueStatuses.length > 1 && (
+          <div>
+            <Label
+              style={{ marginRight: "var(--ds-size-2)" }}
+              htmlFor="task-status"
             >
-              All
-            </Chip.Radio>
-            {uniqueStatuses.map((status) => (
+              Filtrer oppgaver
+            </Label>
+
+            <div className="flex-row">
               <Chip.Radio
-                key={status}
                 name="task-status"
-                value={status}
+                defaultChecked
+                value="All"
                 onChange={(e) => {
                   handleChangeChip(e);
                 }}
               >
-                {status}
+                All
               </Chip.Radio>
-            ))}
+              {uniqueStatuses.map((status) => (
+                <Chip.Radio
+                  key={status}
+                  name="task-status"
+                  value={status}
+                  onChange={(e) => {
+                    handleChangeChip(e);
+                  }}
+                >
+                  {status}
+                </Chip.Radio>
+              ))}
+            </div>
           </div>
-        </>
-      )}
+        )}
+        {selectedTasks.length > 0 && (
+          <div>
+            <Label
+              style={{ marginRight: "var(--ds-size-2)" }}
+              htmlFor="task-status"
+            >
+              Batch actions
+            </Label>
+
+            <div className="flex-row">
+              <Paragraph>{`${selectedTasks.length} oppgave(r) valgt`}</Paragraph>
+              <RescheduleMultipleDialog 
+                taskIds={selectedTasks} 
+                onChange={(val) => rescheduleMultipleMutation.mutate({taskIds: selectedTasks, scheduled: val, attempts: 0})}
+              />                          
+            </div>
+          </div>
+        )}
+      </div>
       <Table>
         <Table.Head>
           <Table.Row>
+            <Table.HeaderCell>
+              <Checkbox 
+                aria-label="Velg alle" 
+                {...getCheckboxProps({ allowIndeterminate: true })} 
+              />
+            </Table.HeaderCell>
             <Table.HeaderCell>Type</Table.HeaderCell>
             <Table.HeaderCell>Status</Table.HeaderCell>
             <Table.HeaderCell>Opprettet</Table.HeaderCell>
@@ -160,6 +228,13 @@ export default function TaskList({ data, isLoading, error }: Props) {
         <Table.Body>
           {filteredTasks?.map((task) => (
             <Table.Row key={task.id}>
+              <Table.Cell>
+                <Checkbox 
+                  aria-label={`Velg ${task.id}`}
+                  {...getCheckboxProps(task.id)}
+                  readOnly={filteredTasks.find(item => item.id == task.id)?.executed ? true : false }
+                />
+              </Table.Cell>
               <Table.Cell>
                 <Badge
                   count={task.attempts}
@@ -219,7 +294,10 @@ export default function TaskList({ data, isLoading, error }: Props) {
                 </Dialog.TriggerContext>
               </Table.Cell>
               <Table.Cell>
-                <RescheduleDialog task={task} onChange={(val) => rescheduleMutation.mutate({taskId: task.id, scheduled: val, attempts: 0})}/>                          
+                <RescheduleDialog 
+                  task={task} 
+                  onChange={(val) => rescheduleMutation.mutate({taskId: task.id, scheduled: val, attempts: 0})}
+                />                          
               </Table.Cell>
             </Table.Row>
           ))}

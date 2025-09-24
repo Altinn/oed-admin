@@ -58,6 +58,7 @@ public static class Endpoints
         var group = app.MapGroup("/api/tasks");
 
         group.MapGet("/", Tasks.GetTasks.Endpoint.Get);
+        group.MapPatch("/", Tasks.PatchTasks.Endpoint.Patch);
         group.MapPatch("/{taskId:guid}", Tasks.PatchTask.Endpoint.Patch);
 
         return group;
