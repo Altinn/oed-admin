@@ -21,6 +21,7 @@ import {
 } from "@azure/msal-react";
 import { InteractionType, type AccountInfo } from "@azure/msal-browser";
 import { hasRole } from "./utils/msalUtils";
+import RestrictedHome from "./components/RestrictedHome";
 
 export default function App() {
   const [darkMode, setDarkMode] = React.useState<boolean>(
@@ -129,7 +130,9 @@ export default function App() {
     if (isReader) {
       return (
         <Routes>
-          <Route path="/" element={<Layout />}></Route>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<RestrictedHome />} />
+          </Route>
         </Routes>
       );
     }
