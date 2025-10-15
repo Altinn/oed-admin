@@ -12,12 +12,25 @@ import type { WhoAmIResponse } from "./types/IEstate";
 import { useQuery } from "@tanstack/react-query";
 import { DoorOpenIcon } from "@navikt/aksel-icons";
 import DataMigration from "./components/dataMigration";
+import { UnauthenticatedTemplate, useMsal, useMsalAuthentication } from "@azure/msal-react";
+import { InteractionType, type AccountInfo } from "@azure/msal-browser";
+import { hasRole } from "./utils/msalUtils";
 
 export default function App() {
   const [darkMode, setDarkMode] = React.useState<boolean>(
     localStorage.getItem("darkMode") === "true"
   );
-
+  const { login, error } = useMsalAuthentication(InteractionType.Silent);
+  useEffect(() => {
+    if (error) {
+      login(InteractionType.Redirect);
+    }
+  }, [error]);
+  const { instance } = useMsal();
+  // var account = instance.getActiveAccount();
+  const account = instance.getAllAccounts()[0] as AccountInfo;
+  const isAdmin = hasRole(account, "Admin");
+  const isReader = hasRole(account, "Read");
   const { data } = useQuery<WhoAmIResponse>({
     queryKey: ["whoami"],
     queryFn: async () => {
@@ -48,6 +61,12 @@ export default function App() {
     localStorage.setItem("darkMode", isDarkMode ? "true" : "false");
   };
 
+  const logoutUser = () => {
+    instance.logoutRedirect({
+      account: account
+    });
+  }
+
   const Layout = () => {
     return (
       <>
@@ -73,10 +92,10 @@ export default function App() {
               />
             </Dropdown.Trigger>
             <Dropdown>
-              <Dropdown.Heading>{data?.name}</Dropdown.Heading>
+              <Dropdown.Heading>{account?.name}</Dropdown.Heading>
               <Dropdown.List>
                 <Dropdown.Item>
-                  <Dropdown.Button onClick={() => window.location.href='/.auth/logout'}>
+                  <Dropdown.Button onClick={logoutUser}>
                     <DoorOpenIcon />
                     Logg ut!
                   </Dropdown.Button>
@@ -85,20 +104,40 @@ export default function App() {
             </Dropdown>
           </Dropdown.TriggerContext>
         </header>
-        <main className="container" style={{maxWidth: 1600}}>
+        <main className="container" style={{ maxWidth: 1600 }}>
           <Outlet />
         </main>
       </>
     );
   };
 
+  const roleBasedRoutes = () => {
+    if (isAdmin) {
+      return (
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Home />} />
+          <Route path="/estate/:id" element={<EstateDetails />} />
+          <Route path="/maintenance/datamigration" element={<DataMigration />} />
+        </Route>
+      );
+    }
+    if (isReader) {
+      return (
+        <Route path="/" element={<Layout />}>
+        </Route>
+      );
+    }
+
+    return (
+      <UnauthenticatedTemplate>
+        <p>Du har ikke tilgang til denne applikasjonen. Kontakt systemansvarlig.</p>
+      </UnauthenticatedTemplate>
+    );
+  };
+
   return (
     <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route index element={<Home />} />
-        <Route path="/estate/:id" element={<EstateDetails />} />
-        <Route path="/maintenance/datamigration" element={<DataMigration />} />
-      </Route>
-    </Routes>
+      {roleBasedRoutes()}
+    </Routes >
   );
 }
