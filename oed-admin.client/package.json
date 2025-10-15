@@ -10,18 +10,21 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-router-dom": "^6.11.0",
+    "@azure/msal-browser": "^4.25.0",
+    "@azure/msal-react": "^3.0.20",
     "@digdir/designsystemet-css": "^1.0.8",
     "@digdir/designsystemet-react": "^1.0.8",
     "@digdir/designsystemet-theme": "^1.0.8",
     "@navikt/aksel-icons": "^7.22.0",
     "@tanstack/react-query": "^5.80.7",
-    "@tanstack/react-query-devtools": "^5.80.7"
+    "@tanstack/react-query-devtools": "^5.80.7",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^6.11.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
+    "@types/node": "^20",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
@@ -31,7 +34,6 @@
     "globals": "^16.0.0",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
-    "vite": "^6.3.5",
-    "@types/node": "^20"
+    "vite": "^6.3.5"
   }
 }
