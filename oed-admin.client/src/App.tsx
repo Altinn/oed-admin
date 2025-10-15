@@ -6,13 +6,19 @@ import {
   Avatar,
   Dropdown,
   Heading,
+  Paragraph,
   Switch,
 } from "@digdir/designsystemet-react";
 import type { WhoAmIResponse } from "./types/IEstate";
 import { useQuery } from "@tanstack/react-query";
 import { DoorOpenIcon } from "@navikt/aksel-icons";
 import DataMigration from "./components/dataMigration";
-import { UnauthenticatedTemplate, useMsal, useMsalAuthentication } from "@azure/msal-react";
+import {
+  AuthenticatedTemplate,
+  UnauthenticatedTemplate,
+  useMsal,
+  useMsalAuthentication,
+} from "@azure/msal-react";
 import { InteractionType, type AccountInfo } from "@azure/msal-browser";
 import { hasRole } from "./utils/msalUtils";
 
@@ -42,7 +48,6 @@ export default function App() {
     },
   });
 
-
   useEffect(() => {
     const bodyDiv = document.getElementById("body");
     if (bodyDiv) {
@@ -63,13 +68,13 @@ export default function App() {
 
   const logoutUser = () => {
     instance.logoutRedirect({
-      account: account
+      account: account,
     });
-  }
+  };
 
   const Layout = () => {
     return (
-      <>
+      <AuthenticatedTemplate>
         <header className="header">
           <div className="flex-col">
             <Heading level={1} data-size="md">
@@ -84,7 +89,7 @@ export default function App() {
             />
           </div>
           <Dropdown.TriggerContext>
-            <Dropdown.Trigger variant='tertiary'>
+            <Dropdown.Trigger variant="tertiary">
               <Avatar
                 data-size="sm"
                 data-color="neutral"
@@ -107,37 +112,44 @@ export default function App() {
         <main className="container" style={{ maxWidth: 1600 }}>
           <Outlet />
         </main>
-      </>
+      </AuthenticatedTemplate>
     );
   };
 
   const roleBasedRoutes = () => {
     if (isAdmin) {
       return (
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
-          <Route path="/estate/:id" element={<EstateDetails />} />
-          <Route path="/maintenance/datamigration" element={<DataMigration />} />
-        </Route>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Home />} />
+            <Route path="/estate/:id" element={<EstateDetails />} />
+            <Route
+              path="/maintenance/datamigration"
+              element={<DataMigration />}
+            />
+          </Route>
+        </Routes>
       );
     }
     if (isReader) {
       return (
-        <Route path="/" element={<Layout />}>
-        </Route>
+        <Routes>
+          <Route path="/" element={<Layout />}></Route>
+        </Routes>
       );
     }
 
     return (
       <UnauthenticatedTemplate>
-        <p>Du har ikke tilgang til denne applikasjonen. Kontakt systemansvarlig.</p>
+        <main className="container" style={{ maxWidth: 1600 }}>
+          <Paragraph>
+            Du har ikke tilgang til denne applikasjonen. Kontakt
+            systemansvarlig.
+          </Paragraph>
+        </main>
       </UnauthenticatedTemplate>
     );
   };
 
-  return (
-    <Routes>
-      {roleBasedRoutes()}
-    </Routes >
-  );
+  return <>{roleBasedRoutes()}</>;
 }
