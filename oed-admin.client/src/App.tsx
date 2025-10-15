@@ -26,12 +26,7 @@ export default function App() {
   const [darkMode, setDarkMode] = React.useState<boolean>(
     localStorage.getItem("darkMode") === "true"
   );
-  const { login, error } = useMsalAuthentication(InteractionType.Silent);
-  useEffect(() => {
-    if (error) {
-      login(InteractionType.Redirect);
-    }
-  }, [error]);
+  useMsalAuthentication(InteractionType.Redirect);
   const { instance } = useMsal();
   // var account = instance.getActiveAccount();
   const account = instance.getAllAccounts()[0] as AccountInfo;
