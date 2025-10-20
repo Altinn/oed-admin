@@ -27,7 +27,7 @@ public static class Endpoints
             .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
 
         app.MapGet("/api/eventsubscriptions", EventSubscriptions.GetEventSubscriptions.Endpoint.Get)
-            .RequireAuthorization(AuthorizationPolicies.DigitaltDodsboAdmins);
+            .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
     }
 
     public static RouteGroupBuilder MapEstateEndpoints(this WebApplication app)
