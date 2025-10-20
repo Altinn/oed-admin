@@ -25,6 +25,9 @@ public static class Endpoints
 
         app.MapGet("/api/secrets", SecretExpiry.GetSecrets.Endpoint.Get)
             .RequireAuthorization(AuthorizationPolicies.DigitaltDodsboAdmins);
+
+        app.MapGet("/api/eventsubscriptions", EventSubscriptions.GetEventSubscriptions.Endpoint.Get)
+            .RequireAuthorization(AuthorizationPolicies.DigitaltDodsboAdmins);
     }
 
     public static RouteGroupBuilder MapEstateEndpoints(this WebApplication app)

@@ -9,6 +9,8 @@ import EstateSearch from "./estateSearch";
 import { SuperAdmins } from "./superAdmins";
 import SecretExpiration from "./secretExpiration";
 import { PadlockLockedIcon } from "@navikt/aksel-icons";
+import EventSubs from "./eventsubs";
+import { BroadcastIcon } from "@navikt/aksel-icons";
 
 export default function Home() {
   return (
@@ -26,6 +28,9 @@ export default function Home() {
           </Tabs.Tab>
           <Tabs.Tab value="secrets">
             <PadlockLockedIcon/> Hemmeligheter
+          </Tabs.Tab>
+          <Tabs.Tab value="event-sub">
+            <BroadcastIcon /> Event subscriptions
           </Tabs.Tab>
         </Tabs.List>
 
@@ -80,6 +85,9 @@ export default function Home() {
         </Tabs.Panel>
         <Tabs.Panel value="secrets" id="tab-secrets">
           <SecretExpiration />
+        </Tabs.Panel>
+        <Tabs.Panel value="event-sub" id="tab-event-sub">
+          <EventSubs />
         </Tabs.Panel>
       </Tabs>
     </>

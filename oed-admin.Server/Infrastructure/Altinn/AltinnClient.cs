@@ -5,6 +5,7 @@ namespace oed_admin.Server.Infrastructure.Altinn;
 
 public interface IAltinnClient
 {
+    public Task<string> GetEventSubscriptions();
     public Task<string> GetEvents(string resource, string subject, string? after = "0");
     public Task<Instance?> GetInstance(int instanceOwnerPartyId, Guid instanceGuid);
     public Task<string> GetInstanceDataAsString(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid);
@@ -15,6 +16,18 @@ public interface IAltinnClient
 
 public class AltinnClient(HttpClient httpClient) : IAltinnClient
 {
+    public async Task<string> GetEventSubscriptions()
+    {
+        var path = $"/events/api/v1/subscriptions";
+
+        var response = await httpClient.GetAsync(path);
+
+        response.EnsureSuccessStatusCode();
+        var contentString = await response.Content.ReadAsStringAsync();
+
+        return contentString;
+    }
+
     public async Task<string> GetEvents(string resource, string subject, string? after = "0")
     {
         var path = $"/events/api/v1/events?resource={resource}&subject={subject}&size=500&after={after}";
