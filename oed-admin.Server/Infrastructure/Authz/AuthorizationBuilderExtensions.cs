@@ -6,6 +6,8 @@ namespace oed_admin.Server.Infrastructure.Authz;
 public static class AuthorizationPolicies
 {
     public const string DigitaltDodsboAdmins = "DDAdmins";
+    public const string AtLeastReadRole = "AtLeastReadRole";
+    public const string RequireAdminRole = "RequireAdminRole";
 }
 
 public static class AuthorizationBuilderExtensions
