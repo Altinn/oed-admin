@@ -9,8 +9,8 @@ import {
   Paragraph,
   Switch,
 } from "@digdir/designsystemet-react";
-import type { WhoAmIResponse } from "./types/IEstate";
-import { useQuery } from "@tanstack/react-query";
+// import type { WhoAmIResponse } from "./types/IEstate";
+// import { useQuery } from "@tanstack/react-query";
 import { DoorOpenIcon } from "@navikt/aksel-icons";
 import DataMigration from "./components/dataMigration";
 import {
@@ -27,22 +27,22 @@ export default function App() {
   const [darkMode, setDarkMode] = React.useState<boolean>(
     localStorage.getItem("darkMode") === "true"
   );
-  useMsalAuthentication(InteractionType.Redirect);
+  useMsalAuthentication(InteractionType.Redirect, { scopes: ["api://d96b3149-9c75-4bab-9826-ec5148d983af/AccessToken.Read"] });
   const { instance } = useMsal();
-  // var account = instance.getActiveAccount();
-  const account = instance.getAllAccounts()[0] as AccountInfo;
+  const account = instance.getActiveAccount() as AccountInfo;
   const isAdmin = hasRole(account, "Admin");
   const isReader = hasRole(account, "Read");
-  const { data } = useQuery<WhoAmIResponse>({
-    queryKey: ["whoami"],
-    queryFn: async () => {
-      const response = await fetch(`/api/whoami`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch whoami");
-      }
-      return response.json();
-    },
-  });
+
+  // const { data } = useQuery<WhoAmIResponse>({
+  //   queryKey: ["whoami"],
+  //   queryFn: async () => {
+  //     const response = await fetch(`/api/whoami`);
+  //     if (!response.ok) {
+  //       throw new Error("Failed to fetch whoami");
+  //     }
+  //     return response.json();
+  //   },
+  // });
 
   useEffect(() => {
     const bodyDiv = document.getElementById("body");
@@ -89,7 +89,7 @@ export default function App() {
               <Avatar
                 data-size="sm"
                 data-color="neutral"
-                aria-label={data?.name || "Username"}
+                aria-label={account?.name || "Username"}
               />
             </Dropdown.Trigger>
             <Dropdown>
