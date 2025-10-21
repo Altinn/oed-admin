@@ -7,24 +7,24 @@ public static class Endpoints
     public static void MapFeatureEndpoints(this WebApplication app)
     {
         app.MapEstateEndpoints()
-            .RequireAuthorization(AuthorizationPolicies.DigitaltDodsboAdmins);
+            .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
 
         app.MapTaskEndpoints()
-            .RequireAuthorization(AuthorizationPolicies.DigitaltDodsboAdmins);
+            .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
 
         app.MapInstanceEndpoints()
-            .RequireAuthorization(AuthorizationPolicies.DigitaltDodsboAdmins);
+            .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
 
         app.MapMaintenanceEndpoints()
-            .RequireAuthorization(AuthorizationPolicies.DigitaltDodsboAdmins);
+            .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
 
         app.MapSuperadminEndpoints()
-            .RequireAuthorization(AuthorizationPolicies.DigitaltDodsboAdmins);
+            .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
 
-        app.MapGet("/api/whoami", Dbg.Endpoint.Get);
+        //app.MapGet("/api/whoami", Dbg.Endpoint.Get);
 
         app.MapGet("/api/secrets", SecretExpiry.GetSecrets.Endpoint.Get)
-            .RequireAuthorization(AuthorizationPolicies.DigitaltDodsboAdmins);
+            .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
     }
 
     public static RouteGroupBuilder MapEstateEndpoints(this WebApplication app)
