@@ -17,13 +17,18 @@ const configuration: Configuration = {
   }
 };
 
-const pca = new PublicClientApplication(configuration);
+export const msalInstance = new PublicClientApplication(configuration);
 const queryClient = new QueryClient();
+
+if (!msalInstance.getActiveAccount() && msalInstance.getAllAccounts().length > 0) {
+    // Account selection logic is app dependent. Adjust as needed for different use cases.
+    msalInstance.setActiveAccount(msalInstance.getAllAccounts()[0]);
+}
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter basename={import.meta.env.VITE_BASE_URL}>
-      <MsalProvider instance={pca}>
+      <MsalProvider instance={msalInstance}>
         <QueryClientProvider client={queryClient}>
           <App />
           <ReactQueryDevtools initialIsOpen={false} />
