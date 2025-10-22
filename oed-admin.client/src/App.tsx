@@ -113,7 +113,7 @@ export default function App() {
   };
 
   const roleBasedRoutes = () => {
-    if (isReader) {
+    if (isAdmin) {
       return (
         <Routes>
           <Route path="/" element={<Layout />}>
@@ -127,7 +127,7 @@ export default function App() {
         </Routes>
       );
     }
-    if (isAdmin) {
+    if (isReader) {
       return (
         <Routes>
           <Route path="/" element={<Layout />}>
