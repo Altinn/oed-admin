@@ -20,7 +20,7 @@ if (!builder.Environment.IsDevelopment())
 builder.Services.AddOpenApi();
 builder.Services.AddOedDatabase(builder.Configuration.GetConnectionString("OedDb") ?? string.Empty);
 builder.Services.AddAuthzDatabase(builder.Configuration.GetConnectionString("OedAuthzDb") ?? string.Empty);
-builder.Services.AddAltinnClients(builder.Configuration);
+builder.Services.AddAltinnClients(builder.Environment, builder.Configuration);
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
