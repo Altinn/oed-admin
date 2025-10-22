@@ -6,14 +6,17 @@ import {
   Label,
   List,
 } from "@digdir/designsystemet-react";
-import type { Estate } from "../../types/IEstate";
+import type { MinimalEstate } from "../../types/IEstate";
 import { statusColors, statusTexts } from "../../utils/statusMappers";
 
 interface Props {
-  estate: Estate;
+  estate: MinimalEstate;
 }
 
 export default function EstateRestrictedCard({ estate }: Props) {
+  if (!estate) {
+    return null;
+  }
   const {
     deceasedName,
     firstHeirReceived,
@@ -21,19 +24,13 @@ export default function EstateRestrictedCard({ estate }: Props) {
     status,
     districtCourtName,
     caseNumber,
+    heirs
   } = estate;
 
   const caseStatusColor = caseStatus ? statusColors[caseStatus] : "neutral";
   const caseStatusText = caseStatus ? statusTexts[caseStatus] : "Ukjent";
   const ddStatusColor = caseStatus ? statusColors[status] : "neutral";
   const ddStatusText = caseStatus ? statusTexts[status] : "Ukjent";
-
-  if (!estate) {
-    return null;
-  }
-
-  const tmpHeirsSsns = ["01010112345", "02020223456", "03030334567"];
-  const maskedHeirsSsns = tmpHeirsSsns.map((ssn) => ssn.slice(0, 6) + " *****");
 
   return (
     <Card data-color="brand2" className="deceased-card">
@@ -53,9 +50,9 @@ export default function EstateRestrictedCard({ estate }: Props) {
           Arvinger
         </Heading>
         <List.Unordered>
-          {maskedHeirsSsns.map((ssn) => (
-            <List.Item key={ssn} style={{ fontVariant: "tabular-nums" }}>
-              {ssn}
+          {heirs.map((heir) => (
+            <List.Item key={heir.birthdate} style={{ fontVariant: "tabular-nums" }}>
+              {heir.birthdate}
             </List.Item>
           ))}
         </List.Unordered>
@@ -63,8 +60,8 @@ export default function EstateRestrictedCard({ estate }: Props) {
           <Label>Tilgang gitt: </Label>
           {firstHeirReceived
             ? new Intl.DateTimeFormat("nb", { dateStyle: "full" }).format(
-                new Date(firstHeirReceived)
-              )
+              new Date(firstHeirReceived)
+            )
             : "Ukjent"}
         </Paragraph>
       </Card.Block>
