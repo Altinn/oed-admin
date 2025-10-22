@@ -18,6 +18,7 @@ public static class Endpoint
 
         var estate = await dbContext.Estate.AsNoTracking()
             .Where(e => e.DeceasedNin == request.Nin)
+            .OrderByDescending(x => x.Created) // Need this for tt02 to work, alot of deceased have multiple instances in metadatabase
             .FirstOrDefaultAsync();
 
         if (estate is null)

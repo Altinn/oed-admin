@@ -26,6 +26,7 @@ const RestrictedHome = () => {
       });
 
       if (!response.ok) {
+        setLoadingEstate(false);
         throw new Error("noe gikk galt");
       }
 
