@@ -28,6 +28,9 @@ public static class Endpoints
 
         app.MapGet("/api/eventsubscriptions", EventSubscriptions.GetEventSubscriptions.Endpoint.Get)
             .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
+
+        app.MapPost("/api/estate/minimalsearch", Estate.MinimalSearch.Endpoint.Post)
+            .RequireAuthorization(AuthorizationPolicies.AtLeastReadRole);
     }
 
     public static RouteGroupBuilder MapEstateEndpoints(this WebApplication app)
