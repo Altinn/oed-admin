@@ -18,6 +18,17 @@ export interface ResponseBody {
   estates: Estate[];
 }
 
+export interface MinimalEstate extends Estate {
+  heirs: SimpleHeir[];
+}
+export interface MinimalSearchResponse {
+  estate: MinimalEstate;
+}
+
+export interface SimpleHeir {
+  birthdate: string;
+}
+
 export interface Estate {
   id: string;
   deceasedNin: string;

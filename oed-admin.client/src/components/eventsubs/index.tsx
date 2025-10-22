@@ -2,6 +2,7 @@ import { Heading, Skeleton, Table, ValidationMessage } from "@digdir/designsyste
 import { formatDateTime } from "../../utils/formatters";
 import { useQuery } from "@tanstack/react-query";
 import { CheckmarkIcon } from "@navikt/aksel-icons";
+import { fetchWithMsal } from "../../utils/msalUtils";
 
 interface IEventSubscriptionsResponse {
   count: number;
@@ -23,7 +24,7 @@ export default function EventSubs() {
   const { data, isLoading, error } = useQuery<string>({
     queryKey: ["eventsubscriptions"],
     queryFn: async () => {
-      const response = await fetch(`/api/eventsubscriptions`);
+      const response = await fetchWithMsal(`/api/eventsubscriptions`);
       if (!response.ok) {
         throw new Error("Failed to fetch event subscriptions");
       }
