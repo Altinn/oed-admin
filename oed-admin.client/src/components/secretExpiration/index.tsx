@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Heading, Table, Skeleton } from "@digdir/designsystemet-react";
 import { formatDateTimeLocal } from "../../utils/formatters";
+import { fetchWithMsal } from "../../utils/msalUtils";
 
 interface KvSecret {
   vaultName: string;
@@ -14,7 +15,7 @@ export default function SecretExpiration() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["secretExpiration"],
     queryFn: async () => {
-      const response = await fetch("/api/secrets");
+      const response = await fetchWithMsal("/api/secrets");
       if (!response.ok) {
         throw new Error("Failed to fetch instance");
       }

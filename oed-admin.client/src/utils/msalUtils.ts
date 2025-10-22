@@ -25,7 +25,7 @@ export const fetchWithMsal = async function (input: string | URL | Request, init
     account: account,
     redirectUri: '/redirect'
   } as SilentRequest);
-  const accessToken = msalResponse.accessToken;
+  const accessToken = msalResponse?.accessToken;
 
   if (!accessToken) {
     await msalInstance.acquireTokenRedirect({

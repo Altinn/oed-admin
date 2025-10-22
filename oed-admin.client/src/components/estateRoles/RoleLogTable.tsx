@@ -14,6 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { formatDateTime, formatRoleCode } from "../../utils/formatters";
 import { useState } from "react";
 import { EnterIcon, LeaveIcon } from "@navikt/aksel-icons";
+import { fetchWithMsal } from "../../utils/msalUtils";
 
 interface Props {
   estateId: string;
@@ -29,7 +30,7 @@ export default function RoleLogTable({ estateId }: Props) {
   const { data, isLoading, error } = useQuery<RoleAssignmentLogResponse>({
     queryKey: ["estateRolesLog", estateId],
     queryFn: async () => {
-      const response = await fetch(`/api/estate/${estateId}/roleassignmentlog`);
+      const response = await fetchWithMsal(`/api/estate/${estateId}/roleassignmentlog`);
       if (!response.ok) {
         throw new Error("Failed to fetch role assignment log");
       }

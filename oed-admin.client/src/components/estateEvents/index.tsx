@@ -4,6 +4,7 @@ import type { AltinnEvent, EstateEventsResponse } from "../../types/IEstate";
 import { formatDateTime } from "../../utils/formatters";
 import { CodeIcon } from "@navikt/aksel-icons";
 import { useState } from "react";
+import { fetchWithMsal } from "../../utils/msalUtils";
 
 interface Props {
   estateId: string;
@@ -19,7 +20,7 @@ export default function EstateEvents({ estateId }: Props) {
   const { data, isLoading, error } = useQuery<EstateEventsResponse>({
     queryKey: ["events", estateId],
     queryFn: async () => {
-      const response = await fetch(`/api/estate/${estateId}/events`);
+      const response = await fetchWithMsal(`/api/estate/${estateId}/events`);
       if (!response.ok) {
         throw new Error("Failed to fetch instance");
       }

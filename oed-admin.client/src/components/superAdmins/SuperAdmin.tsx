@@ -13,6 +13,7 @@ import {
 import RoleTable from "../estateRoles/RoleTable";
 import { EnterIcon, LeaveIcon } from "@navikt/aksel-icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchWithMsal } from "../../utils/msalUtils";
 
 interface Props {
   estateId: string;
@@ -44,7 +45,7 @@ export function SuperAdmin({ estateId, instanceId }: Props) {
     justification,
     method,
   }: SuperadminPayload) => {
-    const response = await fetch(`/api/estate/${estateId}/superadmin`, {
+    const response = await fetchWithMsal(`/api/estate/${estateId}/superadmin`, {
       method,
       headers: {
         "Content-Type": "application/json",
