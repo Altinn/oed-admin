@@ -7,6 +7,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import type { RoleAssignmentsResponse } from "../../types/IEstate";
 import { formatDateTime, formatRoleCode } from "../../utils/formatters";
+import { fetchWithMsal } from "../../utils/msalUtils";
 
 interface Props {
   estateId: string;
@@ -16,7 +17,7 @@ export default function RoleTable({ estateId }: Props) {
   const { data, isLoading, error } = useQuery<RoleAssignmentsResponse>({
     queryKey: ["estateRoles", estateId],
     queryFn: async () => {
-      const response = await fetch(`/api/estate/${estateId}/roleassignments`);
+      const response = await fetchWithMsal(`/api/estate/${estateId}/roleassignments`);
       if (!response.ok) {
         throw new Error("Failed to fetch estate roles");
       }

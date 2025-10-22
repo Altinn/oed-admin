@@ -1,6 +1,7 @@
 import React from "react";
 import { Breadcrumbs, Button, Field, Fieldset, Heading, Input, Label, Paragraph, Switch } from "@digdir/designsystemet-react";
 import { Link } from "react-router-dom";
+import { fetchWithMsal } from "../../utils/msalUtils";
 
 export default function DataMigration() {
   const [statusText, setStatusText] = React.useState<string>("");
@@ -12,7 +13,7 @@ export default function DataMigration() {
       }
       setStatusText('Sending...');
 
-      const response = await fetch(`/api/maintenance/datamigration`, {
+      const response = await fetchWithMsal(`/api/maintenance/datamigration`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

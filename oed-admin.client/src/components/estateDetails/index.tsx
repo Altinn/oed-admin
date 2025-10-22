@@ -31,6 +31,7 @@ import { formatDateTimeLocal, isValidDate, isValidDateTime } from "../../utils/f
 import EstateInstance from "../estateInstance";
 import EstateDeclaration from "../estateDeclaration";
 import EstateProbateInformation from "../estateProbateInformation";
+import { fetchWithMsal } from "../../utils/msalUtils";
 
 interface EstateDetailsResponse {
   estate: Estate;
@@ -43,7 +44,7 @@ export default function EstateDetails() {
   const { data, isLoading, error } = useQuery<EstateDetailsResponse>({
     queryKey: ["estate", id],
     queryFn: async () => {
-      const response = await fetch(`/api/estate/${id}`);
+      const response = await fetchWithMsal(`/api/estate/${id}`);
       if (!response.ok) {
         throw new Error("Failed to fetch estate details");
       }
