@@ -33,7 +33,12 @@ var dic = builder.Configuration.GetSection("KeyVaults");
 builder.Services.Configure<KeyVaultOptions>(dic);
 
 var app = builder.Build();
-app.UseAuditLogging();
+
+// TODO: Enable for all environments
+if (builder.Environment.IsDevelopment())
+{
+    app.UseAuditLogging();
+}
 
 app.UseDefaultFiles();
 app.MapStaticAssets();
