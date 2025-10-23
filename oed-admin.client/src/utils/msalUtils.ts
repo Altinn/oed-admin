@@ -1,5 +1,5 @@
 import type { AccountInfo, SilentRequest } from '@azure/msal-browser';
-import { msalInstance } from '../main';
+import { msalInstance } from '../msal';
 
 export const hasRole = function (account: AccountInfo | null, role: string): boolean {
   if (!account || !account.idTokenClaims) {
