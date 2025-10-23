@@ -21,7 +21,14 @@ public class DevAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
         try
         {
             var principal = new ClaimsPrincipal();
-            principal.AddIdentity(new ClaimsIdentity([new Claim("name", "Test Testesen")], "DEV", "name", "role"));
+            principal.AddIdentity(
+                new ClaimsIdentity(
+                    [
+                        new Claim(ClaimTypes.Name, "Test Testesen"),
+                        new Claim(ClaimTypes.NameIdentifier, "12345"),
+                        new Claim(ClaimTypes.Role, "Admin")
+                    ],
+                    "DEV", ClaimTypes.Name, ClaimTypes.Role));
 
             var ticket = new AuthenticationTicket(principal, "DEV");
             var success = AuthenticateResult.Success(ticket);

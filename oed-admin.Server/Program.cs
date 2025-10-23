@@ -1,6 +1,7 @@
 using oed_admin.Server.Features;
 using oed_admin.Server.Features.SecretExpiry.GetSecrets;
 using oed_admin.Server.Infrastructure.Altinn;
+using oed_admin.Server.Infrastructure.Auditing;
 using oed_admin.Server.Infrastructure.Authz;
 using oed_admin.Server.Infrastructure.Database.Authz;
 using oed_admin.Server.Infrastructure.Database.Oed;
@@ -12,6 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDataMigrationService();
 builder.Services.AddAuth(builder.Environment, builder.Configuration);
+builder.Services.AddAuditLogging(builder.Environment);
 
 if (!builder.Environment.IsDevelopment())
 {
@@ -31,6 +33,7 @@ var dic = builder.Configuration.GetSection("KeyVaults");
 builder.Services.Configure<KeyVaultOptions>(dic);
 
 var app = builder.Build();
+app.UseAuditLogging();
 
 app.UseDefaultFiles();
 app.MapStaticAssets();
