@@ -1,13 +1,19 @@
-import { Field, Fieldset, Heading, Search } from "@digdir/designsystemet-react";
+import { Field, Fieldset, Heading, Link, Search } from "@digdir/designsystemet-react";
 import EstateRestrictedCard from "./estateRestrictedCard";
-import { fetchWithMsal } from "../utils/msalUtils";
+import { fetchWithMsal, hasRole } from "../utils/msalUtils";
 import type { MinimalEstate, MinimalSearchResponse } from "../types/IEstate";
 import { useState } from "react";
+import { useMsal } from "@azure/msal-react";
+import type { AccountInfo } from "@azure/msal-browser";
 
 const RestrictedHome = () => {
   const [estate, setEstate] = useState<MinimalEstate>();
   const [loadingEstate, setLoadingEstate] = useState<boolean>(false);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
+
+  const { instance } = useMsal();
+  const account = instance.getActiveAccount() as AccountInfo;
+  const isAdmin = hasRole(account, "Admin");
 
   const handleSearch = async () => {
     // TODO: Implement search functionality with only one search result
@@ -64,6 +70,8 @@ const RestrictedHome = () => {
         <Fieldset data-color="neutral" className="search-fieldset">
           <Fieldset.Description>
             Du kan søke etter dødsbo ved å bruke fødselsnummer (11 siffer) til den avdøde.
+            <br />
+            {isAdmin && <Link href="/">Tilbake til admin siden</Link>}
           </Fieldset.Description>
 
           <Field>
