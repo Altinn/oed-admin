@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import type { RequestBody, ResponseBody } from "../../types/IEstate";
 import { useInfiniteQuery, type InfiniteData } from "@tanstack/react-query";
-import { Button, Field, Fieldset, Heading, Search, Skeleton, ToggleGroup, ValidationMessage } from "@digdir/designsystemet-react";
+import { Button, Field, Fieldset, Heading, Link, Search, Skeleton, ToggleGroup, ValidationMessage } from "@digdir/designsystemet-react";
 import { GavelIcon, PersonGroupIcon, PersonIcon, RobotIcon, TagIcon } from "@navikt/aksel-icons";
 import EstateCard from "../estateCard";
-import { fetchWithMsal } from "../../utils/msalUtils";
+import { fetchWithMsal, hasRole } from "../../utils/msalUtils";
+import { useMsal } from "@azure/msal-react";
+import type { AccountInfo } from "@azure/msal-browser";
 
 const estateKeys = {
   all: ['estates'] as const,
@@ -139,6 +141,8 @@ export default function EstateSearch() {
             Du kan søke etter dødsbo ved å bruke enten party ID eller
             fødselsnummer. Velg ønsket søkemodus og skriv inn søketermen i
             feltet under.
+            <br />
+            <Link href="/restrictedSearch">Gå til forenklet søkeside</Link>
           </Fieldset.Description>
 
           <Field>

@@ -117,6 +117,7 @@ export default function App() {
       return (
         <Routes>
           <Route path="/" element={<Layout />}>
+            <Route path="/restrictedSearch" index element={<RestrictedHome />} />
             <Route index element={<Home />} />
             <Route path="/estate/:id" element={<EstateDetails />} />
             <Route
@@ -127,11 +128,12 @@ export default function App() {
         </Routes>
       );
     }
+
     if (isReader) {
       return (
         <Routes>
           <Route path="/" element={<Layout />}>
-            <Route index element={<RestrictedHome />} />
+            <Route path="/restrictedSearch" index element={<RestrictedHome />} />
           </Route>
         </Routes>
       );
