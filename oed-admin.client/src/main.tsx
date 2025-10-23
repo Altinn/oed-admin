@@ -6,24 +6,9 @@ import App from "./App.tsx";
 import { BrowserRouter } from "react-router-dom";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { MsalProvider } from "@azure/msal-react";
-import { PublicClientApplication, type Configuration } from "@azure/msal-browser";
+import { msalInstance } from "./msal.ts";
 
-// MSAL configuration
-const configuration: Configuration = {
-  auth: {
-    clientId: "d96b3149-9c75-4bab-9826-ec5148d983af",
-    authority: "https://login.microsoftonline.com/cd0026d8-283b-4a55-9bfa-d0ef4a8ba21c",
-    redirectUri: '/redirect'
-  }
-};
-
-export const msalInstance = new PublicClientApplication(configuration);
 const queryClient = new QueryClient();
-
-if (!msalInstance.getActiveAccount() && msalInstance.getAllAccounts().length > 0) {
-    // Account selection logic is app dependent. Adjust as needed for different use cases.
-    msalInstance.setActiveAccount(msalInstance.getAllAccounts()[0]);
-}
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
