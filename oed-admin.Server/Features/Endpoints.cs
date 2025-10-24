@@ -31,6 +31,9 @@ public static class Endpoints
 
         app.MapPost("/api/estate/minimalsearch", Estate.MinimalSearch.Endpoint.Post)
             .RequireAuthorization(AuthorizationPolicies.AtLeastReadRole);
+
+        app.MapGet("/api/districtcourts", DistrictCourts.GetDistrictCourts.Endpoint.Get)
+            .RequireAuthorization(AuthorizationPolicies.AtLeastReadRole);
     }
 
     public static RouteGroupBuilder MapEstateEndpoints(this WebApplication app)
