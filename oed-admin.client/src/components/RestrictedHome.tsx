@@ -1,12 +1,14 @@
-import { Field, Fieldset, Heading, Link, Search } from "@digdir/designsystemet-react";
+import { Field, Fieldset, Heading, Link, Search, Tabs } from "@digdir/designsystemet-react";
 import EstateRestrictedCard from "./estateRestrictedCard";
 import { fetchWithMsal, hasRole } from "../utils/msalUtils";
 import type { MinimalEstate, MinimalSearchResponse } from "../types/IEstate";
 import { useState } from "react";
 import { useMsal } from "@azure/msal-react";
 import type { AccountInfo } from "@azure/msal-browser";
+import { MagnifyingGlassIcon, GavelSoundBlockIcon } from "@navikt/aksel-icons";
+import DistrictCourts from "./districtCourts";
 
-const RestrictedHome = () => {
+const RestrictedSearch = () => {
   const [estate, setEstate] = useState<MinimalEstate>();
   const [loadingEstate, setLoadingEstate] = useState<boolean>(false);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
@@ -96,6 +98,27 @@ const RestrictedHome = () => {
         {estate && <EstateRestrictedCard estate={estate!} />}
       </section>
     </div>
+  );
+};
+
+const RestrictedHome = () => {
+  return (
+    <Tabs defaultValue="restrictedSearch" style={{ width: "100%" }}>
+      <Tabs.List style={{ marginBottom: "var(--ds-size-4)" }}>
+        <Tabs.Tab value="restrictedSearch">
+          <MagnifyingGlassIcon /> Søk etter dødsbo
+        </Tabs.Tab>
+        <Tabs.Tab value="districtCourts">
+          <GavelSoundBlockIcon /> Tingretter
+        </Tabs.Tab>
+      </Tabs.List>
+      <Tabs.Panel value="restrictedSearch" id="tab-restrictedSearch">
+        <RestrictedSearch />
+      </Tabs.Panel>
+      <Tabs.Panel value="districtCourts" id="tab-districtCourts">
+        <DistrictCourts />
+      </Tabs.Panel>
+    </Tabs>
   );
 };
 
