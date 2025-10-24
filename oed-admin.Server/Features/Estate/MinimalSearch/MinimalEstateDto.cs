@@ -8,6 +8,7 @@ public class MinimalEstateDto
     public string? CaseNumber { get; set; }
     public string? DistrictCourtName { get; set; }
     public string? CaseStatus { get; set; }
+    public DateTimeOffset? Scheduled { get; set; }
     public List<MinimalPerson> Heirs { get; set; } = [];
 
     public DateTimeOffset Created { get; set; }

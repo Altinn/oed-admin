@@ -8,6 +8,8 @@ namespace oed_admin.Server.Features.Estate.MinimalSearch;
 
 public static class Endpoint
 {
+    private const string EstateReadyCorrespondenceTask = "Altinn.App.Tasks.Correspondence.EstateIsReadyCorrespondenceTask";
+
     public static async Task<IResult> Post(
         [FromBody] Request request,
         [FromServices] OedDbContext dbContext,
@@ -50,16 +52,30 @@ public static class Endpoint
         if (!Guid.TryParse(dataId, out var dataGuid))
             return TypedResults.Ok(new Response());
 
+        
+
+        var dto = PoorMansMapper.Map<Infrastructure.Database.Oed.Model.Estate, MinimalEstateDto>(estate);
+        var scheduled = dbContext.TaskQueue
+            .AsNoTracking()
+            .Where(t =>
+                t.EstateSsn == request.Nin &&
+                t.Scheduled != null &&
+                t.Type == EstateReadyCorrespondenceTask)
+            .OrderByDescending(task => task.Created)
+            .FirstOrDefault()?
+            .Scheduled;
+
+        dto!.Scheduled = scheduled;
+
         var instanceData = await storageClient
             .GetInstanceData<Infrastructure.DataMigration.Models.Oed.OedInstanceData>(
             instanceOwnerPartyId,
             instanceGuid,
             dataGuid);
 
-        var dto = PoorMansMapper.Map<Infrastructure.Database.Oed.Model.Estate, MinimalEstateDto>(estate);
-
         if (instanceData is null)
             return TypedResults.Ok(new Response(dto!));
+
         dto!.Heirs = instanceData.Heirs?
             .Select(x => new MinimalPerson(Birthdate: x.Heir.Birthday))
             .ToList() ?? [];
