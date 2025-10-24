@@ -57,7 +57,7 @@ export default function EstateRestrictedCard({ estate }: Props) {
           ))}
         </List.Unordered>
         <Paragraph className="flex-between">
-          <Label>Tilgang gitt: </Label>
+          <Label>Melding om tilgang sendes: </Label>
           {scheduled
             ? new Intl.DateTimeFormat("nb", { dateStyle: "full" }).format(
               new Date(scheduled)
