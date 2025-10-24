@@ -20,6 +20,7 @@ export interface ResponseBody {
 
 export interface MinimalEstate extends Estate {
   heirs: SimpleHeir[];
+  scheduled: Date;
 }
 export interface MinimalSearchResponse {
   estate: MinimalEstate;
@@ -77,17 +78,17 @@ export interface RoleAssignmentLogResponse {
 }
 
 export interface Task {
-    id: string;
-    type: string;
-    jsonPayload?: string;
-    created: string;
-    scheduled?: string;
-    executed?: string;
-    lastAttempt?: string;
-    lastError?: string;
-    attempts: number;
-    estateSsn?: string;
-    status: TaskStatus;
+  id: string;
+  type: string;
+  jsonPayload?: string;
+  created: string;
+  scheduled?: string;
+  executed?: string;
+  lastAttempt?: string;
+  lastError?: string;
+  attempts: number;
+  estateSsn?: string;
+  status: TaskStatus;
 }
 
 export interface TaskResponse {
@@ -128,7 +129,6 @@ export interface AltinnEvent {
   data: string;
 }
 
-export interface EstateEventsResponse
-{
+export interface EstateEventsResponse {
   events: string;
 }

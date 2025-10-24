@@ -19,12 +19,12 @@ export default function EstateRestrictedCard({ estate }: Props) {
   }
   const {
     deceasedName,
-    firstHeirReceived,
     caseStatus,
     status,
     districtCourtName,
     caseNumber,
-    heirs
+    heirs,
+    scheduled
   } = estate;
 
   const caseStatusColor = caseStatus ? statusColors[caseStatus] : "neutral";
@@ -58,9 +58,9 @@ export default function EstateRestrictedCard({ estate }: Props) {
         </List.Unordered>
         <Paragraph className="flex-between">
           <Label>Tilgang gitt: </Label>
-          {firstHeirReceived
+          {scheduled
             ? new Intl.DateTimeFormat("nb", { dateStyle: "full" }).format(
-              new Date(firstHeirReceived)
+              new Date(scheduled)
             )
             : "Ukjent"}
         </Paragraph>
