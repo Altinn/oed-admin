@@ -4,9 +4,7 @@ import { useInfiniteQuery, type InfiniteData } from "@tanstack/react-query";
 import { Button, Field, Fieldset, Heading, Link, Search, Skeleton, ToggleGroup, ValidationMessage } from "@digdir/designsystemet-react";
 import { GavelIcon, PersonGroupIcon, PersonIcon, RobotIcon, TagIcon } from "@navikt/aksel-icons";
 import EstateCard from "../estateCard";
-import { fetchWithMsal, hasRole } from "../../utils/msalUtils";
-import { useMsal } from "@azure/msal-react";
-import type { AccountInfo } from "@azure/msal-browser";
+import { fetchWithMsal } from "../../utils/msalUtils";
 
 const estateKeys = {
   all: ['estates'] as const,
