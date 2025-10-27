@@ -3,14 +3,22 @@ import {
   Paragraph,
   Tabs,
 } from "@digdir/designsystemet-react";
-import { KeyVerticalIcon, CircleBrokenIcon, ExclamationmarkTriangleIcon, MagnifyingGlassIcon, TasklistIcon } from "@navikt/aksel-icons";
+import {
+  KeyVerticalIcon,
+  CircleBrokenIcon,
+  ExclamationmarkTriangleIcon,
+  MagnifyingGlassIcon,
+  TasklistIcon,
+  BroadcastIcon,
+  GavelSoundBlockIcon,
+  PadlockLockedIcon
+} from "@navikt/aksel-icons";
 import Tasks from "./tasks";
 import EstateSearch from "./estateSearch";
 import { SuperAdmins } from "./superAdmins";
 import SecretExpiration from "./secretExpiration";
-import { PadlockLockedIcon } from "@navikt/aksel-icons";
 import EventSubs from "./eventsubs";
-import { BroadcastIcon } from "@navikt/aksel-icons";
+import DistrictCourts from "./districtCourts";
 
 export default function Home() {
   return (
@@ -27,10 +35,13 @@ export default function Home() {
             <KeyVerticalIcon /> Super admins
           </Tabs.Tab>
           <Tabs.Tab value="secrets">
-            <PadlockLockedIcon/> Hemmeligheter
+            <PadlockLockedIcon /> Hemmeligheter
           </Tabs.Tab>
           <Tabs.Tab value="event-sub">
             <BroadcastIcon /> Event subscriptions
+          </Tabs.Tab>
+          <Tabs.Tab value="districtcourts">
+            <GavelSoundBlockIcon /> Tingretter
           </Tabs.Tab>
         </Tabs.List>
 
@@ -88,6 +99,9 @@ export default function Home() {
         </Tabs.Panel>
         <Tabs.Panel value="event-sub" id="tab-event-sub">
           <EventSubs />
+        </Tabs.Panel>
+        <Tabs.Panel value="districtcourts" id="tab-districtcourts">
+          <DistrictCourts />
         </Tabs.Panel>
       </Tabs>
     </>

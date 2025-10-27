@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import Instance from "../instance";
 import { Heading, Skeleton, ValidationMessage } from "@digdir/designsystemet-react";
+import { fetchWithMsal } from "../../utils/msalUtils";
 
 interface Props {
   estateId: string;
@@ -10,7 +11,7 @@ export default function EstateDeclaration({ estateId }: Props) {
     const { data, isLoading, error } = useQuery({
     queryKey: ["declarationinstance", estateId],
     queryFn: async () => {
-      const response = await fetch(`/api/estate/${estateId}/declarationinstance`);
+      const response = await fetchWithMsal(`/api/estate/${estateId}/declarationinstance`);
       if (!response.ok) {
         throw new Error("Failed to fetch instance");
       }

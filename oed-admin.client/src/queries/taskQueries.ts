@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import type { TaskResponse, TaskStatus } from "../types/IEstate";
+import { fetchWithMsal } from "../utils/msalUtils";
 
 export const taskKeys = {
   all: ['tasks'] as const,
@@ -13,7 +14,7 @@ export const useTaskQueryByStatus = (status: TaskStatus, pageSize: number, page:
   return useQuery<TaskResponse>({
     queryKey: taskKeys.byStatusWithPaging(status, pageSize, page),
     queryFn: async () => {
-      const response = await fetch(`/api/tasks?status=${status}&pageSize=${pageSize}&page=${page}`);
+      const response = await fetchWithMsal(`/api/tasks?status=${status}&pageSize=${pageSize}&page=${page}`);
       if (!response.ok) {
         throw new Error("Failed to fetch tasks");
       }
@@ -27,7 +28,7 @@ export const useTaskQueryByEstate = (estateId: string) => {
   return useQuery<TaskResponse>({
     queryKey: taskKeys.byEstate(estateId),
     queryFn: async () => {
-      const response = await fetch(`/api/estate/${estateId}/tasks`);
+      const response = await fetchWithMsal(`/api/estate/${estateId}/tasks`);
       if (!response.ok) {
         throw new Error("Failed to fetch tasks");
       }

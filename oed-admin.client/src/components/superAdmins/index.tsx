@@ -10,6 +10,7 @@ import { LeaveIcon } from "@navikt/aksel-icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { RoleAssignmentsResponse } from "../../types/IEstate";
 import { formatDateTime, formatRoleCode } from "../../utils/formatters";
+import { fetchWithMsal } from "../../utils/msalUtils";
 
 export function SuperAdmins() {
   const queryClient = useQueryClient();
@@ -17,7 +18,7 @@ export function SuperAdmins() {
   const { data, isLoading, error } = useQuery<RoleAssignmentsResponse>({
     queryKey: ["superadmins"],
     queryFn: async () => {
-      const response = await fetch(`/api/superadmins`);
+      const response = await fetchWithMsal(`/api/superadmins`);
       if (!response.ok) {
         throw new Error("Failed to fetch super admins");
       }
@@ -26,7 +27,7 @@ export function SuperAdmins() {
   });
 
   const superadminMutationFn = async (nin: string) => {
-    const response = await fetch(`/api/superadmins/`, {
+    const response = await fetchWithMsal(`/api/superadmins/`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",

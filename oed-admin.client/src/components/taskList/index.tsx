@@ -20,6 +20,7 @@ import RescheduleDialog from "../rescheduleTaskDialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskKeys } from "../../queries/taskQueries";
 import RescheduleMultipleDialog from "../rescheduleTaskDialog/multiple";
+import { fetchWithMsal } from "../../utils/msalUtils";
 
 interface Props {
   data?: TaskResponse | null;
@@ -44,7 +45,7 @@ export default function TaskList({ data, isLoading, error }: Props) {
   });
 
   const rescheduleMutationFn = async ({taskId, scheduled, attempts} : {taskId: string, scheduled: string, attempts: number}): Promise<PatchTaskResponse> => {
-    const response = await fetch(`/api/tasks/${taskId}`, {
+    const response = await fetchWithMsal(`/api/tasks/${taskId}`, {
       method: 'PATCH',
       headers: {
         "Content-Type": "application/json",
@@ -59,7 +60,7 @@ export default function TaskList({ data, isLoading, error }: Props) {
   }
 
     const rescheduleMultipleMutationFn = async ({taskIds, scheduled, attempts} : {taskIds: Array<string>, scheduled: string, attempts: number}): Promise<PatchTasksResponse> => {
-    const response = await fetch(`/api/tasks`, {
+    const response = await fetchWithMsal(`/api/tasks`, {
       method: 'PATCH',
       headers: {
         "Content-Type": "application/json",

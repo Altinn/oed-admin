@@ -1,9 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import type { RequestBody, ResponseBody } from "../../types/IEstate";
 import { useInfiniteQuery, type InfiniteData } from "@tanstack/react-query";
-import { Button, Field, Fieldset, Heading, Search, Skeleton, ToggleGroup, ValidationMessage } from "@digdir/designsystemet-react";
+import { Button, Field, Fieldset, Heading, Link, Search, Skeleton, ToggleGroup, ValidationMessage } from "@digdir/designsystemet-react";
 import { GavelIcon, PersonGroupIcon, PersonIcon, RobotIcon, TagIcon } from "@navikt/aksel-icons";
 import EstateCard from "../estateCard";
+import { fetchWithMsal, hasRole } from "../../utils/msalUtils";
+import { useMsal } from "@azure/msal-react";
+import type { AccountInfo } from "@azure/msal-browser";
 
 const estateKeys = {
   all: ['estates'] as const,
@@ -11,26 +14,26 @@ const estateKeys = {
   searchWithInfiniteScroll: (params: RequestBody) => [...estateKeys.all, params],
 }
 
-const fetchEstates = async (pageParam : EstatePageParam) => {
-  const response = await fetch(`/api/estate/search?pageSize=${pageParam.pageSize}&page=${pageParam.page}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(pageParam.body),
-    });
+const fetchEstates = async (pageParam: EstatePageParam) => {
+  const response = await fetchWithMsal(`/api/estate/search?pageSize=${pageParam.pageSize}&page=${pageParam.page}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(pageParam.body),
+  });
 
-    if (!response.ok) {
-      throw new Error("noe gikk galt");
-    }
+  if (!response.ok) {
+    throw new Error("noe gikk galt");
+  }
 
-    return response.json();
+  return response.json();
 };
 
 type EstatePageParam = {
-  body: RequestBody | undefined, 
+  body: RequestBody | undefined,
   pageSize: number,
-  page: number 
+  page: number
 };
 
 type SubmittedSearch = {
@@ -43,17 +46,17 @@ export default function EstateSearch() {
   const [searchType, setSearchType] = useState("partyid");
   const [searchQuery, setSearchQuery] = useState<string>("1");
   const [submittedSearch, setSubmittedSearch] = useState<SubmittedSearch>();
-  
+
   const listRef = useRef(null);
 
   const body: RequestBody = {
-      Nin: submittedSearch?.type === "ssn" && submittedSearch?.query ? submittedSearch.query : undefined,
-      HeirNin: submittedSearch?.type === "heir" && submittedSearch?.query ? submittedSearch.query : undefined,
-      PartyId: submittedSearch?.type === "partyid" && submittedSearch?.query ? parseInt(submittedSearch.query) : undefined,
-      CaseNumber: submittedSearch?.type === "casenumber" && submittedSearch?.query ? submittedSearch.query : undefined,
-      Name: submittedSearch?.type === "name" && submittedSearch?.query ? submittedSearch.query : undefined,
-    };
- 
+    Nin: submittedSearch?.type === "ssn" && submittedSearch?.query ? submittedSearch.query : undefined,
+    HeirNin: submittedSearch?.type === "heir" && submittedSearch?.query ? submittedSearch.query : undefined,
+    PartyId: submittedSearch?.type === "partyid" && submittedSearch?.query ? parseInt(submittedSearch.query) : undefined,
+    CaseNumber: submittedSearch?.type === "casenumber" && submittedSearch?.query ? submittedSearch.query : undefined,
+    Name: submittedSearch?.type === "name" && submittedSearch?.query ? submittedSearch.query : undefined,
+  };
+
   const {
     data,
     error,
@@ -69,10 +72,10 @@ export default function EstateSearch() {
     queryKey: estateKeys.searchWithInfiniteScroll(body),
     queryFn: ({ pageParam }) => fetchEstates(pageParam),
     initialPageParam: { body: body, pageSize: pageSize, page: 1 } as EstatePageParam,
-    getNextPageParam: (lastPage) => { 
+    getNextPageParam: (lastPage) => {
       if (!lastPage?.estates) return null;
       if (lastPage.estates.length < pageSize) return null;
-      return { body, pageSize: lastPage?.pageSize || pageSize, page: lastPage ? lastPage.page + 1 : 1 } as EstatePageParam 
+      return { body, pageSize: lastPage?.pageSize || pageSize, page: lastPage ? lastPage.page + 1 : 1 } as EstatePageParam
     },
   });
 
@@ -83,7 +86,7 @@ export default function EstateSearch() {
           fetchNextPage();
         }
       },
-      { threshold: 0.0 } 
+      { threshold: 0.0 }
     );
 
     if (listRef.current) {
@@ -98,7 +101,7 @@ export default function EstateSearch() {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const handleSearch = async () => {
-    await setSubmittedSearch({type: searchType, query: searchQuery});
+    await setSubmittedSearch({ type: searchType, query: searchQuery });
   };
 
   const handleReset = () => {
@@ -138,6 +141,8 @@ export default function EstateSearch() {
             Du kan søke etter dødsbo ved å bruke enten party ID eller
             fødselsnummer. Velg ønsket søkemodus og skriv inn søketermen i
             feltet under.
+            <br />
+            <Link href="/restrictedSearch">Gå til forenklet søkeside</Link>
           </Fieldset.Description>
 
           <Field>
@@ -190,7 +195,7 @@ export default function EstateSearch() {
             {error.message}
           </ValidationMessage>
         )}
-        
+
         {isFetching && !isFetchingNextPage && !isRefetching && (
           <>
             <Heading
@@ -209,9 +214,9 @@ export default function EstateSearch() {
           </>
         )}
 
-        {status === "success" && data?.pages.length > 0 &&  data?.pages[0]?.estates?.length > 0 && (
+        {status === "success" && data?.pages.length > 0 && data?.pages[0]?.estates?.length > 0 && (
           <>
-           <Heading
+            <Heading
               level={2}
               data-size="xs"
               style={{ padding: "1rem 0" }}
@@ -219,8 +224,8 @@ export default function EstateSearch() {
               Søkeresultater
             </Heading>
             <ul>
-              {data?.pages && data.pages.map((group, i) => 
-                <React.Fragment key={i}> 
+              {data?.pages && data.pages.map((group, i) =>
+                <React.Fragment key={i}>
                   {group?.estates && group?.estates?.length > 0 && (
                     <>
                       {group.estates.map((estate, index) => (
@@ -230,13 +235,13 @@ export default function EstateSearch() {
                       ))}
                     </>
                   )}
-                </React.Fragment>          
+                </React.Fragment>
               )}
             </ul>
           </>
         )}
       </section>
-      <div ref={listRef} style={{marginTop: "2rem"}}>
+      <div ref={listRef} style={{ marginTop: "2rem" }}>
         {hasNextPage && (
           <Button onClick={() => fetchNextPage()} disabled={!hasNextPage || isFetching}>
             {isFetchingNextPage
