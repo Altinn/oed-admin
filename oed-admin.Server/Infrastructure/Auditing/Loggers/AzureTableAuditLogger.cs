@@ -22,6 +22,15 @@ public class AzureTableAuditLogger(TableServiceClient tableServiceClient) : IAud
             Details = JsonSerializer.Serialize(logRecord)
         };
 
+        var userTableClient = tableServiceClient.GetTableClient("audituser");
+        var userResponse = await userTableClient.AddEntityAsync(userRecord);
+        
+        if (userResponse.IsError)
+        {
+            throw new Exception($"Unable to persist auditlog (user): [{userResponse.Status}] - {userResponse.ReasonPhrase}");
+        }
+
+
         var estatesRecords = logRecord.Estates?.Select(estate =>
             new TableStoreRecord
             {
@@ -35,28 +44,16 @@ public class AzureTableAuditLogger(TableServiceClient tableServiceClient) : IAud
                 Estates = string.Join(", ", logRecord.Estates?.Select(e => e.Id.ToString()) ?? []),
                 Path = logRecord.Request.Path,
                 Details = JsonSerializer.Serialize(logRecord)
-            });
+            }) ?? [];
         
-        var userTableClient = tableServiceClient.GetTableClient("audituser");
         var estateTableClient = tableServiceClient.GetTableClient("auditestate");
 
-        var userResponse = await userTableClient.AddEntityAsync(userRecord);
-
-        if (userResponse.IsError)
+        foreach (var estateRecord in estatesRecords)
         {
-            throw new Exception($"Unable to persist auditlog (user): [{userResponse.Status}] - {userResponse.ReasonPhrase}");
-        }
-
-        var transactionActions = estatesRecords?.Select(record =>
-            new TableTransactionAction(TableTransactionActionType.Add, record));
-
-        var estateResponse = await estateTableClient.SubmitTransactionAsync(transactionActions);
-
-        foreach (var resp in estateResponse.Value)
-        {
-            if (resp.IsError)
+            var estateResponse = await estateTableClient.AddEntityAsync(estateRecord);
+            if (estateResponse.IsError)
             {
-                throw new Exception($"Unable to persist auditlog (estate): [{resp.Status}] - {resp.ReasonPhrase}");
+                throw new Exception($"Unable to persist auditlog (estate): [{estateResponse.Status}] - {estateResponse.ReasonPhrase}");
             }
         }
     }
