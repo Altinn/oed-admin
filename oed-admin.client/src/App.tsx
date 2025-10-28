@@ -22,12 +22,13 @@ import {
 import { InteractionType, type AccountInfo } from "@azure/msal-browser";
 import { hasRole } from "./utils/msalUtils";
 import RestrictedHome from "./components/RestrictedHome";
+import { msalScopes } from "./msal";
 
 export default function App() {
   const [darkMode, setDarkMode] = React.useState<boolean>(
     localStorage.getItem("darkMode") === "true"
   );
-  useMsalAuthentication(InteractionType.Redirect, { scopes: ["api://d96b3149-9c75-4bab-9826-ec5148d983af/AccessToken.Read"] });
+  useMsalAuthentication(InteractionType.Redirect, { scopes: msalScopes.api });
   const { instance } = useMsal();
   const account = instance.getActiveAccount() as AccountInfo;
   const isAdmin = hasRole(account, "Admin");
