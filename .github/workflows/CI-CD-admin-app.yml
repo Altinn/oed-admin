@@ -40,7 +40,7 @@ jobs:
       - name: Publish
         run: dotnet publish ./oed-admin.Server/oed-admin.Server.csproj --no-build -c Release -o ./publish
         env:
-          VITE_CLIENT_ID: ${{ vars.CLIENT_ID }}
+          VITE_CLIENT_ID: ${{ vars.VITE_CLIENT_ID }}
 
       - name: Deploy to Azure App Service (Test)
         uses: azure/webapps-deploy@v2
@@ -86,7 +86,7 @@ jobs:
       - name: Publish
         run: dotnet publish ./oed-admin.Server/oed-admin.Server.csproj --no-build -c Release -o ./publish
         env:
-          VITE_CLIENT_ID: ${{ vars.CLIENT_ID }}
+          VITE_CLIENT_ID: ${{ vars.VITE_CLIENT_ID }}
 
       - name: Deploy to Azure App Service Staging Slot
         uses: azure/webapps-deploy@v2
