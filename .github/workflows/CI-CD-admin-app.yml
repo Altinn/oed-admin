@@ -7,12 +7,13 @@ on:
   workflow_dispatch:
 env:
   DOTNET_VERSION: '9.x' # Global environment variables
-
+  VITE_CLIENT_ID: ${{ vars.VITE_CLIENT_ID}}
+  
 jobs:
   build:
     name: Build and Test
     runs-on: ubuntu-latest
-
+    
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
