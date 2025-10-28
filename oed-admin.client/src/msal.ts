@@ -12,9 +12,3 @@ const configuration: Configuration = {
 export const msalScopes = { api: [`api://${configuration.auth.clientId}/AccessToken.Read`] };
 
 export const msalInstance = new PublicClientApplication(configuration);
-
-// Initialize active account
-if (!msalInstance.getActiveAccount() && msalInstance.getAllAccounts().length > 0) {
-  // Account selection logic is app dependent. Adjust as needed for different use cases.
-  msalInstance.setActiveAccount(msalInstance.getAllAccounts()[0]);
-}
