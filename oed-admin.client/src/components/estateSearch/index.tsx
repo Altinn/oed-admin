@@ -119,6 +119,16 @@ export default function EstateSearch() {
     }
   };
 
+  const testAzureTable = async () => {
+    const response = await fetchWithMsal(`/api/table`, {
+        method: "GET",
+    });
+    
+    if (!response.ok) {
+        throw new Error("noe gikk galt mot azure!");
+      }
+  }
+
   return (
     <>
       <Heading level={2} data-size="xl">
@@ -250,6 +260,8 @@ export default function EstateSearch() {
           </Button >
         )}
       </div>
+
+      <Button onClick={testAzureTable}>Azure Table Store TEST!</Button>
     </>
   );
 }
