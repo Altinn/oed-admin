@@ -6,48 +6,9 @@ on:
       - main
   workflow_dispatch:
 env:
-  DOTNET_VERSION: '9.x' # Global environment variables
-  
+  DOTNET_VERSION: "9.x" # Global environment variables
+
 jobs:
-  build:
-    name: Build and Test
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-
-    - name: GitHub metadata
-      run: |
-          printf "%s on %s by %s\n" "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME" "$GITHUB_ACTOR"
-
-    - name: Set up .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
-
-    - name: Restore dependencies
-      run: dotnet restore
-
-    - name: Build
-      run: dotnet build -c Release
-      env:
-        VITE_CLIENT_ID: d96b3149-9c75-4bab-9826-ec5148d983af
-
-    - name: Run Tests
-      run: dotnet test -c Release --no-build --verbosity normal
-
-    - name: Publish
-      run: dotnet publish ./oed-admin.Server/oed-admin.Server.csproj --no-build -c Release -o ./publish
-      env:
-        VITE_CLIENT_ID: d96b3149-9c75-4bab-9826-ec5148d983af
-
-    - name: Upload Build Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: published-artifacts
-        path: ./publish/
-
   deploy-to-test:
     name: Deploy to Test Environment
     needs: build
@@ -56,18 +17,38 @@ jobs:
       name: test
 
     steps:
-    - name: Download Build Artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: published-artifacts
-        path: ./publish/
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Deploy to Azure App Service (Test)
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: '${{ vars.APP_SERVICE_NAME}}'
-        publish-profile: ${{ secrets.PUBLISH_PROFILE }}
-        package: ./publish/
+      - name: GitHub metadata
+        run: |
+          printf "%s on %s by %s\n" "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME" "$GITHUB_ACTOR"
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build -c Release
+
+      - name: Run Tests
+        run: dotnet test -c Release --no-build --verbosity normal
+
+      - name: Publish
+        run: dotnet publish ./oed-admin.Server/oed-admin.Server.csproj --no-build -c Release -o ./publish
+        env:
+          VITE_CLIENT_ID: ${{ vars.CLIENT_ID }}
+
+      - name: Deploy to Azure App Service (Test)
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: "${{ vars.APP_SERVICE_NAME}}"
+          publish-profile: ${{ secrets.PUBLISH_PROFILE }}
+          package: ./publish/
 
   deploy-to-prod:
     name: Deploy to Production Environment
@@ -77,20 +58,40 @@ jobs:
       name: production
 
     steps:
-    - name: Await Manual Approval
-      if: ${{ github.ref == 'refs/heads/main' }}
-      run: |
-        echo "Waiting for manual approval"
-        echo "::pause::"
-    - name: Download Build Artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: published-artifacts
-        path: ./publish/
+      - name: Await Manual Approval
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          echo "Waiting for manual approval"
 
-    - name: Deploy to Azure App Service Staging Slot
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: '${{ vars.APP_SERVICE_NAME}}'
-        publish-profile: ${{ secrets.PUBLISH_PROFILE }}
-        package: ./publish/
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: GitHub metadata
+        run: |
+          printf "%s on %s by %s\n" "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME" "$GITHUB_ACTOR"
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build -c Release
+
+      - name: Run Tests
+        run: dotnet test -c Release --no-build --verbosity normal
+
+      - name: Publish
+        run: dotnet publish ./oed-admin.Server/oed-admin.Server.csproj --no-build -c Release -o ./publish
+        env:
+          VITE_CLIENT_ID: ${{ vars.CLIENT_ID }}
+
+      - name: Deploy to Azure App Service Staging Slot
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: "${{ vars.APP_SERVICE_NAME}}"
+          publish-profile: ${{ secrets.PUBLISH_PROFILE }}
+          package: ./publish/
