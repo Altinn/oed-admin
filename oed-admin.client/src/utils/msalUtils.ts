@@ -1,5 +1,5 @@
 import type { AccountInfo, SilentRequest } from '@azure/msal-browser';
-import { msalInstance } from '../msal';
+import { msalInstance, msalScopes } from '../msal';
 
 export const hasRole = function (account: AccountInfo | null, role: string): boolean {
   if (!account || !account.idTokenClaims) {
@@ -19,9 +19,8 @@ export const fetchWithMsal = async function (input: string | URL | Request, init
     // Maybe do not throw, but redirect to login
     throw Error('No active account! Verify a user has been signed in and setActiveAccount has been called.');
   }
-  const scopes = ['api://d96b3149-9c75-4bab-9826-ec5148d983af/AccessToken.Read'];
   const msalResponse = await msalInstance.acquireTokenSilent({
-    scopes: scopes,
+    scopes: msalScopes.api,
     account: account,
     redirectUri: '/redirect'
   } as SilentRequest);
@@ -29,7 +28,7 @@ export const fetchWithMsal = async function (input: string | URL | Request, init
 
   if (!accessToken) {
     await msalInstance.acquireTokenRedirect({
-      scopes: scopes,
+      scopes: msalScopes.api,
       redirectUri: '/redirect'
     });
   }
