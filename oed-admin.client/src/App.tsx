@@ -15,9 +15,10 @@ import { DoorOpenIcon } from "@navikt/aksel-icons";
 import DataMigration from "./components/dataMigration";
 import {
   AuthenticatedTemplate,
+  MsalAuthenticationTemplate,
   UnauthenticatedTemplate,
   useMsal,
-  useMsalAuthentication,
+  type MsalAuthenticationResult,
 } from "@azure/msal-react";
 import { InteractionType, type AccountInfo } from "@azure/msal-browser";
 import { hasRole } from "./utils/msalUtils";
@@ -28,22 +29,11 @@ export default function App() {
   const [darkMode, setDarkMode] = React.useState<boolean>(
     localStorage.getItem("darkMode") === "true"
   );
-  useMsalAuthentication(InteractionType.Redirect, { scopes: msalScopes.api });
+
   const { instance } = useMsal();
   const account = instance.getActiveAccount() as AccountInfo;
   const isAdmin = hasRole(account, "Admin");
   const isReader = hasRole(account, "Read");
-
-  // const { data } = useQuery<WhoAmIResponse>({
-  //   queryKey: ["whoami"],
-  //   queryFn: async () => {
-  //     const response = await fetch(`/api/whoami`);
-  //     if (!response.ok) {
-  //       throw new Error("Failed to fetch whoami");
-  //     }
-  //     return response.json();
-  //   },
-  // });
 
   useEffect(() => {
     const bodyDiv = document.getElementById("body");
@@ -152,5 +142,14 @@ export default function App() {
     );
   };
 
-  return <>{roleBasedRoutes()}</>;
+  return (
+    <MsalAuthenticationTemplate
+      interactionType={InteractionType.Redirect}
+      authenticationRequest={{ scopes: msalScopes.api }}
+      errorComponent={(authResult: MsalAuthenticationResult) => <Paragraph>An Error Occurred: {authResult!.error!.errorCode}</Paragraph>}
+      loadingComponent={() => <Paragraph>Loading... Please wait.</Paragraph>}
+    >
+      {roleBasedRoutes()}
+    </MsalAuthenticationTemplate>
+  );
 }
