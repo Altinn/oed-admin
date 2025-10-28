@@ -2,6 +2,7 @@
 using Microsoft.IdentityModel.Tokens;
 using oed_admin.Server.Infrastructure.DevAuth;
 using oed_admin.Server.Infrastructure.EasyAuth;
+using System.Runtime.InteropServices;
 
 namespace oed_admin.Server.Infrastructure.Authz;
 
@@ -15,8 +16,9 @@ public static class ServiceCollectionExtensions
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
+                    var clientId = configuration.GetSection("AzureEntraId:ClientId").Get<string>();
                     options.Authority = "https://login.microsoftonline.com/cd0026d8-283b-4a55-9bfa-d0ef4a8ba21c/v2.0";
-                    options.Audience = "d96b3149-9c75-4bab-9826-ec5148d983af";
+                    options.Audience = clientId;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
