@@ -34,6 +34,9 @@ public static class Endpoints
 
         app.MapGet("/api/districtcourts", DistrictCourts.GetDistrictCourts.Endpoint.Get)
             .RequireAuthorization(AuthorizationPolicies.AtLeastReadRole);
+        
+        app.MapGet("/api/table", Dbg.TableStoreTest.Get)
+            .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
     }
 
     public static RouteGroupBuilder MapEstateEndpoints(this WebApplication app)

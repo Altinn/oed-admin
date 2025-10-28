@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Azure;
 using oed_admin.Server.Features;
 using oed_admin.Server.Features.SecretExpiry.GetSecrets;
 using oed_admin.Server.Infrastructure.Altinn;
@@ -28,6 +29,12 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
 builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddAzureClients(azureClientFactoryBuilder =>
+{
+    azureClientFactoryBuilder.AddTableServiceClient(
+        new Uri(builder.Configuration["AzureTableService:ServiceUri"]!));
+});
 
 var dic = builder.Configuration.GetSection("KeyVaults");
 builder.Services.Configure<KeyVaultOptions>(dic);
