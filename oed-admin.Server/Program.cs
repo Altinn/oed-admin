@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Azure;
 using oed_admin.Server.Features;
 using oed_admin.Server.Features.SecretExpiry.GetSecrets;
 using oed_admin.Server.Infrastructure.Altinn;
@@ -6,15 +5,12 @@ using oed_admin.Server.Infrastructure.Auditing;
 using oed_admin.Server.Infrastructure.Authz;
 using oed_admin.Server.Infrastructure.Database.Authz;
 using oed_admin.Server.Infrastructure.Database.Oed;
-using oed_admin.Server.Infrastructure.DataMigration;
 using oed_admin.Server.Infrastructure.Telemetry;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddDataMigrationService();
 builder.Services.AddAuth(builder.Environment, builder.Configuration);
-builder.Services.AddAuditLogging(builder.Environment);
+builder.Services.AddAuditLogging(builder.Environment, builder.Configuration);
 
 if (!builder.Environment.IsDevelopment())
 {
@@ -30,25 +26,14 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddAzureClients(azureClientFactoryBuilder =>
-{
-    azureClientFactoryBuilder.AddTableServiceClient(
-        new Uri(builder.Configuration["AzureTableService:ServiceUri"]!));
-});
-
 var dic = builder.Configuration.GetSection("KeyVaults");
 builder.Services.Configure<KeyVaultOptions>(dic);
 
 var app = builder.Build();
 
-// TODO: Enable for all environments
-if (builder.Environment.IsDevelopment())
-{
-    app.UseAuditLogging();
-}
-
 app.UseDefaultFiles();
 app.MapStaticAssets();
+app.UseAuditLogging();
 app.MapFeatureEndpoints();
 
 if (app.Environment.IsDevelopment() || app.Environment.IsStaging())

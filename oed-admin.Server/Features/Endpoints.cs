@@ -21,8 +21,6 @@ public static class Endpoints
         app.MapSuperadminEndpoints()
             .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
 
-        //app.MapGet("/api/whoami", Dbg.Endpoint.Get);
-
         app.MapGet("/api/secrets", SecretExpiry.GetSecrets.Endpoint.Get)
             .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
 
@@ -34,9 +32,6 @@ public static class Endpoints
 
         app.MapGet("/api/districtcourts", DistrictCourts.GetDistrictCourts.Endpoint.Get)
             .RequireAuthorization(AuthorizationPolicies.AtLeastReadRole);
-        
-        app.MapGet("/api/table", Dbg.TableStoreTest.Get)
-            .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
     }
 
     public static RouteGroupBuilder MapEstateEndpoints(this WebApplication app)
