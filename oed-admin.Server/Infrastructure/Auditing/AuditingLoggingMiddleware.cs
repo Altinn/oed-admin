@@ -15,6 +15,12 @@ public class AuditingLoggingMiddleware(
         var requestBody = await GetRequestBody(context.Request);
         var estateId = context.GetRouteValue("estateId")?.ToString();
 
+        if (endpoint?.DisplayName is null)
+        {
+            await next(context);
+            return;
+        }
+
         var estateDetails = estateId is not null 
             ? new[] { new EstateDetails(estateId) }
             : null;
