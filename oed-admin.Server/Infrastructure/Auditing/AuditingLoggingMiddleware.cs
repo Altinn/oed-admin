@@ -26,7 +26,7 @@ public class AuditingLoggingMiddleware(
             : null;
 
         var user = new UserDetails(
-            context.User.GetId(),
+            context.User.GetObjectId(),
             context.User.GetName(),
             context.User.GetRoles());
 
