@@ -7,7 +7,7 @@ public static class ClaimsPrincipalExtensions
     public static string GetName(this ClaimsPrincipal principal)
     {
         return principal.Identity is not null && principal.Identity.IsAuthenticated
-            ? principal.Identity.Name ?? "Unknown"
+            ? principal.Identity.Name ?? principal.Claims.FirstOrDefault(c => c.Type == "name")?.Value ?? "Unknown"
             : "Anonymous";
     }
 
