@@ -142,10 +142,15 @@ export default function App() {
     );
   };
 
+  let prompt = "select_account";
+  if (account?.username?.endsWith("@digdir.no")) {
+    prompt = "none";
+  }
+
   return (
     <MsalAuthenticationTemplate
       interactionType={InteractionType.Redirect}
-      authenticationRequest={{ prompt: "select_account", scopes: msalScopes.api }}
+      authenticationRequest={{ prompt: prompt, scopes: msalScopes.api }}
       errorComponent={(authResult: MsalAuthenticationResult) => <Paragraph>An Error Occurred: {authResult!.error!.errorCode}</Paragraph>}
       loadingComponent={() => <Paragraph>Loading... Please wait.</Paragraph>}
     >
