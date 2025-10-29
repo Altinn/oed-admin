@@ -145,7 +145,7 @@ export default function App() {
   return (
     <MsalAuthenticationTemplate
       interactionType={InteractionType.Redirect}
-      authenticationRequest={{ scopes: msalScopes.api }}
+      authenticationRequest={{ prompt: "select_account", scopes: msalScopes.api }}
       errorComponent={(authResult: MsalAuthenticationResult) => <Paragraph>An Error Occurred: {authResult!.error!.errorCode}</Paragraph>}
       loadingComponent={() => <Paragraph>Loading... Please wait.</Paragraph>}
     >
