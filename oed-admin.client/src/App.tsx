@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Routes, Route, Outlet } from "react-router-dom";
+import { Routes, Route, Outlet, Navigate } from "react-router-dom";
 import Home from "./components/Home";
 import EstateDetails from "./components/estateDetails";
 import {
@@ -108,7 +108,7 @@ export default function App() {
       return (
         <Routes>
           <Route path="/" element={<Layout />}>
-            <Route path="/restrictedSearch" index element={<RestrictedHome />} />
+            <Route path="/restrictedSearch" element={<RestrictedHome />} />
             <Route index element={<Home />} />
             <Route path="/estate/:id" element={<EstateDetails />} />
             <Route
@@ -123,7 +123,7 @@ export default function App() {
     if (isReader) {
       return (
         <Routes>
-          <Route path="/" element={<Layout />}>
+          <Route path="/" element={<><Layout /><Navigate to="/restrictedSearch" replace={true} /></>}>
             <Route path="/restrictedSearch" index element={<RestrictedHome />} />
           </Route>
         </Routes>
