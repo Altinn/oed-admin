@@ -19,6 +19,7 @@ import { SuperAdmins } from "./superAdmins";
 import SecretExpiration from "./secretExpiration";
 import EventSubs from "./eventsubs";
 import DistrictCourts from "./districtCourts";
+import EnvironmentInformation from "./environmentInformation";
 
 export default function Home() {
   return (
@@ -104,6 +105,8 @@ export default function Home() {
           <DistrictCourts />
         </Tabs.Panel>
       </Tabs>
+
+      <EnvironmentInformation environment={import.meta.env.VITE_ENVIRONMENT} />      
     </>
   );
 }
