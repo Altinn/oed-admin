@@ -24,6 +24,7 @@ import { InteractionType, type AccountInfo } from "@azure/msal-browser";
 import { hasRole } from "./utils/msalUtils";
 import RestrictedHome from "./components/RestrictedHome";
 import { msalScopes } from "./msal";
+import EnvironmentInformation from "./components/environmentInformation";
 
 export default function App() {
   const [darkMode, setDarkMode] = React.useState<boolean>(
@@ -99,6 +100,7 @@ export default function App() {
         <main className="container" style={{ maxWidth: 1600 }}>
           <Outlet />
         </main>
+        <EnvironmentInformation environment={import.meta.env.VITE_ENVIRONMENT} />      
       </AuthenticatedTemplate>
     );
   };

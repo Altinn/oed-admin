@@ -15,7 +15,7 @@ export default function EnvironmentInformation({environment} : EnvironmentInform
     }
   }
 
-  if (environment == "production") return;
+  if (!environment || environment === "production") return;
   
   return (
     <Alert 
