@@ -4,6 +4,7 @@ namespace oed_admin.Server.Features.Estate.MinimalSearch;
 
 public class MinimalEstateDto
 {
+    public required Guid Id { get; set; }
     public required string DeceasedName { get; set; }
     public string? CaseNumber { get; set; }
     public string? DistrictCourtName { get; set; }

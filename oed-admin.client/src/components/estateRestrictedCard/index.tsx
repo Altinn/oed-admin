@@ -8,6 +8,7 @@ import {
 } from "@digdir/designsystemet-react";
 import type { MinimalEstate } from "../../types/IEstate";
 import { statusColors, statusTexts } from "../../utils/statusMappers";
+import CopyToClipboard from "../copyToClipboard";
 
 interface Props {
   estate: MinimalEstate;
@@ -24,7 +25,8 @@ export default function EstateRestrictedCard({ estate }: Props) {
     districtCourtName,
     caseNumber,
     heirs,
-    scheduled
+    scheduled,
+    id
   } = estate;
 
   const caseStatusColor = caseStatus ? statusColors[caseStatus] : "neutral";
@@ -68,6 +70,7 @@ export default function EstateRestrictedCard({ estate }: Props) {
       <Card.Block>
         <Paragraph variant="short">{districtCourtName}</Paragraph>
         <Paragraph variant="short">{caseNumber}</Paragraph>
+        <CopyToClipboard value={`${window.location.origin}/estate/${id}`} displayValue="Kopier lenke til bo" />
       </Card.Block>
     </Card>
   );

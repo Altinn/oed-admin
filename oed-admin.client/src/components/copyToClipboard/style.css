@@ -1,0 +1,10 @@
+.copy-to-clipboard {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+  
+    svg {
+      fill: var(--fds-semantic-text-action-first-default);
+    }
+  
+  }
