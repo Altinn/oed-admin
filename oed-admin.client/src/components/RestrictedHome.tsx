@@ -18,6 +18,7 @@ const RestrictedSearch = () => {
   const isAdmin = hasRole(account, "Admin");
 
   const handleSearch = async () => {
+    setEstate(undefined);
     // TODO: Implement search functionality with only one search result
     const searchInput = document.getElementById(
       "search-input"
@@ -94,7 +95,7 @@ const RestrictedSearch = () => {
           Søkeresultat
         </Heading>
         {loadingEstate && !estate && <p>Søker etter dødsbo...</p>}
-        {hasSearched && !loadingEstate && !estate && <p>Ingen gyldig søkeresultat.</p>}
+        {hasSearched && !loadingEstate && !estate && <p>Fikk ingen treff</p>}
         {estate && <EstateRestrictedCard estate={estate!} />}
       </section>
     </div>
