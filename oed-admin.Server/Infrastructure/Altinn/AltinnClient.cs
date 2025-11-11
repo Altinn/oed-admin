@@ -6,6 +6,7 @@ namespace oed_admin.Server.Infrastructure.Altinn;
 public interface IAltinnClient
 {
     public Task<string> GetEventSubscriptions();
+    public Task<string> DeleteEventSubscription(int id);
     public Task<string> GetEvents(string resource, string subject, string? after = "0");
     public Task<Instance?> GetInstance(int instanceOwnerPartyId, Guid instanceGuid);
     public Task<string> GetInstanceDataAsString(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid);
@@ -26,6 +27,19 @@ public class AltinnClient(HttpClient httpClient) : IAltinnClient
         var contentString = await response.Content.ReadAsStringAsync();
 
         return contentString;
+    }
+
+    public async Task<string> DeleteEventSubscription(int id)
+    {
+        var path = $"/events/api/v1/subscriptions/{id}";
+
+        var response = await httpClient.DeleteAsync(path);
+
+        response.EnsureSuccessStatusCode();
+        var contentString = await response.Content.ReadAsStringAsync();
+
+        return contentString;
+
     }
 
     public async Task<string> GetEvents(string resource, string subject, string? after = "0")
