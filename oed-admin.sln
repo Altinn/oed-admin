@@ -1,11 +1,11 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36203.30 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "oed-admin.client", "oed-admin.client\oed-admin.client.esproj", "{882B02AD-7E8A-B769-0B4E-2E990EB63802}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "oed-admin.Server", "oed-admin.Server\oed-admin.Server.csproj", "{365D21A3-FF6B-4CFC-B9FF-9CD8AEE4A442}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "oed-admin.Server", "oed-admin.Server\oed-admin.Server.csproj", "{365D21A3-FF6B-4CFC-B9FF-9CD8AEE4A442}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
