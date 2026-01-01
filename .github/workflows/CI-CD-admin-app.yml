@@ -17,14 +17,14 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: GitHub metadata
         run: |
           printf "%s on %s by %s\n" "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME" "$GITHUB_ACTOR"
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@55ec9447dda3d1cf6bd587150f3262f30ee10815 # v3
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -44,7 +44,7 @@ jobs:
           VITE_CLIENT_ID: ${{ vars.VITE_CLIENT_ID }}
 
       - name: Deploy to Azure App Service (Test)
-        uses: azure/webapps-deploy@v2
+        uses: azure/webapps-deploy@122b7ec46017e53a3f71e3a027d67550a1641f5e # v2
         with:
           app-name: "${{ vars.APP_SERVICE_NAME}}"
           publish-profile: ${{ secrets.PUBLISH_PROFILE }}
@@ -64,14 +64,14 @@ jobs:
           echo "Waiting for manual approval"
 
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: GitHub metadata
         run: |
           printf "%s on %s by %s\n" "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME" "$GITHUB_ACTOR"
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@55ec9447dda3d1cf6bd587150f3262f30ee10815 # v3
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -91,7 +91,7 @@ jobs:
           VITE_CLIENT_ID: ${{ vars.VITE_CLIENT_ID }}
 
       - name: Deploy to Azure App Service Staging Slot
-        uses: azure/webapps-deploy@v2
+        uses: azure/webapps-deploy@122b7ec46017e53a3f71e3a027d67550a1641f5e # v2
         with:
           app-name: "${{ vars.APP_SERVICE_NAME}}"
           publish-profile: ${{ secrets.PUBLISH_PROFILE }}
