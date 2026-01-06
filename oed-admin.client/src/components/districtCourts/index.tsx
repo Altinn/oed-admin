@@ -50,10 +50,14 @@ export default function DistrictCourts() {
               <Paragraph>{court.districtCourtName}{court.numberOfCases ? ` (${court.numberOfCases})` : null}</Paragraph>
             </div>
           ))}
-          <br />
-          <Paragraph>
-            Totalt antall saker: {data.connectedDistrictCourts.reduce((total: number, court: DistrictCourtSummaryResponse) => total + (court.numberOfCases || 0), 0)}
-          </Paragraph>
+          {isAdmin && (
+            <>
+              <br />
+              <Paragraph>
+                Totalt antall saker: {data.connectedDistrictCourts.reduce((total: number, court: DistrictCourtSummaryResponse) => total + (court.numberOfCases || 0), 0)}
+              </Paragraph>
+            </>
+          )}
         </>
       )}
     </>
