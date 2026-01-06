@@ -52,6 +52,9 @@ export interface Estate {
   delarationCreated?: string; // ISO date string
   declarationSubmitted?: string; // ISO date string
   probateIssued?: string; // ISO date string
+
+  accessDate?: string; // ISO date string
+  isCancelled?: boolean; 
 }
 
 export interface RoleAssignment {

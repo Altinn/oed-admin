@@ -6,7 +6,7 @@ on:
       - main
   workflow_dispatch:
 env:
-  DOTNET_VERSION: "9.x" # Global environment variables
+  DOTNET_VERSION: "10.x" # Global environment variables
 
 jobs:
   deploy-to-test:

@@ -8,4 +8,5 @@ public class PartialEstate
 public class PartialSearchResponse
 {
     public List<PartialEstate> Estates { get; set; } = [];
+    public PartialEstate? Estate { get; set; } = null;
 }

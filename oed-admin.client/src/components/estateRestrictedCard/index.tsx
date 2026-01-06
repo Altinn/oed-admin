@@ -5,9 +5,10 @@ import {
   Paragraph,
   Label,
   List,
+  Popover,
 } from "@digdir/designsystemet-react";
 import type { MinimalEstate } from "../../types/IEstate";
-import { statusColors, statusTexts } from "../../utils/statusMappers";
+import { statusColors, statusTexts, statusDescriptions } from "../../utils/statusMappers";
 import CopyToClipboard from "../copyToClipboard";
 
 interface Props {
@@ -20,7 +21,6 @@ export default function EstateRestrictedCard({ estate }: Props) {
   }
   const {
     deceasedName,
-    caseStatus,
     status,
     districtCourtName,
     caseNumber,
@@ -29,19 +29,33 @@ export default function EstateRestrictedCard({ estate }: Props) {
     id
   } = estate;
 
-  const caseStatusColor = caseStatus ? statusColors[caseStatus] : "neutral";
-  const caseStatusText = caseStatus ? statusTexts[caseStatus] : "Ukjent";
-  const ddStatusColor = caseStatus ? statusColors[status] : "neutral";
-  const ddStatusText = caseStatus ? statusTexts[status] : "Ukjent";
+  const ddStatusColor = status ? statusColors[status] : "neutral";
+  const ddStatusText = status ? statusTexts[status] : "Ukjent";
+  const ddStatusDescription = status ? statusDescriptions[status] : "";
+
+  const popover = (statusText: string, statusDescription: string) => {
+    return (
+      <Popover.TriggerContext>
+        <Paragraph>
+          <Popover.Trigger inline>{statusText}</Popover.Trigger>
+        </Paragraph>
+        <Popover data-color='neutral'>
+          <Paragraph>
+            {statusDescription}
+          </Paragraph>
+        </Popover>
+      </Popover.TriggerContext>
+    );
+  }
+
 
   return (
     <Card data-color="brand2" className="deceased-card">
       <Card.Block>
         <Heading level={3}>{deceasedName}</Heading>
-        <Paragraph className="flex-row">
-          <Tag data-color={caseStatusColor}>{caseStatusText}</Tag>
-          <Tag data-color={ddStatusColor}>{ddStatusText}</Tag>
-        </Paragraph>
+          <div className="flex-row">
+            <Tag data-color={ddStatusColor}>{popover(ddStatusText, ddStatusDescription)}</Tag>
+          </div>
       </Card.Block>
       <Card.Block>
         <Heading
@@ -58,14 +72,12 @@ export default function EstateRestrictedCard({ estate }: Props) {
             </List.Item>
           ))}
         </List.Unordered>
-        <Paragraph className="flex-between">
-          <Label>Melding om tilgang sendes: </Label>
-          {scheduled
-            ? new Intl.DateTimeFormat("nb", { dateStyle: "full" }).format(
-              new Date(scheduled)
-            )
-            : "Ukjent"}
-        </Paragraph>
+        {scheduled && (
+          <Paragraph className="flex-between">
+            <Label>Tilgang gis: </Label>
+              {new Intl.DateTimeFormat("nb", { dateStyle: "full" }).format(new Date(scheduled))}
+          </Paragraph>
+        )}
       </Card.Block>
       <Card.Block>
         <Paragraph variant="short">{districtCourtName}</Paragraph>
@@ -75,3 +87,4 @@ export default function EstateRestrictedCard({ estate }: Props) {
     </Card>
   );
 }
+

@@ -27,6 +27,10 @@ public class EstateDto
     public DateTimeOffset? DeclarationSubmitted { get; set; }
     public DateTimeOffset? ProbateIssued { get; set; }
 
+    public DateTimeOffset? AccessDate { get; set; }
+    public bool? IsCancelled { get; set; }
+
+
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public EstateStatus Status
     {

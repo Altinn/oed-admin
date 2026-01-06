@@ -26,6 +26,9 @@ public class Estate
     public DateTimeOffset? DelarationCreated { get; set; } = null;
     public DateTimeOffset? DeclarationSubmitted { get; set; } = null;
     public DateTimeOffset? ProbateIssued { get; set; } = null;
+
+    public DateTimeOffset? AccessDate { get; set; } = null;
+    public bool? IsCancelled { get; set; } = null;
 }
 
 

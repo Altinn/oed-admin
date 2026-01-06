@@ -74,7 +74,9 @@ public class AuditingLoggingMiddleware(
                 response, 
                 JsonSerializerOptions.Web);
 
-            estateDetails = partialSearchResponse?.Estates.Select(e => new EstateDetails(e.Id)).ToArray();
+            estateDetails = partialSearchResponse?.Estate is not null 
+                ? [new EstateDetails(partialSearchResponse.Estate.Id)]
+                : partialSearchResponse?.Estates.Select(e => new EstateDetails(e.Id)).ToArray();
         }
 
         responseBody.Seek(0, SeekOrigin.Begin);
