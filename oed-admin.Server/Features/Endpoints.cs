@@ -37,69 +37,66 @@ public static class Endpoints
             .RequireAuthorization(AuthorizationPolicies.AtLeastReadRole);
     }
 
-    public static RouteGroupBuilder MapEstateEndpoints(this WebApplication app)
+    extension(WebApplication app)
     {
-        var group = app.MapGroup("/api/estate");
+        public RouteGroupBuilder MapEstateEndpoints()
+        {
+            var group = app.MapGroup("/api/estate");
 
-        group.MapGet("/{estateId:guid}", Estate.GetEstate.Endpoint.Get);
-        group.MapPost("/search", Estate.Search.Endpoint.Post);
+            group.MapGet("/{estateId:guid}", Estate.GetEstate.Endpoint.Get);
+            group.MapPost("/search", Estate.Search.Endpoint.Post);
+            group.MapGet("/{estateId:guid}/roleassignments", Estate.GetRoleAssignments.Endpoint.Get);
+            group.MapGet("/{estateId:guid}/roleassignmentlog", Estate.GetRoleAssignmentLog.Endpoint.Get);
+            group.MapGet("/{estateId:guid}/tasks", Estate.GetTasks.Endpoint.Get);
+            group.MapGet("/{estateId:guid}/events", Estate.GetEvents.Endpoint.Get);
+            group.MapGet("/{estateId:guid}/instance", Estate.GetInstance.Endpoint.Get);
+            group.MapGet("/{estateId:guid}/declarationinstance", Estate.GetDeclarationInstance.Endpoint.Get);
+            group.MapGet("/{estateId:guid}/probateinformation", Estate.GetProbateInformation.Endpoint.Get);
+            group.MapPost("/{estateId:guid}/superadmin", Estate.GrantSuperadmin.Endpoint.Post);
+            group.MapDelete("/{estateId:guid}/superadmin", Estate.RevokeSuperadmin.Endpoint.Delete);
+            group.MapGet("/{estateId:guid}/searchroles", Estate.SearchRoles.Endpoint.Get);
 
-        group.MapGet("/{estateId:guid}/roleassignments", Estate.GetRoleAssignments.Endpoint.Get);
-        group.MapGet("/{estateId:guid}/roleassignmentlog", Estate.GetRoleAssignmentLog.Endpoint.Get);
+            return group;
+        }
 
-        group.MapGet("/{estateId:guid}/tasks", Estate.GetTasks.Endpoint.Get);
+        public RouteGroupBuilder MapTaskEndpoints()
+        {
+            var group = app.MapGroup("/api/tasks");
 
-        group.MapGet("/{estateId:guid}/events", Estate.GetEvents.Endpoint.Get);
+            group.MapGet("/", Tasks.GetTasks.Endpoint.Get);
+            group.MapPatch("/", Tasks.PatchTasks.Endpoint.Patch);
+            group.MapPatch("/{taskId:guid}", Tasks.PatchTask.Endpoint.Patch);
 
-        group.MapGet("/{estateId:guid}/instance", Estate.GetInstance.Endpoint.Get);
+            return group;
+        }
 
-        group.MapGet("/{estateId:guid}/declarationinstance", Estate.GetDeclarationInstance.Endpoint.Get);
+        public RouteGroupBuilder MapInstanceEndpoints()
+        {
+            var group = app.MapGroup("/api/instances");
 
-        group.MapGet("/{estateId:guid}/probateinformation", Estate.GetProbateInformation.Endpoint.Get);
+            group.MapGet("/{instanceOwnerPartyId:int}/{instanceGuid:guid}", Instances.GetInstance.Endpoint.Get);
+            group.MapGet("/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid}", Instances.GetInstanceData.Endpoint.Get);
 
-        group.MapPost("/{estateId:guid}/superadmin", Estate.GrantSuperadmin.Endpoint.Post);
-        group.MapDelete("/{estateId:guid}/superadmin", Estate.RevokeSuperadmin.Endpoint.Delete);
+            return group;
+        }
 
-        return group;
-    }
+        public RouteGroupBuilder MapMaintenanceEndpoints()
+        {
+            var group = app.MapGroup("/api/maintenance");
 
-    public static RouteGroupBuilder MapTaskEndpoints(this WebApplication app)
-    {
-        var group = app.MapGroup("/api/tasks");
+            group.MapPost("/datamigration", Maintenance.DataMigration.Endpoint.Post);
 
-        group.MapGet("/", Tasks.GetTasks.Endpoint.Get);
-        group.MapPatch("/", Tasks.PatchTasks.Endpoint.Patch);
-        group.MapPatch("/{taskId:guid}", Tasks.PatchTask.Endpoint.Patch);
+            return group;
+        }
 
-        return group;
-    }
+        public RouteGroupBuilder MapSuperadminEndpoints()
+        {
+            var group = app.MapGroup("/api/superadmins");
 
-    public static RouteGroupBuilder MapInstanceEndpoints(this WebApplication app)
-    {
-        var group = app.MapGroup("/api/instances");
+            group.MapGet("/", Superadmin.GetSuperadmins.Endpoint.Get);
+            group.MapDelete("/", Superadmin.RevokeSuperadmin.Endpoint.Delete);
 
-        group.MapGet("/{instanceOwnerPartyId:int}/{instanceGuid:guid}", Instances.GetInstance.Endpoint.Get);
-        group.MapGet("/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid}", Instances.GetInstanceData.Endpoint.Get);
-
-        return group;
-    }
-
-    public static RouteGroupBuilder MapMaintenanceEndpoints(this WebApplication app)
-    {
-        var group = app.MapGroup("/api/maintenance");
-
-        group.MapPost("/datamigration", Maintenance.DataMigration.Endpoint.Post);
-
-        return group;
-    }
-
-    public static RouteGroupBuilder MapSuperadminEndpoints(this WebApplication app)
-    {
-        var group = app.MapGroup("/api/superadmins");
-
-        group.MapGet("/", Superadmin.GetSuperadmins.Endpoint.Get);
-        group.MapDelete("/", Superadmin.RevokeSuperadmin.Endpoint.Delete);
-
-        return group;
+            return group;
+        }
     }
 }

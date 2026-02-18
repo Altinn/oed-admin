@@ -76,6 +76,23 @@ public static class ServiceCollectionExtensions
                 client.BaseAddress = new Uri(settings.CurrentValue.AppsUrl);
             });
 
+        services
+            .AddMaskinportenHttpClient<SettingsJwkClientDefinition, IOedAuthzClient, OedAuthzClient>(
+                maskinportenSettings with
+                {
+                    Scope = "altinn:dd:authlookup"
+                },
+                clientDefinition =>
+                {
+                    clientDefinition.ClientSettings.ExhangeToAltinnToken = false;
+                    clientDefinition.ClientSettings.EnableDebugLogging = true;
+                })
+            .ConfigureHttpClient((provider, client) =>
+            {
+                var settings = provider.GetRequiredService<IOptionsMonitor<AltinnSettings>>();
+                client.BaseAddress = new Uri(configuration.GetRequiredSection("OedAuthz").GetRequiredSection("BaseUrl").Value!);
+            });
+
         return services;
     }
 }

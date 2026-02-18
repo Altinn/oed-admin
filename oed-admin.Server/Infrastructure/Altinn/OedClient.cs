@@ -19,3 +19,24 @@ public class OedClient(HttpClient httpClient) : IOedClient
         return contentString;
     }
 }
+
+
+public interface IOedAuthzClient
+{
+    public Task<object?> SearchRoles(string estateSsn, string? recipientSsn = null);
+}
+
+public class OedAuthzClient(HttpClient httpClient) : IOedAuthzClient
+{
+    public async Task<object?> SearchRoles(string estateSsn, string? recipientSsn = null)
+    {
+        var path = $"/api/v1/authorization/roles/search";
+
+        var response = await httpClient.PostAsJsonAsync(path, new { estateSsn });
+
+        response.EnsureSuccessStatusCode();
+        var contentString = await response.Content.ReadFromJsonAsync<object>();
+
+        return contentString;
+    }
+}

@@ -27,11 +27,16 @@ import EstateEvents from "../estateEvents";
 import type { Estate } from "../../types/IEstate";
 import { SuperAdmin } from "../superAdmins";
 import EstateTasks from "../estateTasks";
-import { formatDateTimeLocal, isValidDate, isValidDateTime } from "../../utils/formatters";
+import {
+  formatDateTimeLocal,
+  isValidDate,
+  isValidDateTime,
+} from "../../utils/formatters";
 import EstateInstance from "../estateInstance";
 import EstateDeclaration from "../estateDeclaration";
 import EstateProbateInformation from "../estateProbateInformation";
 import { fetchWithMsal } from "../../utils/msalUtils";
+import EstateSearchRoles from "../estateSearchRoles";
 
 interface EstateDetailsResponse {
   estate: Estate;
@@ -56,7 +61,7 @@ export default function EstateDetails() {
     if (isValidDateTime(val)) {
       return {
         type: "datetime-local",
-        value: formatDateTimeLocal(new Date(val))
+        value: formatDateTimeLocal(new Date(val)),
       };
     }
 
@@ -95,6 +100,10 @@ export default function EstateDetails() {
           <Tabs.Tab value="roles">
             <ShieldCheckmarkIcon />
             Roller
+          </Tabs.Tab>
+          <Tabs.Tab value="authzroles">
+            <ShieldCheckmarkIcon />
+            Authz
           </Tabs.Tab>
           <Tabs.Tab value="instance">
             <DatabaseIcon />
@@ -167,6 +176,9 @@ export default function EstateDetails() {
 
         <Tabs.Panel value="roles" id="tab-roles">
           <EstateRoles estateId={id} />
+        </Tabs.Panel>
+        <Tabs.Panel value="authzroles" id="tab-authzroles">
+          <EstateSearchRoles estateId={id} />
         </Tabs.Panel>
         <Tabs.Panel value="instance" id="tab-instance">
           <EstateInstance estateId={id} />
