@@ -1,6 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { Heading, Paragraph, Skeleton, ValidationMessage } from "@digdir/designsystemet-react";
-import { fetchWithMsal } from "../../utils/msalUtils";
+import { fetchWithMsal, hasRole } from "../../utils/msalUtils";
+import { useMsal } from "@azure/msal-react";
+import type { AccountInfo } from "@azure/msal-browser";
+
+interface DistrictCourtSummaryResponse {
+  districtCourtName: string;
+  numberOfCases?: number;
+}
 
 export default function DistrictCourts() {
   const { data, isLoading, error } = useQuery({
@@ -13,6 +20,9 @@ export default function DistrictCourts() {
       return response.json();
     },
   });
+  const { instance } = useMsal();
+  const account = instance.getActiveAccount() as AccountInfo;
+  const isAdmin = hasRole(account, "Admin");
 
   return (
     <>
@@ -35,11 +45,19 @@ export default function DistrictCourts() {
 
       {data && data.connectedDistrictCourts && (
         <>
-          {data.connectedDistrictCourts.map((court: string) => (
-            <div key={court}>
-              <Paragraph>{court}</Paragraph>
+          {data.connectedDistrictCourts.map((court: DistrictCourtSummaryResponse) => (
+            <div key={court.districtCourtName}>
+              <Paragraph>{court.districtCourtName}{court.numberOfCases ? ` (${court.numberOfCases})` : null}</Paragraph>
             </div>
           ))}
+          {isAdmin && (
+            <>
+              <br />
+              <Paragraph>
+                Totalt antall saker: {data.connectedDistrictCourts.reduce((total: number, court: DistrictCourtSummaryResponse) => total + (court.numberOfCases || 0), 0)}
+              </Paragraph>
+            </>
+          )}
         </>
       )}
     </>

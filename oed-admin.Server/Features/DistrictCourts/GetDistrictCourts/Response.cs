@@ -2,4 +2,4 @@
 
 namespace oed_admin.Server.Features.DistrictCourts.GetDistrictCourts;
 
-public record Response(List<string> ConnectedDistrictCourts);
+public record Response(List<DistrictCourtSummaryDto> ConnectedDistrictCourts);
