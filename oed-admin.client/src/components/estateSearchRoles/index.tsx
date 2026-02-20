@@ -64,7 +64,7 @@ export default function EstateSearchRoles({ estateId }: Props) {
                 wordBreak: "break-all",
               }}
             >
-              {JSON.stringify(data, null, 2)}
+              {JSON.stringify(data.roleInformation, null, 2)}
             </pre>
           </Details.Content>
         </Details>
