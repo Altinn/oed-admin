@@ -27,7 +27,7 @@ public static class Endpoint
         var query = new Query(
             ResourceId: "oed-correspondence", 
             Role: CorrespondencesRoleType.Sender, 
-            SendersReference: "50952589/8540b131-65ca-4a61-a1e9-f16c2e9de839");
+            SendersReference: estate.InstanceId);
         var searchResult = await ddCorrespondenceService.Search(query);
         if (searchResult.IsSuccess)
         {
