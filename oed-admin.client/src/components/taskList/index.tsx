@@ -59,7 +59,7 @@ export default function TaskList({ data, isLoading, error }: Props) {
     return response.json(); 
   }
 
-    const rescheduleMultipleMutationFn = async ({taskIds, scheduled, attempts} : {taskIds: Array<string>, scheduled: string, attempts: number}): Promise<PatchTasksResponse> => {
+  const rescheduleMultipleMutationFn = async ({taskIds, scheduled, attempts} : {taskIds: Array<string>, scheduled: string, attempts: number}): Promise<PatchTasksResponse> => {
     const response = await fetchWithMsal(`/api/tasks`, {
       method: 'PATCH',
       headers: {
@@ -90,7 +90,7 @@ export default function TaskList({ data, isLoading, error }: Props) {
     },
   });
 
-    const rescheduleMultipleMutation = useMutation({
+  const rescheduleMultipleMutation = useMutation({
     mutationFn: (data: {taskIds: Array<string>, scheduled: string, attempts: number}) => 
       rescheduleMultipleMutationFn(data),
     onSuccess: () => {

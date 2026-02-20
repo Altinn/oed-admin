@@ -15,9 +15,6 @@ public static class Endpoint
         if (!request.IsValid())
             return TypedResults.BadRequest();
 
-        if (!request.IsValid())
-            return TypedResults.BadRequest();
-
         var estate = await dbContext.Estate
             .AsNoTracking()
             .SingleOrDefaultAsync(e => e.Id == request.EstateId);

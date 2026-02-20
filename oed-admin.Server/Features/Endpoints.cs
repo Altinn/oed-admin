@@ -55,7 +55,7 @@ public static class Endpoints
             group.MapPost("/{estateId:guid}/superadmin", Estate.GrantSuperadmin.Endpoint.Post);
             group.MapDelete("/{estateId:guid}/superadmin", Estate.RevokeSuperadmin.Endpoint.Delete);
             group.MapGet("/{estateId:guid}/searchroles", Estate.SearchRoles.Endpoint.Get);
-
+            group.MapGet("/{estateId:guid}/correspondences", Estate.GetCorrespondences.Endpoint.Get);
             return group;
         }
 

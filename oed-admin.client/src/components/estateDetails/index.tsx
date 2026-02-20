@@ -37,6 +37,7 @@ import EstateDeclaration from "../estateDeclaration";
 import EstateProbateInformation from "../estateProbateInformation";
 import { fetchWithMsal } from "../../utils/msalUtils";
 import EstateSearchRoles from "../estateSearchRoles";
+import EstateCorrespondences from "../estateCorrespondences";
 
 interface EstateDetailsResponse {
   estate: Estate;
@@ -125,6 +126,10 @@ export default function EstateDetails() {
             <TasklistIcon />
             Oppgaveliste
           </Tabs.Tab>
+          <Tabs.Tab value="correspondences">
+            <EnvelopeClosedIcon />
+            Korrespondanse
+          </Tabs.Tab>
           <Tabs.Tab value="super-admin">
             <KeyVerticalIcon />
             Super-admin
@@ -194,6 +199,9 @@ export default function EstateDetails() {
         </Tabs.Panel>
         <Tabs.Panel value="tasks" id="tab-tasks">
           <EstateTasks estateId={id} />
+        </Tabs.Panel>
+        <Tabs.Panel value="correspondences" id="tab-correspondences">
+          <EstateCorrespondences estateId={id} />
         </Tabs.Panel>
         <Tabs.Panel value="super-admin" id="tab-super-admin">
           <SuperAdmin estateId={id} instanceId={data?.estate.instanceId} />

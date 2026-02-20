@@ -16,7 +16,7 @@ public class LocalTestTokenHandler : DelegatingHandler
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var scopes = "altinn:serviceowner/instances.read%20altinn:serviceowner/instances.write%20altinn:events.subscribe%20altinn:serviceowner";
-        var response = await _httpClient.GetAsync($"/authentication/api/v1/orgToken?scope={scopes}&org=digdir", cancellationToken);
+        var response = await _httpClient.GetAsync($"/Home/auth/serviceowner?scope={scopes}&org=digdir&orgNumber=405003309", cancellationToken);
         var bearerToken = await response.Content.ReadAsStringAsync(cancellationToken);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
 

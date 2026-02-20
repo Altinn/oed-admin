@@ -11,6 +11,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="9.2.1" />
+    <PackageReference Include="Altinn.Dd.Correspondence" Version="2.1.2-alpha" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="4.1.0" />
     <PackageReference Include="Azure.Data.Tables" Version="12.11.0" />
     <PackageReference Include="Azure.Identity" Version="1.17.1" />
