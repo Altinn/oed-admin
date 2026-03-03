@@ -31,7 +31,7 @@ builder.Services.AddDdCorrespondenceService(options =>
         Environment = maskinportenSettings.Environment,
         EncodedJwk = maskinportenSettings.EncodedJwk
     };
-    options.ResourceId = "oed-correspondence";
+    options.ResourceId = "digdir-dd-correspondence";
     options.Environment = Enum.Parse<ApiEnvironment>(builder.Environment.EnvironmentName, ignoreCase: true);
 });
 
