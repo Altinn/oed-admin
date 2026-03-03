@@ -18,8 +18,14 @@ interface CorrespondenceOverview {
   published?: string;
   content?: CorrespondenceContent;
 }
+interface CorrespondenceResult {
+  correspondenceId: string;
+  isSuccess: boolean;
+  correspondence?: CorrespondenceOverview;
+  errorMessage?: string;
+}
 interface CorrespondencesResponse {
-  correspondences: CorrespondenceOverview[];
+  correspondences: CorrespondenceResult[];
 }
 export default function EstateCorrespondences({ estateId }: Props) {
   const { data, isLoading, error } = useQuery<CorrespondencesResponse>({
@@ -65,23 +71,37 @@ export default function EstateCorrespondences({ estateId }: Props) {
             </Table.Row>
           </Table.Head>
           <Table.Body>
-            {data.correspondences?.map((correspondence) => (
-              <Table.Row key={correspondence.correspondenceId}>
-                <Table.Cell>{correspondence.recipient.split(":").pop()}</Table.Cell>
-                <Table.Cell>{correspondence.statusText}</Table.Cell>
-                <Table.Cell>{correspondence.statusChanged ? formatDateTime(correspondence.statusChanged) : "-"}</Table.Cell>
-                <Table.Cell>{correspondence.published ? formatDateTime(correspondence.published) : "-"}</Table.Cell>
-                <Table.Cell>{correspondence.content?.messageTitle}</Table.Cell>
+            {data.correspondences?.map((correspondenceResult) => (
+              <Table.Row key={correspondenceResult.correspondenceId}>
+                <Table.Cell>
+                  {correspondenceResult.correspondence?.recipient.split(":").pop() ?? "-"}
+                </Table.Cell>
+                <Table.Cell>
+                  {correspondenceResult.isSuccess
+                    ? correspondenceResult.correspondence?.statusText ?? "-"
+                    : correspondenceResult.errorMessage ?? "Feilet"}
+                </Table.Cell>
+                <Table.Cell>
+                  {correspondenceResult.correspondence?.statusChanged
+                    ? formatDateTime(correspondenceResult.correspondence.statusChanged)
+                    : "-"}
+                </Table.Cell>
+                <Table.Cell>
+                  {correspondenceResult.correspondence?.published
+                    ? formatDateTime(correspondenceResult.correspondence.published)
+                    : "-"}
+                </Table.Cell>
+                <Table.Cell>{correspondenceResult.correspondence?.content?.messageTitle}</Table.Cell>
                 <Table.Cell>
                   <Dialog.TriggerContext>
                     <Dialog.Trigger
                       variant="tertiary"
                       data-size="lg"
-                      disabled={!correspondence}
+                      disabled={!correspondenceResult.correspondence}
                     >
                       <CodeIcon />
                     </Dialog.Trigger>
-                    {correspondence && (
+                    {correspondenceResult.correspondence && (
                       <Dialog style={{ maxWidth: 1200 }} data-size="sm" closedby="any">
                         <Heading
                           level={3}
@@ -95,7 +115,7 @@ export default function EstateCorrespondences({ estateId }: Props) {
                             wordBreak: "break-all",
                           }}
                         >
-                          {JSON.stringify(correspondence, null, 2)}
+                          {JSON.stringify(correspondenceResult, null, 2)}
                         </pre>
                       </Dialog>
                     )}

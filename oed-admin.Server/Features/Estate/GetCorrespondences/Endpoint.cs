@@ -15,34 +15,68 @@ public static class Endpoint
         [FromServices] IDdCorrespondenceService ddCorrespondenceService)
     {
         if (!request.IsValid())
-            return TypedResults.BadRequest();
+            return TypedResults.BadRequest(new ProblemDetails
+            {
+                Title = "Invalid request",
+                Detail = "The request payload is invalid.",
+                Status = StatusCodes.Status400BadRequest
+            });
 
         var estate = await dbContext.Estate
             .AsNoTracking()
             .SingleOrDefaultAsync(e => e.Id == request.EstateId);
 
         if (estate is null)
-            return TypedResults.BadRequest();
+            return TypedResults.BadRequest(new ProblemDetails
+            {
+                Title = "Estate not found",
+                Detail = "No estate was found for the provided id.",
+                Status = StatusCodes.Status404NotFound
+            });
 
         var query = new Query(
-            ResourceId: "oed-correspondence", 
+            ResourceId: "digdir-dd-correspondence", 
             Role: CorrespondencesRoleType.Sender, 
             SendersReference: estate.InstanceId);
         var searchResult = await ddCorrespondenceService.Search(query);
+
         if (searchResult.IsSuccess)
         {
-            var correspondencesTasks = new List<Task<Altinn.Dd.Correspondence.Features.Get.Result>>();
-            foreach (var correspondenceId in searchResult.Value!)
-            {
-                var getRequest = new Altinn.Dd.Correspondence.Features.Get.Request(correspondenceId);
-                correspondencesTasks.Add(ddCorrespondenceService.Get(getRequest));
-            }
-            await Task.WhenAll(correspondencesTasks);
-            return TypedResults.Ok(new Response([.. correspondencesTasks.Select(t => t.Result.Value!)]));
+            var correspondenceTasks = searchResult.Value!
+                .Select(correspondenceId => GetCorrespondenceResult(correspondenceId, ddCorrespondenceService))
+                .ToList();
+
+            var correspondences = await Task.WhenAll(correspondenceTasks);
+
+            return TypedResults.Ok(new Response([.. correspondences]));
         }
         else
         {
-            return TypedResults.BadRequest();
+            return TypedResults.BadRequest(new ProblemDetails
+            {
+                Title = "Correspondence search failed",
+                Detail = "Failed to search correspondences.",
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+    }
+
+    private static async Task<CorrespondenceResult> GetCorrespondenceResult(
+        Guid correspondenceId,
+        IDdCorrespondenceService ddCorrespondenceService)
+    {
+        try
+        {
+            var getRequest = new Altinn.Dd.Correspondence.Features.Get.Request(correspondenceId);
+            var result = await ddCorrespondenceService.Get(getRequest);
+
+            return result.Match(
+                success => CorrespondenceResult.Success(correspondenceId, success),
+                failure => CorrespondenceResult.Failure(correspondenceId, failure.ToString()));
+        }
+        catch (Exception exception)
+        {
+            return CorrespondenceResult.Failure(correspondenceId, exception.Message);
         }
     }
 
