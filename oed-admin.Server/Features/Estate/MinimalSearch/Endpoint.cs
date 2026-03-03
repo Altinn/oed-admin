@@ -9,7 +9,7 @@ namespace oed_admin.Server.Features.Estate.MinimalSearch;
 public static class Endpoint
 {
     private const string EstateReadyCorrespondenceTask = "Altinn.App.Tasks.Correspondence.EstateIsReadyCorrespondenceTask";
-
+    private const string EstateReadyCorrespondenceTaskV2 = "Altinn.App.Tasks.Correspondence.EstateIsReadyCorrespondenceTaskV2";
     public static async Task<IResult> Post(
         [FromBody] Request request,
         [FromServices] OedDbContext dbContext,
@@ -60,7 +60,8 @@ public static class Endpoint
             .Where(t =>
                 t.EstateSsn == request.Nin &&
                 t.Scheduled != null &&
-                t.Type == EstateReadyCorrespondenceTask)
+                (t.Type == EstateReadyCorrespondenceTask ||
+                t.Type == EstateReadyCorrespondenceTaskV2))
             .OrderByDescending(task => task.Created)
             .FirstOrDefault()?
             .Scheduled;
