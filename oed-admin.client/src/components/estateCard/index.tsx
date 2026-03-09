@@ -26,6 +26,7 @@ export default function EstateCard({ estate }: Props) {
     id,
     districtCourtName,
     caseNumber,
+    created,
   } = estate;
 
   const caseStatusColor = caseStatus ? statusColors[caseStatus] : "neutral";
@@ -45,6 +46,10 @@ export default function EstateCard({ estate }: Props) {
     <Card asChild data-color="neutral" className="deceased-card">
       <button type="button" onClick={handleClick}>
         <Card.Block>
+          <Paragraph data-size="xs">
+            <Label>Opprettet: </Label>
+            {new Intl.DateTimeFormat("nb").format(new Date(created))}
+          </Paragraph>
           <Heading>{deceasedName}</Heading>
           <Paragraph data-size="sm">
             <Label>Dødsdato: </Label>
