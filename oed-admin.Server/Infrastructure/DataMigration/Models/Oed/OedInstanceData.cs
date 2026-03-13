@@ -200,12 +200,229 @@ public class Address
     public string City { get; set; }
 }
 
+public interface IPerson
+{
+    [XmlElement("FirstName")]
+    [JsonProperty("firstName")]
+    [JsonPropertyName("firstName")]
+    public string FirstName { get; set; }
+
+    [XmlElement("MiddleName")]
+    [JsonProperty("middleName")]
+    [JsonPropertyName("middleName")]
+    public string MiddleName { get; set; }
+
+    [XmlElement("LastName")]
+    [JsonProperty("lastName")]
+    [JsonPropertyName("lastName")]
+    public string LastName { get; set; }
+
+    [XmlElement("Address")]
+    [JsonProperty("address")]
+    [JsonPropertyName("address")]
+    public Address Address { get; set; }
+}
+
+public class DeceasedPerson : IPerson
+{
+    [XmlElement("FirstName")]
+    [JsonProperty("firstName")]
+    [JsonPropertyName("firstName")]
+    public string FirstName { get; set; }
+
+    [XmlElement("MiddleName")]
+    [JsonProperty("middleName")]
+    [JsonPropertyName("middleName")]
+    public string MiddleName { get; set; }
+
+    [XmlElement("LastName")]
+    [JsonProperty("lastName")]
+    [JsonPropertyName("lastName")]
+    public string LastName { get; set; }
+
+    [XmlElement("Address")]
+    [JsonProperty("address")]
+    [JsonPropertyName("address")]
+    public Address Address { get; set; }
+
+    [Range(Int32.MinValue, Int32.MaxValue)]
+    [XmlElement("PartyId")]
+    [JsonProperty("partyId")]
+    [JsonPropertyName("partyId")]
+    public int PartyId { get; set; }
+
+    [XmlElement("Birthday")]
+    [JsonProperty("birthday")]
+    [JsonPropertyName("birthday")]
+    public string Birthday { get; set; }
+
+    [XmlElement("Nin")]
+    [JsonProperty("nin")]
+    [JsonPropertyName("nin")]
+    public string Nin { get; set; }
+}
+
+public class ContactPerson : IPerson
+{
+    [XmlElement("FirstName")]
+    [JsonProperty("firstName")]
+    [JsonPropertyName("firstName")]
+    public string FirstName { get; set; }
+
+    [XmlElement("MiddleName")]
+    [JsonProperty("middleName")]
+    [JsonPropertyName("middleName")]
+    public string MiddleName { get; set; }
+
+    [XmlElement("LastName")]
+    [JsonProperty("lastName")]
+    [JsonPropertyName("lastName")]
+    public string LastName { get; set; }
+
+    [XmlElement("Address")]
+    [JsonProperty("address")]
+    [JsonPropertyName("address")]
+    public Address Address { get; set; }
+}
+
+public class OrganizationHeir : HeirV2
+{
+    [XmlElement("Name")]
+    [JsonProperty("name")]
+    [JsonPropertyName("name")]
+    public string Name { get; set; }
+
+    [XmlElement("OrgNr")]
+    [JsonProperty("orgNr")]
+    [JsonPropertyName("orgNr")]
+    public string OrgNr { get; set; }
+}
+
+public class PappOrganizationHeir : HeirV2
+{
+    [XmlElement("Name")]
+    [JsonProperty("name")]
+    [JsonPropertyName("name")]
+    public string Name { get; set; }
+
+    [XmlElement("RegistrationNumber")]
+    [JsonProperty("registrationNumber")]
+    [JsonPropertyName("registrationNumber")]
+    public string RegistrationNumber { get; set; }
+
+    [XmlElement("CountryCode")]
+    [JsonProperty("countryCode")]
+    [JsonPropertyName("countryCode")]
+    public string CountryCode { get; set; }
+}
+
+public class PappPersonHeir : HeirV2
+{
+    [XmlElement("FirstName")]
+    [JsonProperty("firstName")]
+    [JsonPropertyName("firstName")]
+    public string FirstName { get; set; }
+
+    [XmlElement("MiddleName")]
+    [JsonProperty("middleName")]
+    [JsonPropertyName("middleName")]
+    public string MiddleName { get; set; }
+
+    [XmlElement("LastName")]
+    [JsonProperty("lastName")]
+    [JsonPropertyName("lastName")]
+    public string LastName { get; set; }
+
+
+    [XmlElement("DateOfBirth")]
+    [JsonProperty("dateOfBirth")]
+    [JsonPropertyName("dateOfBirth")]
+    public DateTimeOffset DateOfBirth { get; set; }
+}
+
+public class PersonHeir : HeirV2, IPerson
+{
+    [XmlElement("FirstName")]
+    [JsonProperty("firstName")]
+    [JsonPropertyName("firstName")]
+    public string FirstName { get; set; }
+
+    [XmlElement("MiddleName")]
+    [JsonProperty("middleName")]
+    [JsonPropertyName("middleName")]
+    public string MiddleName { get; set; }
+
+    [XmlElement("LastName")]
+    [JsonProperty("lastName")]
+    [JsonPropertyName("lastName")]
+    public string LastName { get; set; }
+
+    [XmlElement("Address")]
+    [JsonProperty("address")]
+    [JsonPropertyName("address")]
+    public Address Address { get; set; }
+
+    [Range(Int32.MinValue, Int32.MaxValue)]
+    [XmlElement("UserId")]
+    [JsonProperty("userid")]
+    [JsonPropertyName("userid")]
+    public int? UserId { get; set; }
+
+    [Range(Int32.MinValue, Int32.MaxValue)]
+    [XmlElement("PartyId")]
+    [JsonProperty("partyId")]
+    [JsonPropertyName("partyId")]
+    public int PartyId { get; set; }
+
+    [XmlElement("Birthday")]
+    [JsonProperty("birthday")]
+    [JsonPropertyName("birthday")]
+    public string Birthday { get; set; }
+
+    [XmlElement("Nin")]
+    [JsonProperty("nin")]
+    [JsonPropertyName("nin")]
+    public string Nin { get; set; }
+}
+
+public class PersonHeirV2 : PersonHeir
+{
+    [XmlElement("CourtRole")]
+    [JsonProperty("courtRole")]
+    [JsonPropertyName("courtRole")]
+    public string CourtRole { get; set; }
+}
+
+[XmlInclude(typeof(PersonHeir))]
+[XmlInclude(typeof(PersonHeirV2))]
+[XmlInclude(typeof(OrganizationHeir))]
+[XmlInclude(typeof(PappPersonHeir))]
+[XmlInclude(typeof(PappOrganizationHeir))]
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+[JsonDerivedType(typeof(PersonHeir), typeDiscriminator: "Person")]
+[JsonDerivedType(typeof(PersonHeirV2), typeDiscriminator: "PersonV2")]
+[JsonDerivedType(typeof(OrganizationHeir), typeDiscriminator: "Organization")]
+[JsonDerivedType(typeof(PappPersonHeir), typeDiscriminator: "PappPerson")]
+[JsonDerivedType(typeof(PappOrganizationHeir), typeDiscriminator: "PappOrganization")]
+public abstract class HeirV2
+{
+    [XmlElement("Role")]
+    [JsonProperty("role")]
+    [JsonPropertyName("role")]
+    public string Role { get; set; }
+}
+
 public class HeirInfo
 {
     [XmlElement("Heir")]
     [JsonProperty("heir")]
     [JsonPropertyName("heir")]
-    public Person Heir { get; set; }
+    public PersonHeir? Heir { get; set; }
+
+    [XmlElement("HeirV2")]
+    [JsonProperty("heirV2")]
+    [JsonPropertyName("heirV2")]
+    public HeirV2? HeirV2 { get; set; }
 
     [XmlElement("CorrespondenceReceived")]
     [JsonProperty("correspondenceReceived")]
@@ -216,16 +433,6 @@ public class HeirInfo
     [JsonProperty("estateReadyCorrespondenceTaskId")]
     [JsonPropertyName("estateReadyCorrespondenceTaskId")]
     public string EstateReadyCorrespondenceTaskId { get; set; }
-
-    [XmlElement("Waiver60DayPeriod")]
-    [JsonProperty("waiver60DayPeriod")]
-    [JsonPropertyName("waiver60DayPeriod")]
-    public bool Waiver60DayPeriod { get; set; }
-
-    [XmlElement("WillingToAssumeDebt")]
-    [JsonProperty("willingToAssumeDebt")]
-    [JsonPropertyName("willingToAssumeDebt")]
-    public bool WillingToAssumeDebt { get; set; }
 
     [XmlElement("SignedDate")]
     [JsonProperty("signedDate")]
@@ -241,6 +448,11 @@ public class HeirInfo
     [JsonProperty("probateIssuedCorrespondenceSent")]
     [JsonPropertyName("probateIssuedCorrespondenceSent")]
     public bool ProbateIssuedCorrespondenceSent { get; set; }
+
+    [XmlElement("ProbateCertificateRecipient")]
+    [JsonProperty("probateCertificateRecipient")]
+    [JsonPropertyName("probateCertificateRecipient")]
+    public bool ProbateCertificateRecipient { get; set; }
 }
 
 public enum StatusNotificationType

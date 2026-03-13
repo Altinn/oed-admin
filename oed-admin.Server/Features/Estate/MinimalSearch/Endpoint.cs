@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using oed_admin.Server.Infrastructure.Altinn;
 using oed_admin.Server.Infrastructure.Database.Oed;
+using oed_admin.Server.Infrastructure.DataMigration.Models.Oed;
 using oed_admin.Server.Infrastructure.Mapping;
 
 namespace oed_admin.Server.Features.Estate.MinimalSearch;
@@ -77,8 +78,8 @@ public static class Endpoint
         if (instanceData is null)
             return TypedResults.Ok(new Response(dto!));
 
-        dto!.Heirs = instanceData.Heirs?
-            .Select(x => new MinimalPerson(Birthdate: x.Heir.Birthday))
+        dto!.Heirs = instanceData.Heirs?.PeopleWithPowerOfAttorney()?
+            .Select(x => new MinimalPerson(Birthdate: x.OfType<PersonHeir>().Birthday))
             .ToList() ?? [];
 
         return TypedResults.Ok(new Response(dto!));
