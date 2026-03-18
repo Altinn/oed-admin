@@ -1,4 +1,6 @@
 ﻿using Altinn.Platform.Storage.Interface.Models;
+using CloudNative.CloudEvents;
+using CloudNative.CloudEvents.SystemTextJson;
 using oed_testdata.Server.Infrastructure.Altinn;
 
 namespace oed_admin.Server.Infrastructure.Altinn;
@@ -7,7 +9,7 @@ public interface IAltinnClient
 {
     public Task<string> GetEventSubscriptions();
     public Task<string> DeleteEventSubscription(int id);
-    public Task<string> GetEvents(string resource, string subject, string? after = "0");
+    public Task<IReadOnlyCollection<CloudEvent>> GetEvents(string resource, string subject, string? after = "0");
     public Task<Instance?> GetInstance(int instanceOwnerPartyId, Guid instanceGuid);
     public Task<string> GetInstanceDataAsString(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid);
     public Task<TData> GetInstanceData<TData>(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid);
@@ -42,16 +44,17 @@ public class AltinnClient(HttpClient httpClient) : IAltinnClient
 
     }
 
-    public async Task<string> GetEvents(string resource, string subject, string? after = "0")
+    public async Task<IReadOnlyCollection<CloudEvent>> GetEvents(string resource, string subject, string? after = "0")
     {
         var path = $"/events/api/v1/events?resource={resource}&subject={subject}&size=500&after={after}";
 
         var response = await httpClient.GetAsync(path);
 
         response.EnsureSuccessStatusCode();
-        var contentString = await response.Content.ReadAsStringAsync();
 
-        return contentString;
+        var formatter = new JsonEventFormatter();
+        var contentType = new System.Net.Mime.ContentType("application/cloudevents+json");
+        return formatter.DecodeBatchModeMessage(await response.Content.ReadAsStreamAsync(), contentType, null);
     }
 
     public async Task<Instance?> GetInstance(int instanceOwnerPartyId, Guid instanceGuid)
@@ -89,7 +92,7 @@ public class AltinnClient(HttpClient httpClient) : IAltinnClient
 
         await using var contentStream = await response.Content.ReadAsStreamAsync();
         var data = AltinnXmlSerializer.Deserialize<TData>(contentStream);
-        
+
         return data;
     }
 
@@ -102,7 +105,7 @@ public class AltinnClient(HttpClient httpClient) : IAltinnClient
 
         if (continuationToken is { Length: > 0 })
             path += $"&continuationToken={continuationToken}";
-        
+
         var response = await httpClient.GetAsync(path);
 
         response.EnsureSuccessStatusCode();
@@ -132,6 +135,7 @@ public class AltinnClient(HttpClient httpClient) : IAltinnClient
 public static class EventResources
 {
     public const string DodsboDomstoladminApi = "urn:altinn:resource:dodsbo-domstoladmin-api";
+    public const string Declaration = "urn:altinn:resource:app_digdir_oed-declaration";
 }
 
 public static class AppIds

@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CloudNative.CloudEvents.SystemTextJson;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using oed_admin.Server.Infrastructure.Altinn;
 using oed_admin.Server.Infrastructure.Database.Oed;
+using System.Text;
 
 namespace oed_admin.Server.Features.Estate.GetEvents;
 
@@ -24,11 +26,25 @@ public static class Endpoint
         if (estateSsn is null)
             return TypedResults.Ok(new Response(string.Empty));
 
-        var events = await eventsClient.GetEvents(
+        var ddEvents = await eventsClient.GetEvents(
             EventResources.DodsboDomstoladminApi, 
             estateSsn, 
             request.LastRetrievedEventId ?? "0");
 
-        return TypedResults.Ok(new Response(events));
+        var unsignedEvents = await eventsClient.GetEvents(
+            EventResources.Declaration,
+            estateSsn,
+            request.LastRetrievedEventId ?? "0");
+
+        var events = ddEvents
+            .Concat(unsignedEvents)
+            .OrderBy(e => e.Time ?? DateTimeOffset.MinValue)
+            .ToArray();
+
+        var formatter = new JsonEventFormatter();
+        var bytes = formatter.EncodeBatchModeMessage(events, out _);
+        var eventsJson = Encoding.UTF8.GetString(bytes.Span);
+
+        return TypedResults.Ok(new Response(eventsJson));
     }
 }
