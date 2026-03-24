@@ -97,7 +97,7 @@ export default function App() {
             </Dropdown>
           </Dropdown.TriggerContext>
         </header>
-        <main className="container" style={{ maxWidth: 1600 }}>
+        <main className="container" style={{ maxWidth: 1920 }}>
           <Outlet />
         </main>
         <EnvironmentInformation environment={import.meta.env.VITE_ENVIRONMENT} />      
