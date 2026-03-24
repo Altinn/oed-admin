@@ -338,7 +338,7 @@ export default function TaskList({ data, isLoading, error }: Props) {
                   <Dialog.Trigger variant="tertiary" disabled={!task.lastError}>
                     <ExclamationmarkTriangleIcon />
                   </Dialog.Trigger>
-                  {task.jsonPayload && (
+                  {task.lastError && (
                     <Dialog
                       style={{ maxWidth: 1200 }}
                       data-size="sm"
@@ -348,7 +348,7 @@ export default function TaskList({ data, isLoading, error }: Props) {
                         level={3}
                         style={{ marginBottom: "var(--ds-size-2)" }}
                       >
-                        JSON Payload
+                        Last error
                       </Heading>
                       <pre
                         style={{
