@@ -9,8 +9,8 @@ import {
   Paragraph,
   Skeleton,
   Table,
-  Tag,  
-  useCheckboxGroup,  
+  Tag,
+  useCheckboxGroup,
   ValidationMessage,
 } from "@digdir/designsystemet-react";
 import { formatDateTime } from "../../utils/formatters";
@@ -21,6 +21,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskKeys } from "../../queries/taskQueries";
 import RescheduleMultipleDialog from "../rescheduleTaskDialog/multiple";
 import { fetchWithMsal } from "../../utils/msalUtils";
+import { ExclamationmarkTriangleIcon } from "@navikt/aksel-icons";
 
 interface Props {
   data?: TaskResponse | null;
@@ -29,24 +30,36 @@ interface Props {
 }
 
 interface PatchTaskResponse {
-  Task: Task
+  Task: Task;
 }
 
 interface PatchTasksResponse {
-  updatedCount: number
+  updatedCount: number;
 }
 
 export default function TaskList({ data, isLoading, error }: Props) {
   const queryClient = useQueryClient();
   const [filter, setFilter] = React.useState<TaskStatus | "All">("All");
 
-  const { getCheckboxProps, value: selectedTasks, setValue: setSelectedTasks } = useCheckboxGroup({
-    name: "tasklist-checkbox-group"
+  const {
+    getCheckboxProps,
+    value: selectedTasks,
+    setValue: setSelectedTasks,
+  } = useCheckboxGroup({
+    name: "tasklist-checkbox-group",
   });
 
-  const rescheduleMutationFn = async ({taskId, scheduled, attempts} : {taskId: string, scheduled: string, attempts: number}): Promise<PatchTaskResponse> => {
+  const rescheduleMutationFn = async ({
+    taskId,
+    scheduled,
+    attempts,
+  }: {
+    taskId: string;
+    scheduled: string;
+    attempts: number;
+  }): Promise<PatchTaskResponse> => {
     const response = await fetchWithMsal(`/api/tasks/${taskId}`, {
-      method: 'PATCH',
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
@@ -56,12 +69,20 @@ export default function TaskList({ data, isLoading, error }: Props) {
     if (!response.ok) {
       throw new Error("Failed to rescehdule task");
     }
-    return response.json(); 
-  }
+    return response.json();
+  };
 
-  const rescheduleMultipleMutationFn = async ({taskIds, scheduled, attempts} : {taskIds: Array<string>, scheduled: string, attempts: number}): Promise<PatchTasksResponse> => {
+  const rescheduleMultipleMutationFn = async ({
+    taskIds,
+    scheduled,
+    attempts,
+  }: {
+    taskIds: Array<string>;
+    scheduled: string;
+    attempts: number;
+  }): Promise<PatchTasksResponse> => {
     const response = await fetchWithMsal(`/api/tasks`, {
-      method: 'PATCH',
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
@@ -70,16 +91,18 @@ export default function TaskList({ data, isLoading, error }: Props) {
 
     if (!response.ok) {
       throw new Error("Failed to rescehdule task");
-    }
-    else {
+    } else {
       setSelectedTasks([]);
     }
-    return response.json(); 
-  }
+    return response.json();
+  };
 
   const rescheduleMutation = useMutation({
-    mutationFn: (data: {taskId: string, scheduled: string, attempts: number}) => 
-      rescheduleMutationFn(data),
+    mutationFn: (data: {
+      taskId: string;
+      scheduled: string;
+      attempts: number;
+    }) => rescheduleMutationFn(data),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: taskKeys.all,
@@ -91,8 +114,11 @@ export default function TaskList({ data, isLoading, error }: Props) {
   });
 
   const rescheduleMultipleMutation = useMutation({
-    mutationFn: (data: {taskIds: Array<string>, scheduled: string, attempts: number}) => 
-      rescheduleMultipleMutationFn(data),
+    mutationFn: (data: {
+      taskIds: Array<string>;
+      scheduled: string;
+      attempts: number;
+    }) => rescheduleMultipleMutationFn(data),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: taskKeys.all,
@@ -119,7 +145,7 @@ export default function TaskList({ data, isLoading, error }: Props) {
   };
 
   const uniqueStatuses = Array.from(
-    new Set(data?.tasks.map((task) => task.status))
+    new Set(data?.tasks.map((task) => task.status)),
   );
 
   const handleChangeChip = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -127,7 +153,7 @@ export default function TaskList({ data, isLoading, error }: Props) {
   };
 
   const filteredTasks = data?.tasks.filter(
-    (task) => filter === "All" || task.status === filter
+    (task) => filter === "All" || task.status === filter,
   );
 
   if (isLoading) {
@@ -152,7 +178,7 @@ export default function TaskList({ data, isLoading, error }: Props) {
 
   return (
     <section className="flex-col">
-      <div className="flex-row" style={{justifyContent: "space-between"}}>
+      <div className="flex-row" style={{ justifyContent: "space-between" }}>
         {uniqueStatuses.length > 1 && (
           <div>
             <Label
@@ -199,10 +225,16 @@ export default function TaskList({ data, isLoading, error }: Props) {
 
             <div className="flex-row">
               <Paragraph>{`${selectedTasks.length} oppgave(r) valgt`}</Paragraph>
-              <RescheduleMultipleDialog 
-                taskIds={selectedTasks} 
-                onChange={(val) => rescheduleMultipleMutation.mutate({taskIds: selectedTasks, scheduled: val, attempts: 0})}
-              />                          
+              <RescheduleMultipleDialog
+                taskIds={selectedTasks}
+                onChange={(val) =>
+                  rescheduleMultipleMutation.mutate({
+                    taskIds: selectedTasks,
+                    scheduled: val,
+                    attempts: 0,
+                  })
+                }
+              />
             </div>
           </div>
         )}
@@ -211,9 +243,9 @@ export default function TaskList({ data, isLoading, error }: Props) {
         <Table.Head>
           <Table.Row>
             <Table.HeaderCell>
-              <Checkbox 
-                aria-label="Velg alle" 
-                {...getCheckboxProps({ allowIndeterminate: true })} 
+              <Checkbox
+                aria-label="Velg alle"
+                {...getCheckboxProps({ allowIndeterminate: true })}
               />
             </Table.HeaderCell>
             <Table.HeaderCell>Type</Table.HeaderCell>
@@ -223,6 +255,7 @@ export default function TaskList({ data, isLoading, error }: Props) {
             <Table.HeaderCell>Utført</Table.HeaderCell>
             <Table.HeaderCell>Dødsbo</Table.HeaderCell>
             <Table.HeaderCell>JSON</Table.HeaderCell>
+            <Table.HeaderCell>Error</Table.HeaderCell>
             <Table.HeaderCell>Actions</Table.HeaderCell>
           </Table.Row>
         </Table.Head>
@@ -230,10 +263,14 @@ export default function TaskList({ data, isLoading, error }: Props) {
           {filteredTasks?.map((task) => (
             <Table.Row key={task.id}>
               <Table.Cell>
-                <Checkbox 
+                <Checkbox
                   aria-label={`Velg ${task.id}`}
                   {...getCheckboxProps(task.id)}
-                  readOnly={filteredTasks.find(item => item.id == task.id)?.executed ? true : false }
+                  readOnly={
+                    filteredTasks.find((item) => item.id == task.id)?.executed
+                      ? true
+                      : false
+                  }
                 />
               </Table.Cell>
               <Table.Cell>
@@ -262,9 +299,7 @@ export default function TaskList({ data, isLoading, error }: Props) {
               <Table.Cell>
                 {task.executed ? formatDateTime(task.executed) : "-"}
               </Table.Cell>
-              <Table.Cell>
-                {task.estateSsn ? task.estateSsn : "-"}
-              </Table.Cell>
+              <Table.Cell>{task.estateSsn ? task.estateSsn : "-"}</Table.Cell>
               <Table.Cell>
                 <Dialog.TriggerContext>
                   <Dialog.Trigger
@@ -275,7 +310,11 @@ export default function TaskList({ data, isLoading, error }: Props) {
                     <CodeIcon />
                   </Dialog.Trigger>
                   {task.jsonPayload && (
-                    <Dialog style={{ maxWidth: 1200 }} data-size="sm" closedby="any">
+                    <Dialog
+                      style={{ maxWidth: 1200 }}
+                      data-size="sm"
+                      closedby="any"
+                    >
                       <Heading
                         level={3}
                         style={{ marginBottom: "var(--ds-size-2)" }}
@@ -295,10 +334,45 @@ export default function TaskList({ data, isLoading, error }: Props) {
                 </Dialog.TriggerContext>
               </Table.Cell>
               <Table.Cell>
-                <RescheduleDialog 
-                  task={task} 
-                  onChange={(val) => rescheduleMutation.mutate({taskId: task.id, scheduled: val, attempts: 0})}
-                />                          
+                <Dialog.TriggerContext>
+                  <Dialog.Trigger variant="tertiary" disabled={!task.lastError}>
+                    <ExclamationmarkTriangleIcon />
+                  </Dialog.Trigger>
+                  {task.jsonPayload && (
+                    <Dialog
+                      style={{ maxWidth: 1200 }}
+                      data-size="sm"
+                      closedby="any"
+                    >
+                      <Heading
+                        level={3}
+                        style={{ marginBottom: "var(--ds-size-2)" }}
+                      >
+                        JSON Payload
+                      </Heading>
+                      <pre
+                        style={{
+                          whiteSpace: "pre-wrap",
+                          wordBreak: "break-all",
+                        }}
+                      >
+                        {task.lastError}
+                      </pre>
+                    </Dialog>
+                  )}
+                </Dialog.TriggerContext>
+              </Table.Cell>
+              <Table.Cell>
+                <RescheduleDialog
+                  task={task}
+                  onChange={(val) =>
+                    rescheduleMutation.mutate({
+                      taskId: task.id,
+                      scheduled: val,
+                      attempts: 0,
+                    })
+                  }
+                />
               </Table.Cell>
             </Table.Row>
           ))}
