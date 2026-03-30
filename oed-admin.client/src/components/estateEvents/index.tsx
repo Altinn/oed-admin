@@ -101,7 +101,9 @@ export default function EstateEvents({ estateId }: Props) {
           { sortedData.map(event => (
             <Table.Row key={event.id}>
               <Table.Cell>
-                {event.time ? formatDateTime(event.time) : "-"}
+                <time dateTime={event.time}>
+                  {event.time ? formatDateTime(event.time) : "-"}
+                </time>
               </Table.Cell>
               <Table.Cell>
                 <Tag > 
