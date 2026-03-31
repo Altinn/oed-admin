@@ -18,6 +18,7 @@ import {
   GavelIcon,
   InformationSquareIcon,
   KeyVerticalIcon,
+  ParagraphIcon,
   ShieldCheckmarkIcon,
   TasklistIcon,
 } from "@navikt/aksel-icons";
@@ -35,6 +36,7 @@ import {
 import EstateInstance from "../estateInstance";
 import EstateDeclaration from "../estateDeclaration";
 import EstateProbateInformation from "../estateProbateInformation";
+import EstateDaObject from "../estateDaObject";
 import { fetchWithMsal } from "../../utils/msalUtils";
 import EstateSearchRoles from "../estateSearchRoles";
 import EstateCorrespondences from "../estateCorrespondences";
@@ -118,6 +120,10 @@ export default function EstateDetails() {
             <GavelIcon />
             DA Probate Information
           </Tabs.Tab>
+          <Tabs.Tab value="daobject">
+            <ParagraphIcon />
+            DA Source
+          </Tabs.Tab>
           <Tabs.Tab value="events">
             <EnvelopeClosedIcon />
             Eventer
@@ -193,6 +199,9 @@ export default function EstateDetails() {
         </Tabs.Panel>
         <Tabs.Panel value="probateinformation" id="tab-probateinformation">
           <EstateProbateInformation estateId={id} />
+        </Tabs.Panel>
+        <Tabs.Panel value="daobject" id="tab-daobject">
+          <EstateDaObject estateId={id} caseId={data?.estate.caseId} />
         </Tabs.Panel>
         <Tabs.Panel value="events" id="tab-events">
           <EstateEvents estateId={id} />

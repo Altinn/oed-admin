@@ -22,6 +22,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddOedDatabase(builder.Configuration.GetConnectionString("OedDb") ?? string.Empty);
 builder.Services.AddAuthzDatabase(builder.Configuration.GetConnectionString("OedAuthzDb") ?? string.Empty);
 builder.Services.AddAltinnClients(builder.Environment, builder.Configuration);
+builder.Services.AddOedFeedPollerClient(builder.Configuration);
 builder.Services.AddDdCorrespondenceService(options =>
 {
     var maskinportenSettings = builder.Configuration.GetRequiredSection("MaskinportenSettings").Get<MaskinportenSettings>();

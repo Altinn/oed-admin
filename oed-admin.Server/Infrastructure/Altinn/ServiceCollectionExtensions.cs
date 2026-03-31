@@ -2,12 +2,28 @@
 using Altinn.ApiClients.Maskinporten.Services;
 using Microsoft.Extensions.Options;
 using oed_admin.Server.Infrastructure.DevAuth;
+using oed_admin.Server.Infrastructure.FeedPoller;
 using oed_testdata.Server.Infrastructure.Altinn;
 
 namespace oed_admin.Server.Infrastructure.Altinn;
 
 public static class ServiceCollectionExtensions
 {
+    public static IServiceCollection AddOedFeedPollerClient(
+        this IServiceCollection services,
+        IConfiguration configuration) 
+    { 
+        var config = configuration.GetRequiredSection("FeedPoller").Get<FeedPollerSettings>()!;
+
+        services.AddHttpClient<IFeedPollerClient, FeedPollerClient>(client =>
+        {
+            client.BaseAddress = new Uri(config.FunctionUrl);
+            client.DefaultRequestHeaders.Add("x-functions-key", config.HostKey);
+        });
+
+        return services;
+    }
+
     public static IServiceCollection AddAltinnClients(
         this IServiceCollection services,
         IWebHostEnvironment env,
