@@ -5,7 +5,7 @@ import { fetchWithMsal } from "../../utils/msalUtils";
 
 interface Props {
   estateId: string;
-  caseId: string;
+  caseId?: string;
 }
 
 export default function EstateDaObject({ estateId, caseId }: Props) {
