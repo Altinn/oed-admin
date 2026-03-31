@@ -8,15 +8,10 @@ public interface IFeedPollerClient
     public Task<object?> GetDaObject(Guid caseId);
 }
 
-public class FeedPollerClient(HttpClient httpClient, ILogger<FeedPollerClient> logger) : IFeedPollerClient
+public class FeedPollerClient(HttpClient httpClient) : IFeedPollerClient
 {
     public async Task<object?> GetDaObject(Guid caseId)
     {
-        logger.LogInformation("### Getting da object for case id {CaseId} ###", caseId);
-
-        httpClient.DefaultRequestHeaders.ToList().ForEach(header => 
-            logger.LogInformation("Header: {HeaderName}={HeaderValue}", header.Key, string.Join(", ", header.Value ?? [])));
-
         var response = await httpClient.GetAsync(caseId.ToString());
 
         response.EnsureSuccessStatusCode();
