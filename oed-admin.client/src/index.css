@@ -103,6 +103,6 @@ textarea {
 }
 
 /* Override json pretty bg color */
-.__json-pretty__ {
-  background: inherit;
+#json-pretty .__json-pretty__ {
+    background: inherit;
 }
