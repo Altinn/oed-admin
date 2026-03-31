@@ -5,6 +5,8 @@ import { formatDateTime } from "../../utils/formatters";
 import { CodeIcon } from "@navikt/aksel-icons";
 import { useState } from "react";
 import { fetchWithMsal } from "../../utils/msalUtils";
+import JSONPretty from 'react-json-pretty';
+import 'react-json-pretty/themes/monikai.css';
 
 interface Props {
   estateId: string;
@@ -128,14 +130,7 @@ export default function EstateEvents({ estateId }: Props) {
                       >
                         Eventdata
                       </Heading>
-                      <pre
-                        style={{
-                          whiteSpace: "pre-wrap",
-                          wordBreak: "break-all",
-                        }}
-                      >
-                        {JSON.stringify(event.data, null, 2)}
-                      </pre>
+                      <JSONPretty id="json-pretty" data={event.data}></JSONPretty>
                   </Dialog>
                 )}
                 </Dialog.TriggerContext>                  

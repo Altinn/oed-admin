@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Details, Heading, Paragraph, Skeleton, ValidationMessage } from "@digdir/designsystemet-react";
 import { FileJsonIcon } from "@navikt/aksel-icons";
 import { fetchWithMsal } from "../../utils/msalUtils";
+import JSONPretty from 'react-json-pretty';
+import 'react-json-pretty/themes/monikai.css';
 
 interface Props {
   estateId: string;
@@ -63,7 +65,7 @@ export default function EstateDaObject({ estateId, caseId }: Props) {
                 wordBreak: "break-all",
               }}
             >
-              {JSON.stringify(data?.daObject, null, 2)}
+              <JSONPretty id="json-pretty" data={data?.daObject}></JSONPretty>
             </pre>
           </Details.Content>
         </Details>

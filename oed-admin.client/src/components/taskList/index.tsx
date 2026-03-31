@@ -22,6 +22,8 @@ import { taskKeys } from "../../queries/taskQueries";
 import RescheduleMultipleDialog from "../rescheduleTaskDialog/multiple";
 import { fetchWithMsal } from "../../utils/msalUtils";
 import { ExclamationmarkTriangleIcon } from "@navikt/aksel-icons";
+import JSONPretty from 'react-json-pretty';
+import 'react-json-pretty/themes/monikai.css';
 
 interface Props {
   data?: TaskResponse | null;
@@ -321,14 +323,7 @@ export default function TaskList({ data, isLoading, error }: Props) {
                       >
                         JSON Payload
                       </Heading>
-                      <pre
-                        style={{
-                          whiteSpace: "pre-wrap",
-                          wordBreak: "break-all",
-                        }}
-                      >
-                        {JSON.stringify(JSON.parse(task.jsonPayload), null, 2)}
-                      </pre>
+                      <JSONPretty id="json-pretty" data={task.jsonPayload}></JSONPretty>
                     </Dialog>
                   )}
                 </Dialog.TriggerContext>

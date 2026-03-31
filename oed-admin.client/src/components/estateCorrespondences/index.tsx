@@ -3,6 +3,8 @@ import { Dialog, Heading, Skeleton, Table, ValidationMessage } from "@digdir/des
 import { fetchWithMsal } from "../../utils/msalUtils";
 import { formatDateTime } from "../../utils/formatters";
 import { CodeIcon } from "@navikt/aksel-icons";
+import JSONPretty from 'react-json-pretty';
+import 'react-json-pretty/themes/monikai.css';
 
 interface Props {
   estateId: string;
@@ -109,15 +111,8 @@ export default function EstateCorrespondences({ estateId }: Props) {
                         >
                           JSON Payload
                         </Heading>
-                        <pre
-                          style={{
-                            whiteSpace: "pre-wrap",
-                            wordBreak: "break-all",
-                          }}
-                        >
-                          {JSON.stringify(correspondenceResult, null, 2)}
-                        </pre>
-                      </Dialog>
+                       <JSONPretty id="json-pretty" data={correspondenceResult}></JSONPretty>
+                     </Dialog>
                     )}
                   </Dialog.TriggerContext>
                 </Table.Cell>
