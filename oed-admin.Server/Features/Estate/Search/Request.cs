@@ -1,6 +1,6 @@
 ﻿namespace oed_admin.Server.Features.Estate.Search;
 
-public record Request(string? Nin, string? HeirNin, int? PartyId, string? Name, string? CaseNumber)
+public record Request(string? Nin, string? HeirNin, int? PartyId, string? Name, string? CaseNumber, string? CaseId)
 {
     public bool IsValid()
     {
@@ -8,7 +8,8 @@ public record Request(string? Nin, string? HeirNin, int? PartyId, string? Name, 
             string.IsNullOrWhiteSpace(HeirNin) && 
             PartyId is null && 
             string.IsNullOrWhiteSpace(Name) && 
-            string.IsNullOrWhiteSpace(CaseNumber))
+            string.IsNullOrWhiteSpace(CaseNumber) &&
+            string.IsNullOrWhiteSpace(CaseId))
         {
             // No search params
             return false;
@@ -43,6 +44,14 @@ public record Request(string? Nin, string? HeirNin, int? PartyId, string? Name, 
         if (!string.IsNullOrWhiteSpace(CaseNumber))
         {
             if (CaseNumber is not { Length: > 0 })
+            {
+                return false;
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(CaseId))
+        {
+            if (CaseId is not { Length: > 0 })
             {
                 return false;
             }

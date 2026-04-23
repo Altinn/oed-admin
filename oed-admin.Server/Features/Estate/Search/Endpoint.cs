@@ -55,6 +55,10 @@ public static class Endpoint
                 query.Where(e =>
                     e.CaseNumber != null &&
                     e.CaseNumber.ToLower() == request.CaseNumber.ToLower()),
+            { CaseId: not null } =>
+                query.Where(e =>
+                    e.CaseId != null &&
+                    e.CaseId.ToLower() == request.CaseId.ToLower()),
             _ => query
         };
 

@@ -1,25 +1,52 @@
 import React, { useEffect, useRef, useState } from "react";
 import type { RequestBody, ResponseBody } from "../../types/IEstate";
 import { useInfiniteQuery, type InfiniteData } from "@tanstack/react-query";
-import { Button, Field, Fieldset, Heading, Link, Search, Skeleton, ToggleGroup, ValidationMessage } from "@digdir/designsystemet-react";
-import { GavelIcon, PersonGroupIcon, PersonIcon, RobotIcon, TagIcon } from "@navikt/aksel-icons";
+import {
+  Button,
+  Field,
+  Fieldset,
+  Heading,
+  Link,
+  Search,
+  Skeleton,
+  ToggleGroup,
+  ValidationMessage,
+} from "@digdir/designsystemet-react";
+import {
+  GavelIcon,
+  PersonGroupIcon,
+  PersonIcon,
+  RobotIcon,
+  TagIcon,
+} from "@navikt/aksel-icons";
 import EstateCard from "../estateCard";
 import { fetchWithMsal } from "../../utils/msalUtils";
 
 const estateKeys = {
-  all: ['estates'] as const,
-  search: (params: RequestBody, pageSize: number, page: number) => [...estateKeys.all, params, pageSize, page],
-  searchWithInfiniteScroll: (params: RequestBody) => [...estateKeys.all, params],
-}
+  all: ["estates"] as const,
+  search: (params: RequestBody, pageSize: number, page: number) => [
+    ...estateKeys.all,
+    params,
+    pageSize,
+    page,
+  ],
+  searchWithInfiniteScroll: (params: RequestBody) => [
+    ...estateKeys.all,
+    params,
+  ],
+};
 
 const fetchEstates = async (pageParam: EstatePageParam) => {
-  const response = await fetchWithMsal(`/api/estate/search?pageSize=${pageParam.pageSize}&page=${pageParam.page}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
+  const response = await fetchWithMsal(
+    `/api/estate/search?pageSize=${pageParam.pageSize}&page=${pageParam.page}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(pageParam.body),
     },
-    body: JSON.stringify(pageParam.body),
-  });
+  );
 
   if (!response.ok) {
     throw new Error("noe gikk galt");
@@ -29,15 +56,15 @@ const fetchEstates = async (pageParam: EstatePageParam) => {
 };
 
 type EstatePageParam = {
-  body: RequestBody | undefined,
-  pageSize: number,
-  page: number
+  body: RequestBody | undefined;
+  pageSize: number;
+  page: number;
 };
 
 type SubmittedSearch = {
-  type: string,
-  query: string,
-}
+  type: string;
+  query: string;
+};
 
 export default function EstateSearch() {
   const pageSize = 8;
@@ -48,11 +75,30 @@ export default function EstateSearch() {
   const listRef = useRef(null);
 
   const body: RequestBody = {
-    Nin: submittedSearch?.type === "ssn" && submittedSearch?.query ? submittedSearch.query : undefined,
-    HeirNin: submittedSearch?.type === "heir" && submittedSearch?.query ? submittedSearch.query : undefined,
-    PartyId: submittedSearch?.type === "partyid" && submittedSearch?.query ? parseInt(submittedSearch.query) : undefined,
-    CaseNumber: submittedSearch?.type === "casenumber" && submittedSearch?.query ? submittedSearch.query : undefined,
-    Name: submittedSearch?.type === "name" && submittedSearch?.query ? submittedSearch.query : undefined,
+    Nin:
+      submittedSearch?.type === "ssn" && submittedSearch?.query
+        ? submittedSearch.query
+        : undefined,
+    HeirNin:
+      submittedSearch?.type === "heir" && submittedSearch?.query
+        ? submittedSearch.query
+        : undefined,
+    PartyId:
+      submittedSearch?.type === "partyid" && submittedSearch?.query
+        ? parseInt(submittedSearch.query)
+        : undefined,
+    CaseNumber:
+      submittedSearch?.type === "casenumber" && submittedSearch?.query
+        ? submittedSearch.query
+        : undefined,
+    CaseId:
+      submittedSearch?.type === "caseid" && submittedSearch?.query
+        ? submittedSearch.query
+        : undefined,
+    Name:
+      submittedSearch?.type === "name" && submittedSearch?.query
+        ? submittedSearch.query
+        : undefined,
   };
 
   const {
@@ -63,17 +109,31 @@ export default function EstateSearch() {
     isFetching,
     isFetchingNextPage,
     isRefetching,
-    status
-  } = useInfiniteQuery<ResponseBody, Error, InfiniteData<ResponseBody, unknown>, readonly unknown[], EstatePageParam>({
+    status,
+  } = useInfiniteQuery<
+    ResponseBody,
+    Error,
+    InfiniteData<ResponseBody, unknown>,
+    readonly unknown[],
+    EstatePageParam
+  >({
     retry: false,
     enabled: submittedSearch !== undefined,
     queryKey: estateKeys.searchWithInfiniteScroll(body),
     queryFn: ({ pageParam }) => fetchEstates(pageParam),
-    initialPageParam: { body: body, pageSize: pageSize, page: 1 } as EstatePageParam,
+    initialPageParam: {
+      body: body,
+      pageSize: pageSize,
+      page: 1,
+    } as EstatePageParam,
     getNextPageParam: (lastPage) => {
       if (!lastPage?.estates) return null;
       if (lastPage.estates.length < pageSize) return null;
-      return { body, pageSize: lastPage?.pageSize || pageSize, page: lastPage ? lastPage.page + 1 : 1 } as EstatePageParam
+      return {
+        body,
+        pageSize: lastPage?.pageSize || pageSize,
+        page: lastPage ? lastPage.page + 1 : 1,
+      } as EstatePageParam;
     },
   });
 
@@ -84,7 +144,7 @@ export default function EstateSearch() {
           fetchNextPage();
         }
       },
-      { threshold: 0.0 }
+      { threshold: 0.0 },
     );
 
     if (listRef.current) {
@@ -161,6 +221,10 @@ export default function EstateSearch() {
                 <GavelIcon aria-hidden />
                 Saksnummer
               </ToggleGroup.Item>
+              <ToggleGroup.Item value="caseid">
+                <GavelIcon aria-hidden />
+                Sak ID
+              </ToggleGroup.Item>
               <ToggleGroup.Item value="name">
                 <TagIcon aria-hidden />
                 Navn
@@ -212,42 +276,44 @@ export default function EstateSearch() {
           </>
         )}
 
-        {status === "success" && data?.pages.length > 0 && data?.pages[0]?.estates?.length > 0 && (
-          <>
-            <Heading
-              level={2}
-              data-size="xs"
-              style={{ padding: "1rem 0" }}
-            >
-              Søkeresultater
-            </Heading>
-            <ul>
-              {data?.pages && data.pages.map((group, i) =>
-                <React.Fragment key={i}>
-                  {group?.estates && group?.estates?.length > 0 && (
-                    <>
-                      {group.estates.map((estate, index) => (
-                        <li key={index}>
-                          <EstateCard estate={estate} />
-                        </li>
-                      ))}
-                    </>
-                  )}
-                </React.Fragment>
-              )}
-            </ul>
-          </>
-        )}
+        {status === "success" &&
+          data?.pages.length > 0 &&
+          data?.pages[0]?.estates?.length > 0 && (
+            <>
+              <Heading level={2} data-size="xs" style={{ padding: "1rem 0" }}>
+                Søkeresultater
+              </Heading>
+              <ul>
+                {data?.pages &&
+                  data.pages.map((group, i) => (
+                    <React.Fragment key={i}>
+                      {group?.estates && group?.estates?.length > 0 && (
+                        <>
+                          {group.estates.map((estate, index) => (
+                            <li key={index}>
+                              <EstateCard estate={estate} />
+                            </li>
+                          ))}
+                        </>
+                      )}
+                    </React.Fragment>
+                  ))}
+              </ul>
+            </>
+          )}
       </section>
       <div ref={listRef} style={{ marginTop: "2rem" }}>
         {hasNextPage && (
-          <Button onClick={() => fetchNextPage()} disabled={!hasNextPage || isFetching}>
+          <Button
+            onClick={() => fetchNextPage()}
+            disabled={!hasNextPage || isFetching}
+          >
             {isFetchingNextPage
-              ? 'Laster flere...'
+              ? "Laster flere..."
               : hasNextPage
-                ? 'Last flere'
-                : 'Ikke mer å laste'}
-          </Button >
+                ? "Last flere"
+                : "Ikke mer å laste"}
+          </Button>
         )}
       </div>
     </>
