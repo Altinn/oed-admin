@@ -7,6 +7,7 @@ export interface RequestBody {
   HeirNin?: string;
   PartyId?: number;
   CaseNumber?: string;
+  CaseId?: string;
   Name?: string;
   Page?: number;
   PageSize?: number;
@@ -54,7 +55,7 @@ export interface Estate {
   probateIssued?: string; // ISO date string
 
   accessDate?: string; // ISO date string
-  isCancelled?: boolean; 
+  isCancelled?: boolean;
 }
 
 export interface RoleAssignment {
