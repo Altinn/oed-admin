@@ -45,7 +45,7 @@ export default function EstateProbateInformation({ estateId }: Props) {
       )}
 
       {data && (
-        <Details>
+        <Details defaultOpen={true}>
           <Details.Summary>
             <FileJsonIcon />
             Data
