@@ -54,7 +54,7 @@ export default function EstateSearchRoles({ estateId }: Props) {
       )}
 
       {data && (
-        <Details>
+        <Details defaultOpen={true}>
           <Details.Summary>
             <FileJsonIcon />
             Data

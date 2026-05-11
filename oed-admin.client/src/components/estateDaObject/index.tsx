@@ -79,7 +79,7 @@ export default function EstateDaObject({ estateId, caseId }: Props) {
 
       {data && (
         <>
-          <Details>
+          <Details defaultOpen={true}>
             <Details.Summary>
               <FileJsonIcon />
               Data
