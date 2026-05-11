@@ -20,7 +20,6 @@ public class OedClient(HttpClient httpClient) : IOedClient
     }
 }
 
-
 public interface IOedAuthzClient
 {
     public Task<object?> SearchRoles(string estateSsn, string? recipientSsn = null);
@@ -38,5 +37,21 @@ public class OedAuthzClient(HttpClient httpClient) : IOedAuthzClient
         var contentString = await response.Content.ReadFromJsonAsync<object>();
 
         return contentString;
+    }
+}
+
+public interface IOedEventsClient
+{
+    public Task SyncDaCase(Guid caseId);
+}
+
+public class OedEventsClient(HttpClient httpClient) : IOedEventsClient
+{
+    public async Task SyncDaCase(Guid caseId)
+    {
+        var path = $"/{AppIds.OedEvents}/da-events/api/v1/sync";
+        var response = await httpClient.PostAsJsonAsync(path, new { caseId });
+
+        response.EnsureSuccessStatusCode();
     }
 }

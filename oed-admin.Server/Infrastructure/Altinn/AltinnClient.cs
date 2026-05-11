@@ -141,6 +141,7 @@ public static class EventResources
 public static class AppIds
 {
     public const string Oed = "digdir/oed";
+    public const string OedEvents = "digdir/oed-events";
     public const string Declaration = "digdir/oed-declaration";
 }
 

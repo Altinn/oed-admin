@@ -33,7 +33,6 @@ public static class ServiceCollectionExtensions
         services.Configure<AltinnSettings>(altinnConfig);
 
         var maskinportenSettings = configuration.GetRequiredSection("MaskinportenSettings").Get<MaskinportenSettings>();
-
         var altinnSettings = altinnConfig.Get<AltinnSettings>();
 
         if (env.IsDevelopment() && altinnSettings.PlatformUrl.Contains("http://localhost"))
@@ -108,6 +107,25 @@ public static class ServiceCollectionExtensions
                 var settings = provider.GetRequiredService<IOptionsMonitor<AltinnSettings>>();
                 client.BaseAddress = new Uri(configuration.GetRequiredSection("OedAuthz").GetRequiredSection("BaseUrl").Value!);
             });
+
+        services
+            .AddMaskinportenHttpClient<SettingsJwkClientDefinition, IOedEventsClient, OedEventsClient>(
+                maskinportenSettings with
+                {
+                    Scope = "altinn:dd:internalevents",
+                    Resource = "https://digdir.apps.altinn.no/digdir/oed-events/da-events/api/v1"
+                },
+                clientDefinition =>
+                {
+                    clientDefinition.ClientSettings.ExhangeToAltinnToken = false;
+                    clientDefinition.ClientSettings.EnableDebugLogging = true;
+                })
+            .ConfigureHttpClient((provider, client) =>
+            {
+                var settings = provider.GetRequiredService<IOptionsMonitor<AltinnSettings>>();
+                client.BaseAddress = new Uri(settings.CurrentValue.AppsUrl);
+            });
+
 
         return services;
     }
