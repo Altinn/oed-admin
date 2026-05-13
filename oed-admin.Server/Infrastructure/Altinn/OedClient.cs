@@ -3,6 +3,7 @@
 public interface IOedClient
 {
     public Task<object?> GetOedProbateInformation(int instanceOwnerPartyId, Guid instanceGuid);
+    public Task<object?> GetOedProbateInformationV2(int instanceOwnerPartyId, Guid instanceGuid);
 }
 
 public class OedClient(HttpClient httpClient) : IOedClient
@@ -10,7 +11,17 @@ public class OedClient(HttpClient httpClient) : IOedClient
     public async Task<object?> GetOedProbateInformation(int instanceOwnerPartyId, Guid instanceGuid)
     {
         var path = $"/{AppIds.Oed}/api/declarations/{instanceOwnerPartyId}/{instanceGuid}";
+        return await GetObjectFromPath(path);
+    }
 
+    public async Task<object?> GetOedProbateInformationV2(int instanceOwnerPartyId, Guid instanceGuid)
+    {
+        var path = $"/{AppIds.Oed}/api/v2/declarations/{instanceOwnerPartyId}/{instanceGuid}";
+        return await GetObjectFromPath(path);
+    }
+
+    private async Task<object?> GetObjectFromPath(string path)
+    {
         var response = await httpClient.GetAsync(path);
 
         response.EnsureSuccessStatusCode();

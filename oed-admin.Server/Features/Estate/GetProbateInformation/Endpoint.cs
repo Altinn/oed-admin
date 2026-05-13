@@ -36,8 +36,11 @@ public static class Endpoint
         if (!Guid.TryParse(parts[1], out var instanceGuid))
             return TypedResults.Ok(new Response(null));
 
-        var probateInformation = await oedClient.GetOedProbateInformation(instanceOwnerPartyId, instanceGuid);
-        
-        return TypedResults.Ok(new Response(probateInformation));
+        if (request.Version == 2)
+        {
+            return TypedResults.Ok(new Response(await oedClient.GetOedProbateInformationV2(instanceOwnerPartyId, instanceGuid)));
+        }
+
+        return TypedResults.Ok(new Response(await oedClient.GetOedProbateInformation(instanceOwnerPartyId, instanceGuid)));
     }
 }

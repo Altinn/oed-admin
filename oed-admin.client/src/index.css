@@ -103,8 +103,8 @@ textarea {
 }
 
 /* Override json pretty bg color */
-#json-pretty .__json-pretty__ {
-    background: none;
+.__json-pretty__ {
+    background: none !important;
 }
 .ds-details[data-variant=default] {
     --dsc-details-background: var(--ds-color-surface-tinted);
