@@ -144,7 +144,7 @@ export default function EstateDetails() {
           </Tabs.Tab>
         </Tabs.List>
 
-        <Tabs.Panel value="details" id="tab-details">
+        <Tabs.Panel value="details">
           {isLoading && <Skeleton aria-label="Henter roller" />}
 
           {error && (
@@ -187,34 +187,34 @@ export default function EstateDetails() {
           )}
         </Tabs.Panel>
 
-        <Tabs.Panel value="roles" id="tab-roles">
+        <Tabs.Panel value="roles">
           <EstateRoles estateId={id} />
         </Tabs.Panel>
-        <Tabs.Panel value="authzroles" id="tab-authzroles">
+        <Tabs.Panel value="authzroles">
           <EstateSearchRoles estateId={id} />
         </Tabs.Panel>
-        <Tabs.Panel value="instance" id="tab-instance">
+        <Tabs.Panel value="instance">
           <EstateInstance estateId={id} />
         </Tabs.Panel>
-        <Tabs.Panel value="declaration" id="tab-declaration">
+        <Tabs.Panel value="declaration">
           <EstateDeclaration estateId={id} />
         </Tabs.Panel>
-        <Tabs.Panel value="probateinformation" id="tab-probateinformation">
+        <Tabs.Panel value="probateinformation">
           <EstateProbateInformation estateId={id} />
         </Tabs.Panel>
-        <Tabs.Panel value="daobject" id="tab-daobject">
+        <Tabs.Panel value="daobject">
           <EstateDaObject estateId={id} caseId={data?.estate.caseId} />
         </Tabs.Panel>
-        <Tabs.Panel value="events" id="tab-events">
+        <Tabs.Panel value="events">
           <EstateEvents estateId={id} />
         </Tabs.Panel>
-        <Tabs.Panel value="tasks" id="tab-tasks">
+        <Tabs.Panel value="tasks">
           <EstateTasks estateId={id} />
         </Tabs.Panel>
-        <Tabs.Panel value="correspondences" id="tab-correspondences">
+        <Tabs.Panel value="correspondences">
           <EstateCorrespondences estateId={id} />
         </Tabs.Panel>
-        <Tabs.Panel value="super-admin" id="tab-super-admin">
+        <Tabs.Panel value="super-admin">
           <SuperAdmin estateId={id} instanceId={data?.estate.instanceId} />
         </Tabs.Panel>
       </Tabs>

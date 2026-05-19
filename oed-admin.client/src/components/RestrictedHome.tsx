@@ -113,10 +113,10 @@ const RestrictedHome = () => {
           <GavelSoundBlockIcon /> Tingretter
         </Tabs.Tab>
       </Tabs.List>
-      <Tabs.Panel value="restrictedSearch" id="tab-restrictedSearch">
+      <Tabs.Panel value="restrictedSearch">
         <RestrictedSearch />
       </Tabs.Panel>
-      <Tabs.Panel value="districtCourts" id="tab-districtCourts">
+      <Tabs.Panel value="districtCourts">
         <DistrictCourts />
       </Tabs.Panel>
     </Tabs>

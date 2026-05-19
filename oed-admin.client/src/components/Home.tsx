@@ -1,8 +1,4 @@
-import {
-  Heading,
-  Paragraph,
-  Tabs,
-} from "@digdir/designsystemet-react";
+import { Heading, Paragraph, Tabs } from "@digdir/designsystemet-react";
 import {
   KeyVerticalIcon,
   CircleBrokenIcon,
@@ -11,7 +7,7 @@ import {
   TasklistIcon,
   BroadcastIcon,
   GavelSoundBlockIcon,
-  PadlockLockedIcon
+  PadlockLockedIcon,
 } from "@navikt/aksel-icons";
 import Tasks from "./tasks";
 import EstateSearch from "./estateSearch";
@@ -45,10 +41,10 @@ export default function Home() {
           </Tabs.Tab>
         </Tabs.List>
 
-        <Tabs.Panel value="search" id="tab-search">
+        <Tabs.Panel value="search">
           <EstateSearch />
         </Tabs.Panel>
-        <Tabs.Panel value="tasks" id="tab-tasks">
+        <Tabs.Panel value="tasks">
           <Tabs defaultValue="dlq">
             <Tabs.List style={{ marginBottom: "var(--ds-size-4)" }}>
               <Tabs.Tab value="dlq">
@@ -58,7 +54,7 @@ export default function Home() {
                 <CircleBrokenIcon /> Retrying
               </Tabs.Tab>
             </Tabs.List>
-            <Tabs.Panel value="dlq" id="tab-tasks-dlq">
+            <Tabs.Panel value="dlq">
               <section id="dead-letter-queue">
                 <Heading
                   level={2}
@@ -67,13 +63,15 @@ export default function Home() {
                 >
                   Dead Letter Queue
                 </Heading>
-                <Paragraph style={{ marginBottom: '2rem' }}>
-                  Oppgaver i denne listen har feilet maksimalt antall ganger og de vil ikke bli forsøkt igjen automatisk. Når grunnen til at de feiler er løst kan de reschedules manuelt.
+                <Paragraph style={{ marginBottom: "2rem" }}>
+                  Oppgaver i denne listen har feilet maksimalt antall ganger og
+                  de vil ikke bli forsøkt igjen automatisk. Når grunnen til at
+                  de feiler er løst kan de reschedules manuelt.
                 </Paragraph>
                 <Tasks status="DeadLetterQueue" />
               </section>
             </Tabs.Panel>
-            <Tabs.Panel value="retrying" id="tab-tasks-retrying">
+            <Tabs.Panel value="retrying">
               <section id="retrying-tasks">
                 <Heading
                   level={2}
@@ -82,8 +80,10 @@ export default function Home() {
                 >
                   Retrying
                 </Heading>
-                <Paragraph style={{ marginBottom: '2rem' }}>
-                  Oppgaver i denne listen har feilet, men de har enda ikke nådd maksimalt antall forsøk og de vil derfor automatisk bli forsøkt igjen senere.
+                <Paragraph style={{ marginBottom: "2rem" }}>
+                  Oppgaver i denne listen har feilet, men de har enda ikke nådd
+                  maksimalt antall forsøk og de vil derfor automatisk bli
+                  forsøkt igjen senere.
                 </Paragraph>
 
                 <Tasks status="Retrying" />
@@ -91,19 +91,19 @@ export default function Home() {
             </Tabs.Panel>
           </Tabs>
         </Tabs.Panel>
-        <Tabs.Panel value="superadmins" id="tab-superadmins">
+        <Tabs.Panel value="superadmins">
           <SuperAdmins />
         </Tabs.Panel>
-        <Tabs.Panel value="secrets" id="tab-secrets">
+        <Tabs.Panel value="secrets">
           <SecretExpiration />
         </Tabs.Panel>
-        <Tabs.Panel value="event-sub" id="tab-event-sub">
+        <Tabs.Panel value="event-sub">
           <EventSubs />
         </Tabs.Panel>
-        <Tabs.Panel value="districtcourts" id="tab-districtcourts">
+        <Tabs.Panel value="districtcourts">
           <DistrictCourts />
         </Tabs.Panel>
-      </Tabs>      
+      </Tabs>
     </>
   );
 }
