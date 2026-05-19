@@ -60,7 +60,9 @@ export default function EstateDetails() {
     },
   });
 
-  const formatValue = (val: unknown): { type: string; value: string } => {
+  const formatValue = (
+    val: unknown,
+  ): { type: "datetime-local" | "date" | "text"; value: string } => {
     if (isValidDateTime(val)) {
       return {
         type: "datetime-local",

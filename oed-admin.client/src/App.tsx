@@ -28,7 +28,7 @@ import EnvironmentInformation from "./components/environmentInformation";
 
 export default function App() {
   const [darkMode, setDarkMode] = React.useState<boolean>(
-    localStorage.getItem("darkMode") === "true"
+    localStorage.getItem("darkMode") === "true",
   );
 
   const { instance } = useMsal();
@@ -76,6 +76,9 @@ export default function App() {
               id="dark-mode"
             />
           </div>
+          <EnvironmentInformation
+            environment={import.meta.env.VITE_ENVIRONMENT}
+          />
           <Dropdown.TriggerContext>
             <Dropdown.Trigger variant="tertiary">
               <Avatar
@@ -100,7 +103,6 @@ export default function App() {
         <main className="container" style={{ maxWidth: 1920 }}>
           <Outlet />
         </main>
-        <EnvironmentInformation environment={import.meta.env.VITE_ENVIRONMENT} />      
       </AuthenticatedTemplate>
     );
   };
@@ -125,8 +127,20 @@ export default function App() {
     if (isReader) {
       return (
         <Routes>
-          <Route path="/" element={<><Layout /><Navigate to="/restrictedSearch" replace={true} /></>}>
-            <Route path="/restrictedSearch" index element={<RestrictedHome />} />
+          <Route
+            path="/"
+            element={
+              <>
+                <Layout />
+                <Navigate to="/restrictedSearch" replace={true} />
+              </>
+            }
+          >
+            <Route
+              path="/restrictedSearch"
+              index
+              element={<RestrictedHome />}
+            />
           </Route>
         </Routes>
       );
@@ -144,16 +158,22 @@ export default function App() {
     );
   };
 
-  let prompt = "select_account";
-  if (account?.username?.endsWith("@digdir.no")) {
-    prompt = "none";
-  }
+  const authRequest = account
+    ? {
+        scopes: msalScopes.api,
+        ...(account.username?.endsWith("@digdir.no")
+          ? { prompt: "none" }
+          : { loginHint: account.username }),
+      }
+    : { scopes: msalScopes.api, prompt: "select_account" };
 
   return (
     <MsalAuthenticationTemplate
       interactionType={InteractionType.Redirect}
-      authenticationRequest={{ prompt: prompt, scopes: msalScopes.api }}
-      errorComponent={(authResult: MsalAuthenticationResult) => <Paragraph>An Error Occurred: {authResult!.error!.errorCode}</Paragraph>}
+      authenticationRequest={authRequest}
+      errorComponent={(authResult: MsalAuthenticationResult) => (
+        <Paragraph>An Error Occurred: {authResult!.error!.errorCode}</Paragraph>
+      )}
       loadingComponent={() => <Paragraph>Loading... Please wait.</Paragraph>}
     >
       {roleBasedRoutes()}
