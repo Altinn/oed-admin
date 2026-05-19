@@ -49,18 +49,20 @@ export default function DistrictCourts() {
         </ValidationMessage>
       )}
 
-      {data && (
+      {data?.connectedDistrictCourts && (
         <List.Unordered data-size="md">
-          {data.map((court: DistrictCourtSummaryResponse) => (
-            <List.Item key={court.districtCourtName} className="flex-row">
-              {court.districtCourtName}
-              <Badge
-                data-color="neutral"
-                count={court.numberOfCases}
-                style={{ fontVariantNumeric: "tabular-nums" }}
-              />
-            </List.Item>
-          ))}
+          {data.connectedDistrictCourts?.map(
+            (court: DistrictCourtSummaryResponse) => (
+              <List.Item key={court.districtCourtName} className="flex-row">
+                {court.districtCourtName}
+                <Badge
+                  data-color="neutral"
+                  count={court.numberOfCases}
+                  style={{ fontVariantNumeric: "tabular-nums" }}
+                />
+              </List.Item>
+            ),
+          )}
           {isAdmin && (
             <List.Item
               data-size="lg"
@@ -69,7 +71,7 @@ export default function DistrictCourts() {
             >
               Totalt antall saker:{" "}
               <Badge
-                count={data.reduce(
+                count={data.connectedDistrictCourts?.reduce(
                   (total: number, court: DistrictCourtSummaryResponse) =>
                     total + (court.numberOfCases || 0),
                   0,
