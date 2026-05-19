@@ -1,5 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { Heading, Paragraph, Skeleton, ValidationMessage } from "@digdir/designsystemet-react";
+import {
+  Badge,
+  Heading,
+  List,
+  Skeleton,
+  ValidationMessage,
+} from "@digdir/designsystemet-react";
 import { fetchWithMsal, hasRole } from "../../utils/msalUtils";
 import { useMsal } from "@azure/msal-react";
 import type { AccountInfo } from "@azure/msal-browser";
@@ -33,9 +39,9 @@ export default function DistrictCourts() {
       >
         Tingretter
       </Heading>
-      {isLoading &&
+      {isLoading && (
         <Skeleton variant="rectangle" aria-label="Henter tingretter" />
-      }
+      )}
       {error && (
         <ValidationMessage>
           Det oppstod en feil under henting av tingretter:
@@ -43,22 +49,35 @@ export default function DistrictCourts() {
         </ValidationMessage>
       )}
 
-      {data && data.connectedDistrictCourts && (
-        <>
-          {data.connectedDistrictCourts.map((court: DistrictCourtSummaryResponse) => (
-            <div key={court.districtCourtName}>
-              <Paragraph>{court.districtCourtName}{court.numberOfCases ? ` (${court.numberOfCases})` : null}</Paragraph>
-            </div>
+      {data && (
+        <List.Unordered data-size="md">
+          {data.map((court: DistrictCourtSummaryResponse) => (
+            <List.Item key={court.districtCourtName} className="flex-row">
+              {court.districtCourtName}
+              <Badge
+                data-color="neutral"
+                count={court.numberOfCases}
+                style={{ fontVariantNumeric: "tabular-nums" }}
+              />
+            </List.Item>
           ))}
           {isAdmin && (
-            <>
-              <br />
-              <Paragraph>
-                Totalt antall saker: {data.connectedDistrictCourts.reduce((total: number, court: DistrictCourtSummaryResponse) => total + (court.numberOfCases || 0), 0)}
-              </Paragraph>
-            </>
+            <List.Item
+              data-size="lg"
+              className="flex-row"
+              style={{ marginTop: "var(--ds-size-8)" }}
+            >
+              Totalt antall saker:{" "}
+              <Badge
+                count={data.reduce(
+                  (total: number, court: DistrictCourtSummaryResponse) =>
+                    total + (court.numberOfCases || 0),
+                  0,
+                )}
+              />
+            </List.Item>
           )}
-        </>
+        </List.Unordered>
       )}
     </>
   );
