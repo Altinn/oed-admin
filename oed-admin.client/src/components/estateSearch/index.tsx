@@ -203,38 +203,37 @@ export default function EstateSearch() {
             <Link href="/restrictedSearch">Gå til forenklet søkeside</Link>
           </Fieldset.Description>
 
-          <Field>
-            <ToggleGroup
-              value={searchType}
-              defaultValue="partyid"
-              name="toggle-group-search"
-              onChange={setSearchType}
-            >
-              <ToggleGroup.Item value="partyid">
-                <RobotIcon aria-hidden /> Party ID
-              </ToggleGroup.Item>
-              <ToggleGroup.Item value="ssn">
-                <PersonIcon aria-hidden />
-                Fødselsnummer
-              </ToggleGroup.Item>
-              <ToggleGroup.Item value="casenumber">
-                <GavelIcon aria-hidden />
-                Saksnummer
-              </ToggleGroup.Item>
-              <ToggleGroup.Item value="caseid">
-                <GavelIcon aria-hidden />
-                Sak ID
-              </ToggleGroup.Item>
-              <ToggleGroup.Item value="name">
-                <TagIcon aria-hidden />
-                Navn
-              </ToggleGroup.Item>
-              <ToggleGroup.Item value="heir">
-                <PersonGroupIcon aria-hidden />
-                Arving
-              </ToggleGroup.Item>
-            </ToggleGroup>
-          </Field>
+          <ToggleGroup
+            data-toggle-group="Søkemodus"
+            value={searchType}
+            defaultValue="partyid"
+            name="toggle-group-search"
+            onChange={setSearchType}
+          >
+            <ToggleGroup.Item value="partyid">
+              <RobotIcon aria-hidden /> Party ID
+            </ToggleGroup.Item>
+            <ToggleGroup.Item value="ssn">
+              <PersonIcon aria-hidden />
+              Fødselsnummer
+            </ToggleGroup.Item>
+            <ToggleGroup.Item value="casenumber">
+              <GavelIcon aria-hidden />
+              Saksnummer
+            </ToggleGroup.Item>
+            <ToggleGroup.Item value="caseid">
+              <GavelIcon aria-hidden />
+              Sak ID
+            </ToggleGroup.Item>
+            <ToggleGroup.Item value="name">
+              <TagIcon aria-hidden />
+              Navn
+            </ToggleGroup.Item>
+            <ToggleGroup.Item value="heir">
+              <PersonGroupIcon aria-hidden />
+              Arving
+            </ToggleGroup.Item>
+          </ToggleGroup>
 
           <Field>
             <Search data-size="lg" className="search-field">
