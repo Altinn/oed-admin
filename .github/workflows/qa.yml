@@ -62,4 +62,4 @@ jobs:
       run: dotnet build -c Release --no-restore
 
     - name: Run QA tests
-      run: dotnet test QaTests\QaTests.csproj --no-restore --verbosity normal
+      run: dotnet test QaTests --no-restore --verbosity normal
