@@ -484,3 +484,8 @@ $RECYCLE.BIN/
 *.swp
 
 src/oed-admin/ClientApp/.env.development.local
+
+# QaTests
+**/.sonarqube/
+# Sonar history is kept local-only; the authoritative copy is pushed to the dd-qa repo.
+/QaTests/history/

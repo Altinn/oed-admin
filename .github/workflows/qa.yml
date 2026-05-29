@@ -1,0 +1,64 @@
+name: SonarQube Analysis
+
+on:
+  schedule:
+    - cron: '30 2 * * *' # Runs every day at 02:30 UTC
+
+env:
+  DOTNET_VERSION: "10.0.102"
+  QATESTS: "1"
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write  # Required to upload SARIF results to the Security tab
+      contents: read          # Required to clone the repository
+      actions: read           # Required for pull request analysis
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'csharp', 'javascript-typescript' ]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v4
+      with:
+        languages: ${{ matrix.language }}
+        queries: security-extended  # or 'security-and-quality'
+
+    # Autobuild attempts to build compiled languages (like C#, Java, C++) automatically.
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v4
+
+    # Finalizes the database, runs the queries, and uploads results to GitHub
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v4
+      with:
+        category: "/language:${{ matrix.language }}"
+
+  projecttests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build project
+      run: dotnet build -c Release --no-restore
+
+    - name: Run QA tests
+      run: dotnet test QaTests\QaTests.csproj --no-restore --verbosity normal
