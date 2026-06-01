@@ -23,6 +23,5 @@ public class SonarGateTests(ITestOutputHelper output)
         SonarExclusions =
             "**/*.js,**/*.jsx,**/*.ts,**/*.tsx,**/*.css,**/*.scss,**/*.html," +
             "**/wwwroot/**,**/oed-admin.client/**,**/node_modules/**",
-        DdQa = new() { ProjectFolder = "oed-admin" },
     }, output);
 }

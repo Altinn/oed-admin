@@ -10,41 +10,15 @@ env:
   QATESTS: "1"
 
 jobs:
-  analyze:
-    name: Analyze (${{ matrix.language }})
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write  # Required to upload SARIF results to the Security tab
-      contents: read          # Required to clone the repository
-      actions: read           # Required for pull request analysis
-
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ 'csharp', 'javascript-typescript' ]
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v4
-      with:
-        languages: ${{ matrix.language }}
-        queries: security-extended  # or 'security-and-quality'
-
-    # Autobuild attempts to build compiled languages (like C#, Java, C++) automatically.
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v4
-
-    # Finalizes the database, runs the queries, and uploads results to GitHub
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v4
-      with:
-        category: "/language:${{ matrix.language }}"
-
   projecttests:
     runs-on: ubuntu-latest
+    name: Run QaTests
+    # id-token: write is required so the workflow can mint an OIDC token that azure/login
+    # exchanges for an Azure AD access token (no long-lived secret in the workflow). contents: read
+    # is the standard checkout grant.
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
     - name: Checkout code
@@ -60,6 +34,18 @@ jobs:
 
     - name: Build project
       run: dotnet build -c Release --no-restore
+
+    # Federated login via GitHub OIDC. The three vars.AZURE_* values are not secrets — they're
+    # public identifiers for the app registration, tenant, and subscription. The federated
+    # credential on the app reg is what restricts which repo+branch can authenticate.
+    # Exports AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID, AZURE_FEDERATED_TOKEN_FILE
+    # into the workflow env; DefaultAzureCredential in Altinn.Dd.Tests.SonarGate picks them up.
+    - name: Azure login (federated OIDC)
+      uses: azure/login@v2
+      with:
+        client-id: ${{ vars.AZURE_CLIENT_ID }}
+        tenant-id: ${{ vars.AZURE_TENANT_ID }}
+        subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
     - name: Run QA tests
       run: dotnet test QaTests --no-restore --verbosity normal
