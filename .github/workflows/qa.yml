@@ -31,12 +31,13 @@ jobs:
     - name: Build project
       run: dotnet build -c Release --no-restore
 
-    # Altinn.Dd.Tests.SonarGate publishes snapshots to the oedqa storage account. Auth uses a
-    # container-scoped SAS (rwl on the "reports" container) stored as a repo secret — we can't
-    # use federated AAD here because creating the app registration requires tenant-admin perms
-    # we don't have. The env var only lives for the duration of this step; GitHub auto-masks
-    # values pulled from secrets.* so the SAS never appears in logs.
+    # Altinn.Dd.Tests.SonarGate publishes in two parts:
+    #   - Archives the snapshot to the oedqa blob container (auth via the SAS secret).
+    #   - Deploys the regenerated dashboard to Azure Static Web Apps (auth via the SWA token).
+    # Both env vars live for only the duration of this step; GitHub auto-masks values pulled
+    # from secrets.* so neither token appears in workflow logs.
     - name: Run QA tests
       env:
         AZURE_STORAGE_SAS_TOKEN: ${{ secrets.AZURE_STORAGE_SAS_TOKEN }}
+        AZURE_STATIC_WEB_APPS_API_TOKEN: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
       run: dotnet test QaTests --no-restore --verbosity normal
