@@ -35,6 +35,10 @@ public static class Endpoints
 
         app.MapGet("/api/districtcourts", DistrictCourts.GetDistrictCourts.Endpoint.Get)
             .RequireAuthorization(AuthorizationPolicies.AtLeastReadRole);
+
+        // Aggregated QA dashboard data (read from the oedqa "reports" blob container), rendered
+        // natively by the React client. Auth intentionally not enforced.
+        app.MapGet("/api/qa", QaDashboard.Endpoint.Get);
     }
 
     extension(WebApplication app)
@@ -101,4 +105,4 @@ public static class Endpoints
             return group;
         }
     }
-}
+}

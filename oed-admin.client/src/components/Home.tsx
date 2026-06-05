@@ -1,5 +1,6 @@
 import { Heading, Paragraph, Tabs } from "@digdir/designsystemet-react";
 import {
+  BarChartIcon,
   KeyVerticalIcon,
   CircleBrokenIcon,
   ExclamationmarkTriangleIcon,
@@ -15,6 +16,7 @@ import { SuperAdmins } from "./superAdmins";
 import SecretExpiration from "./secretExpiration";
 import EventSubs from "./eventsubs";
 import DistrictCourts from "./districtCourts";
+import QaDashboard from "./qaDashboard";
 
 export default function Home() {
   return (
@@ -38,6 +40,9 @@ export default function Home() {
           </Tabs.Tab>
           <Tabs.Tab value="districtcourts">
             <GavelSoundBlockIcon /> Tingretter
+          </Tabs.Tab>
+          <Tabs.Tab value="qa">
+            <BarChartIcon /> Kvalitet
           </Tabs.Tab>
         </Tabs.List>
 
@@ -102,6 +107,9 @@ export default function Home() {
         </Tabs.Panel>
         <Tabs.Panel value="districtcourts">
           <DistrictCourts />
+        </Tabs.Panel>
+        <Tabs.Panel value="qa">
+          <QaDashboard />
         </Tabs.Panel>
       </Tabs>
     </>

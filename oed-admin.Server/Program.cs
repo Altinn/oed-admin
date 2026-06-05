@@ -1,6 +1,7 @@
 using Altinn.Dd.Correspondence.Extensions;
 using Altinn.Dd.Correspondence.Options;
 using oed_admin.Server.Features;
+using oed_admin.Server.Features.QaDashboard;
 using oed_admin.Server.Features.SecretExpiry.GetSecrets;
 using oed_admin.Server.Infrastructure.Altinn;
 using oed_admin.Server.Infrastructure.AspNet;
@@ -24,6 +25,7 @@ builder.Services.AddOedDatabase(builder.Configuration.GetConnectionString("OedDb
 builder.Services.AddAuthzDatabase(builder.Configuration.GetConnectionString("OedAuthzDb") ?? string.Empty);
 builder.Services.AddAltinnClients(builder.Environment, builder.Configuration);
 builder.Services.AddOedFeedPollerClient(builder.Configuration);
+builder.Services.AddQaDashboard(builder.Configuration);
 builder.Services.AddDdCorrespondenceService(options =>
 {
     var maskinportenSettings = builder.Configuration.GetRequiredSection("MaskinportenSettings").Get<MaskinportenSettings>();
@@ -64,4 +66,4 @@ app.MapFallbackToFile("/index.html");
 
 app.UseExceptionHandler();
 
-app.Run();
+app.Run();
