@@ -2,11 +2,5 @@
 
 public record Request(Guid CaseId)
 {
-    public bool IsValid()
-    {
-        if (CaseId == default || CaseId == Guid.Empty)
-            return false;
-
-        return true;
-    }
+    public bool IsValid() => CaseId != default;
 }

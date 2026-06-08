@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using oed_admin.Server.Infrastructure.Altinn;
-using System.Net;
-using System.Text.Json;
 
 namespace oed_admin.Server.Features.Estate.GetDaObject;
 
