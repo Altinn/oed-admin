@@ -188,14 +188,28 @@ function Overview({ projects, onSelect }: { projects: QaProject[]; onSelect: (na
   );
 }
 
+// Findings/hotspots lists hold up to 50 entries; show this many before the "show all" expander.
+const INITIAL_FINDINGS = 10;
+
+function ShowMoreButton({ total, expanded, onToggle }: { total: number; expanded: boolean; onToggle: () => void }) {
+  if (total <= INITIAL_FINDINGS) return null;
+  return (
+    <Button variant="tertiary" data-size="sm" onClick={onToggle} style={{ marginBottom: "var(--ds-size-4)" }}>
+      {expanded ? "Vis færre" : `Vis alle (${total})`}
+    </Button>
+  );
+}
+
 function FindingsTable({ heading, findings }: { heading: string; findings: QaFinding[] }) {
+  const [expanded, setExpanded] = useState(false);
   if (findings.length === 0) return null;
+  const shown = expanded ? findings : findings.slice(0, INITIAL_FINDINGS);
   return (
     <>
       <Heading level={3} data-size="xs" style={{ margin: "3rem 0 var(--ds-size-3)" }}>
         {heading}
       </Heading>
-      <Table data-size="sm" style={{ width: "100%", marginBottom: "var(--ds-size-4)" }}>
+      <Table data-size="sm" style={{ width: "100%", marginBottom: "var(--ds-size-2)" }}>
         <Table.Head>
           <Table.Row>
             <Table.HeaderCell>Alvorlighet</Table.HeaderCell>
@@ -205,7 +219,7 @@ function FindingsTable({ heading, findings }: { heading: string; findings: QaFin
           </Table.Row>
         </Table.Head>
         <Table.Body>
-          {findings.map((f, i) => (
+          {shown.map((f, i) => (
             <Table.Row key={`${f.rule}-${i}`}>
               <Table.Cell style={{ color: severityColor(f.severity), fontWeight: 600 }}>{f.severity}</Table.Cell>
               <Table.Cell>
@@ -217,18 +231,21 @@ function FindingsTable({ heading, findings }: { heading: string; findings: QaFin
           ))}
         </Table.Body>
       </Table>
+      <ShowMoreButton total={findings.length} expanded={expanded} onToggle={() => setExpanded(!expanded)} />
     </>
   );
 }
 
 function HotspotsTable({ hotspots }: { hotspots: QaHotspot[] }) {
+  const [expanded, setExpanded] = useState(false);
   if (hotspots.length === 0) return null;
+  const shown = expanded ? hotspots : hotspots.slice(0, INITIAL_FINDINGS);
   return (
     <>
       <Heading level={3} data-size="xs" style={{ margin: "3rem 0 var(--ds-size-3)" }}>
         Topp sikkerhetspunkter
       </Heading>
-      <Table data-size="sm" style={{ width: "100%", marginBottom: "var(--ds-size-4)" }}>
+      <Table data-size="sm" style={{ width: "100%", marginBottom: "var(--ds-size-2)" }}>
         <Table.Head>
           <Table.Row>
             <Table.HeaderCell>Sannsynlighet</Table.HeaderCell>
@@ -239,7 +256,7 @@ function HotspotsTable({ hotspots }: { hotspots: QaHotspot[] }) {
           </Table.Row>
         </Table.Head>
         <Table.Body>
-          {hotspots.map((h, i) => (
+          {shown.map((h, i) => (
             <Table.Row key={`${h.rule}-${i}`}>
               <Table.Cell style={{ color: severityColor(h.probability), fontWeight: 600 }}>{h.probability}</Table.Cell>
               <Table.Cell>{h.category}</Table.Cell>
@@ -252,6 +269,7 @@ function HotspotsTable({ hotspots }: { hotspots: QaHotspot[] }) {
           ))}
         </Table.Body>
       </Table>
+      <ShowMoreButton total={hotspots.length} expanded={expanded} onToggle={() => setExpanded(!expanded)} />
     </>
   );
 }
