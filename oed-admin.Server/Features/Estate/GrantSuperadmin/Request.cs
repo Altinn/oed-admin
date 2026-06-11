@@ -7,13 +7,7 @@ public record Request
     [FromRoute] public Guid EstateId { get; init; }
     [FromBody] public required Assignment Grant { get; init; }
 
-    public bool IsValid()
-    {
-        if (EstateId == default || EstateId == Guid.Empty)
-            return false;
-
-        return Grant.IsValid();
-    }
+    public bool IsValid() => EstateId != Guid.Empty && Grant.IsValid();
 
     public record Assignment(string Nin, string Justification)
     {

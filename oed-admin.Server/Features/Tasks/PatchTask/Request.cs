@@ -9,17 +9,11 @@ public record Request
 
     public bool IsValid()
     {
-        if (TaskId == default || TaskId == Guid.Empty)
+        if (TaskId == Guid.Empty)
             return false;
 
-        if (TaskValues.Scheduled is not null)
-        {
-            if (TaskValues.Scheduled.Value == default ||
-                TaskValues.Scheduled.Value == DateTimeOffset.MinValue)
-            {
-                return false;
-            }
-        }
+        if (TaskValues.Scheduled == DateTimeOffset.MinValue)
+            return false;
 
         if (TaskValues.Attempts is < 0 or > 10)
             return false;

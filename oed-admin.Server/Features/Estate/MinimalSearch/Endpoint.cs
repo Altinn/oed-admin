@@ -56,7 +56,7 @@ public static class Endpoint
         
 
         var dto = PoorMansMapper.Map<Infrastructure.Database.Oed.Model.Estate, MinimalEstateDto>(estate);
-        var scheduled = dbContext.TaskQueue
+        var scheduled = (await dbContext.TaskQueue
             .AsNoTracking()
             .Where(t =>
                 t.EstateSsn == request.Nin &&
@@ -64,7 +64,7 @@ public static class Endpoint
                 (t.Type == EstateReadyCorrespondenceTask ||
                 t.Type == EstateReadyCorrespondenceTaskV2))
             .OrderByDescending(task => task.Created)
-            .FirstOrDefault()?
+            .FirstOrDefaultAsync())?
             .Scheduled;
 
         dto!.Scheduled = scheduled;

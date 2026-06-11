@@ -1,45 +1,39 @@
-﻿using Azure.Identity;
+using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
 namespace oed_admin.Server.Features.SecretExpiry.GetSecrets
 {
-    public class Endpoint
+    public static class Endpoint
     {
-        private static ILogger<Endpoint> logger;
-
         public static async Task<IResult> Get(
-            [FromServices] ILogger<Endpoint> log,
+            [FromServices] ILoggerFactory loggerFactory,
             [FromServices] IOptions<KeyVaultOptions> options)
         {
+            var logger = loggerFactory.CreateLogger("SecretExpiry.GetSecrets");
             try
             {
-                logger = log;
                 var secretList = new List<KvSecret>();
 
                 foreach(var vault in options.Value)
                 {
-                    var secrets = await GetSecretsFromVault(vault.Value);
+                    var secrets = await GetSecretsFromVault(vault.Value, logger);
                     secretList.AddRange(secrets);
                 }
                 var allSecrets = secretList.Where(x => x.Expires.HasValue);
                 var orderedList = allSecrets.OrderBy(x => x.Expires).ToList();
 
-                var result = TypedResults.Ok(orderedList);
-                return result;
-
+                return TypedResults.Ok(orderedList);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error in SecretExpiry.Get");
                 return TypedResults.InternalServerError(ex);
             }
-            
-
         }
 
-        private static async Task<List<KvSecret>> GetSecretsFromVault(string vaultUrl)
+        private static async Task<List<KvSecret>> GetSecretsFromVault(string vaultUrl, ILogger logger)
         {
             try
             {
@@ -66,9 +60,9 @@ namespace oed_admin.Server.Features.SecretExpiry.GetSecrets
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, $"Failed to access KeyVault - '{vaultUrl}'");
+                logger.LogWarning(ex, "Failed to access KeyVault - '{VaultUrl}'", vaultUrl);
                 return new List<KvSecret>();
-            }            
+            }
         }
     }
 }

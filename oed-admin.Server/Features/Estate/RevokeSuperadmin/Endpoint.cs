@@ -5,7 +5,7 @@ using oed_admin.Server.Infrastructure.Database.Oed;
 
 namespace oed_admin.Server.Features.Estate.RevokeSuperadmin;
 
-public class Endpoint
+public static class Endpoint
 {
     public static async Task<IResult> Delete(
         [AsParameters] Request request,

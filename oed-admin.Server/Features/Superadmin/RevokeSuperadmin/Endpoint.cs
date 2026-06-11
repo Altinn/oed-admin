@@ -4,7 +4,7 @@ using oed_admin.Server.Infrastructure.Database.Authz;
 
 namespace oed_admin.Server.Features.Superadmin.RevokeSuperadmin;
 
-public class Endpoint
+public static class Endpoint
 {
     public static async Task<IResult> Delete(
     [FromHeader(Name = "X-Nin")] string nin,

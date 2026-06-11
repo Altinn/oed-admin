@@ -201,7 +201,7 @@ public class TestamentClaims
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != Guid.Empty;
 
     [XmlElement("DateOfSignature", Order = 1)]
     [JsonProperty("DateOfSignature")]
@@ -240,7 +240,7 @@ public class MarriagePactClaims
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != Guid.Empty;
 
     [XmlElement("DateOfSignature", Order = 1)]
     [JsonProperty("DateOfSignature")]
@@ -279,7 +279,7 @@ public class AgriculturalPropertyClaims
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != Guid.Empty;
 
     [XmlElement("MunicipalityNumber", Order = 1)]
     [JsonProperty("MunicipalityNumber")]
@@ -350,7 +350,7 @@ public class SignatureClaims
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != Guid.Empty;
 
     [XmlElement("PartyId", Order = 1)]
     [JsonProperty("PartyId")]
@@ -485,7 +485,7 @@ public class Heir
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != Guid.Empty;
 
     [XmlElement("Name", Order = 1)]
     [JsonProperty("Name")]
@@ -515,7 +515,7 @@ public class MarriagePactFromRegister
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != Guid.Empty;
 
     [XmlElement("DateOfSignature", Order = 1)]
     [JsonProperty("DateOfSignature")]
@@ -537,7 +537,7 @@ public class AgriculturalPropertyFromRegister
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != Guid.Empty;
 
     [XmlElement("MunicipalityLandNumber", Order = 1)]
     [JsonProperty("MunicipalityLandNumber")]

@@ -32,7 +32,7 @@ public class AuditingLoggingMiddleware(
 
         var request = new RequestDetails(
             context.TraceIdentifier,
-            endpoint?.DisplayName ?? string.Empty,
+            endpoint.DisplayName,
             context.Request.QueryString.ToString(),
             requestBody);
 

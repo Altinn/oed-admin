@@ -2,11 +2,5 @@
 
 public record Request(Guid EstateId)
 {
-    public bool IsValid()
-    {
-        if (EstateId == default || EstateId == Guid.Empty)
-            return false;
-
-        return true;
-    }
+    public bool IsValid() => EstateId != Guid.Empty;
 }

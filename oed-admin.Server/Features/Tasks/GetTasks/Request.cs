@@ -19,10 +19,9 @@ public class Request
             return false;
         }
 
-        if (Status is not null)
+        if (Status is not null && StatusAsEnum() is null)
         {
-            if (StatusAsEnum() is null)
-                return false;
+            return false;
         }
 
         return true;

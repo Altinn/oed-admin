@@ -1,67 +1,26 @@
-﻿namespace oed_admin.Server.Features.Estate.Search;
+namespace oed_admin.Server.Features.Estate.Search;
 
 public record Request(string? Nin, string? HeirNin, int? PartyId, string? Name, string? CaseNumber, string? CaseId)
 {
     public bool IsValid()
     {
         if (string.IsNullOrWhiteSpace(Nin) &&
-            string.IsNullOrWhiteSpace(HeirNin) && 
-            PartyId is null && 
-            string.IsNullOrWhiteSpace(Name) && 
+            string.IsNullOrWhiteSpace(HeirNin) &&
+            PartyId is null &&
+            string.IsNullOrWhiteSpace(Name) &&
             string.IsNullOrWhiteSpace(CaseNumber) &&
             string.IsNullOrWhiteSpace(CaseId))
         {
-            // No search params
             return false;
         }
 
-        if (!string.IsNullOrWhiteSpace(Nin))
-        {
-            if (Nin is not { Length: 6 or 11} || 
-                !Nin.All(char.IsDigit))
-            {
-                return false;
-            }
-        }
-
-        if (!string.IsNullOrWhiteSpace(HeirNin))
-        {
-            if (HeirNin is not { Length: 6 or 11 } ||
-                !HeirNin.All(char.IsDigit))
-            {
-                return false;
-            }
-        }
-
-        if (!string.IsNullOrWhiteSpace(Name))
-        {
-            if (Name is not { Length: > 0 })
-            {
-                return false;
-            }
-        }
-
-        if (!string.IsNullOrWhiteSpace(CaseNumber))
-        {
-            if (CaseNumber is not { Length: > 0 })
-            {
-                return false;
-            }
-        }
-
-        if (!string.IsNullOrWhiteSpace(CaseId))
-        {
-            if (CaseId is not { Length: > 0 })
-            {
-                return false;
-            }
-        }
-
-        if (PartyId is not null and not >= 0)
-        {
-            return false;
-        }
+        if (!string.IsNullOrWhiteSpace(Nin) && !IsValidNin(Nin)) return false;
+        if (!string.IsNullOrWhiteSpace(HeirNin) && !IsValidNin(HeirNin)) return false;
+        if (PartyId is < 0) return false;
 
         return true;
     }
+
+    private static bool IsValidNin(string nin) =>
+        nin is { Length: 6 or 11 } && nin.All(char.IsDigit);
 }

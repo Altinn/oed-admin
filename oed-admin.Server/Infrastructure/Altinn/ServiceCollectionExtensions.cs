@@ -32,8 +32,10 @@ public static class ServiceCollectionExtensions
         var altinnConfig = configuration.GetSection("AltinnSettings");
         services.Configure<AltinnSettings>(altinnConfig);
 
-        var maskinportenSettings = configuration.GetRequiredSection("MaskinportenSettings").Get<MaskinportenSettings>();
-        var altinnSettings = altinnConfig.Get<AltinnSettings>();
+        var maskinportenSettings = configuration.GetRequiredSection("MaskinportenSettings").Get<MaskinportenSettings>()
+            ?? throw new InvalidOperationException("MaskinportenSettings section is missing or invalid.");
+        var altinnSettings = altinnConfig.Get<AltinnSettings>()
+            ?? throw new InvalidOperationException("AltinnSettings section is missing or invalid.");
 
         if (env.IsDevelopment() && altinnSettings.PlatformUrl.Contains("http://localhost"))
         {
@@ -58,7 +60,7 @@ public static class ServiceCollectionExtensions
         {
             services
                 .AddMaskinportenHttpClient<SettingsJwkClientDefinition, IAltinnClient, AltinnClient>(
-                maskinportenSettings! with
+                maskinportenSettings with
                 {
                     Scope = "altinn:serviceowner/instances.read altinn:serviceowner/instances.write altinn:events.publish altinn:events.subscribe"
                 },

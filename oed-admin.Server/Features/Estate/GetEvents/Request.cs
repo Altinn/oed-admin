@@ -4,7 +4,7 @@ public record Request(Guid EstateId, int? PageSize, string? LastRetrievedEventId
 {
     public bool IsValid()
     {
-        if (EstateId == default || EstateId == Guid.Empty)
+        if (EstateId == default)
             return false;
 
         if (LastRetrievedEventId is not null and not {Length: > 0})

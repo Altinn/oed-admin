@@ -2,7 +2,7 @@
 
 public class PartialEstate
 {
-    public string Id { get; set; }
+    public string Id { get; set; } = string.Empty;
 }
 
 public class PartialSearchResponse

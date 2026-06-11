@@ -6,11 +6,11 @@ namespace oed_admin.Server.Infrastructure.Database.Oed.Model;
 public class Estate
 {
     public Guid Id { get; set; }
-    public string DeceasedNin { get; set; }
+    public string DeceasedNin { get; set; } = string.Empty;
     public int DeceasedPartyId { get; set; }
-    public string DeceasedName { get; set; }
+    public string DeceasedName { get; set; } = string.Empty;
     public DateOnly DateOfDeath { get; set; }
-    public string InstanceId { get; set; }
+    public string InstanceId { get; set; } = string.Empty;
     public string? DeclarationInstanceId { get; set; }
 
     public string? CaseId { get; set; }

@@ -11,14 +11,8 @@ public record Request
         if (TaskValues is not { TaskIds.Count: > 0 })
             return false;
 
-        if (TaskValues.Scheduled is not null)
-        {
-            if (TaskValues.Scheduled.Value == default ||
-                TaskValues.Scheduled.Value == DateTimeOffset.MinValue)
-            {
-                return false;
-            }
-        }
+        if (TaskValues.Scheduled == DateTimeOffset.MinValue)
+            return false;
 
         if (TaskValues.Attempts is < 0 or > 10)
             return false;

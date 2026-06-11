@@ -4,6 +4,6 @@ public static class Endpoint
 {
     public static async Task<IResult> Get()
     {
-        throw new Exception("Test exception");
+        throw new InvalidOperationException("Test exception");
     }
 }

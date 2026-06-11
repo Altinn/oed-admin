@@ -417,12 +417,12 @@ public class HeirInfo
     [XmlElement("Heir")]
     [JsonProperty("heir")]
     [JsonPropertyName("heir")]
-    public PersonHeir? Heir { get; set; }
+    public PersonHeir Heir { get; set; }
 
     [XmlElement("HeirV2")]
     [JsonProperty("heirV2")]
     [JsonPropertyName("heirV2")]
-    public HeirV2? HeirV2 { get; set; }
+    public HeirV2 HeirV2 { get; set; }
 
     [XmlElement("CorrespondenceReceived")]
     [JsonProperty("correspondenceReceived")]

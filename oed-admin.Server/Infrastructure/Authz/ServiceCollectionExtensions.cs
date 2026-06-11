@@ -1,8 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using oed_admin.Server.Infrastructure.DevAuth;
-using oed_admin.Server.Infrastructure.EasyAuth;
-using System.Runtime.InteropServices;
 
 namespace oed_admin.Server.Infrastructure.Authz;
 
@@ -21,35 +18,11 @@ public static class ServiceCollectionExtensions
                     options.Audience = clientId;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidateIssuer = true,
                         ValidateIssuerSigningKey = true,
-                        ValidateLifetime = true,
-                        ValidateAudience = true,
-                        RequireAudience = true,
-                        RequireExpirationTime = true
                     };
                 });
-                //.AddDevAuth(_ => { });
-
-        //if (hostEnvironment.IsDevelopment())
-        //{
-        //    services.AddAuthorizationBuilder()
-        //        .AddPolicy(AuthorizationPolicies.DigitaltDodsboAdmins, builder =>
-        //            builder.RequireAuthenticatedUser())
-        //        .AddPolicy(AuthorizationPolicies.AtLeastReadRole, builder => builder.RequireRole("Read", "Admin").RequireAuthenticatedUser())
-        //        .AddPolicy(AuthorizationPolicies.RequireAdminRole, builder => builder.RequireRole("Admin").RequireAuthenticatedUser());
-
-        //    return services;
-        //}
-
-        var options = new AuthOptions();
-        //configuration.GetSection("EasyAuth").Bind(options);
-
-        //services.AddAuthentication()
-        //    .AddEasyAuth(_ => { });
 
         services.AddAuthorizationBuilder()
-            //.AddDigitaltDodsboPolicies(options.Groups)
             .AddPolicy(AuthorizationPolicies.AtLeastReadRole, builder => builder.RequireRole("Read", "Admin").RequireAuthenticatedUser())
             .AddPolicy(AuthorizationPolicies.RequireAdminRole, builder => builder.RequireRole("Admin").RequireAuthenticatedUser());
 

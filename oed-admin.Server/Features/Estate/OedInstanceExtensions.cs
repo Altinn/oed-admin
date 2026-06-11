@@ -27,7 +27,7 @@ public static class OedInstanceExtensions
         public HeirV2 GetHeir() =>
             heirInfo.HeirV2 ??
             heirInfo.Heir ??
-            throw new ArgumentNullException(nameof(heirInfo.Heir));
+            throw new InvalidOperationException("HeirInfo has neither HeirV2 nor Heir set.");
 
         public T OfType<T>() where T : class => 
             (heirInfo.GetHeir() as T)!;

@@ -27,7 +27,7 @@ public class AzureTableAuditLogger(TableServiceClient tableServiceClient) : IAud
         
         if (userResponse.IsError)
         {
-            throw new Exception($"Unable to persist auditlog (user): [{userResponse.Status}] - {userResponse.ReasonPhrase}");
+            throw new InvalidOperationException($"Unable to persist auditlog (user): [{userResponse.Status}] - {userResponse.ReasonPhrase}");
         }
 
 
@@ -53,7 +53,7 @@ public class AzureTableAuditLogger(TableServiceClient tableServiceClient) : IAud
             var estateResponse = await estateTableClient.AddEntityAsync(estateRecord);
             if (estateResponse.IsError)
             {
-                throw new Exception($"Unable to persist auditlog (estate): [{estateResponse.Status}] - {estateResponse.ReasonPhrase}");
+                throw new InvalidOperationException($"Unable to persist auditlog (estate): [{estateResponse.Status}] - {estateResponse.ReasonPhrase}");
             }
         }
     }

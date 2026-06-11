@@ -54,7 +54,7 @@ public class AltinnClient(HttpClient httpClient) : IAltinnClient
 
         var formatter = new JsonEventFormatter();
         var contentType = new System.Net.Mime.ContentType("application/cloudevents+json");
-        return formatter.DecodeBatchModeMessage(await response.Content.ReadAsStreamAsync(), contentType, null);
+        return await formatter.DecodeBatchModeMessageAsync(await response.Content.ReadAsStreamAsync(), contentType, null);
     }
 
     public async Task<Instance?> GetInstance(int instanceOwnerPartyId, Guid instanceGuid)

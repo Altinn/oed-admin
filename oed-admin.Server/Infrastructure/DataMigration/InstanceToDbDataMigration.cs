@@ -125,7 +125,7 @@ public class InstanceToDbDataMigration(
                 // Get declaration, if existing
                 var declarationInstance = (await altinnClient.GetInstances(AppIds.Declaration, instanceOwnerPartyId)).FirstOrDefault();
 
-                if (!DateOnly.TryParseExact(instanceData.DeceasedInfo.DateOfDeath, "yyyy-MM-dd", out var dateOfDeath))
+                if (!DateOnly.TryParseExact(instanceData.DeceasedInfo.DateOfDeath, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateOfDeath))
                     dateOfDeath = default;
                 
                 if (!DateTimeOffset.TryParseExact(instanceData.ProbateDeadline, "O", CultureInfo.InvariantCulture, DateTimeStyles.None, out var probateDeadline))
