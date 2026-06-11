@@ -60,8 +60,8 @@ const METRIC_COLUMNS: {
   { key: "coverage", label: "Cov %", dir: "higher" },
   { key: "duplicated_lines_density", label: "Dup %", dir: "lower" },
   { key: "ncloc", label: "NCLOC", dir: "neutral" },
-  { key: "complexity", label: "Cyclo", dir: "neutral" },
-  { key: "cognitive_complexity", label: "Cognitive", dir: "neutral" },
+  { key: "complexity", label: "Cyclo", dir: "lower" },
+  { key: "cognitive_complexity", label: "Cognitive", dir: "lower" },
   { key: "sqale_index", label: "Debt (t)", dir: "lower", debt: true },
 ];
 
