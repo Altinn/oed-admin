@@ -44,7 +44,7 @@ jobs:
           VITE_CLIENT_ID: ${{ vars.VITE_CLIENT_ID }}
 
       - name: Deploy to Azure App Service (Test)
-        uses: azure/webapps-deploy@v2
+        uses: azure/webapps-deploy@02a81bead70021f5284939794bcec79c271ab383 # v3
         with:
           app-name: "${{ vars.APP_SERVICE_NAME}}"
           publish-profile: ${{ secrets.PUBLISH_PROFILE }}
@@ -91,7 +91,7 @@ jobs:
           VITE_CLIENT_ID: ${{ vars.VITE_CLIENT_ID }}
 
       - name: Deploy to Azure App Service Staging Slot
-        uses: azure/webapps-deploy@v2
+        uses: azure/webapps-deploy@02a81bead70021f5284939794bcec79c271ab383 # v3
         with:
           app-name: "${{ vars.APP_SERVICE_NAME}}"
           publish-profile: ${{ secrets.PUBLISH_PROFILE }}
