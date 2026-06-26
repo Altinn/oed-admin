@@ -4,10 +4,10 @@ public record Request(Guid EstateId, int? PageSize, string? LastRetrievedEventId
 {
     public bool IsValid()
     {
-        if (EstateId == default)
+        if (EstateId == Guid.Empty)
             return false;
 
-        if (LastRetrievedEventId is not null and not {Length: > 0})
+        if (LastRetrievedEventId is not null and not { Length: > 0 })
             return false;
 
         if (PageSize is not null and not > 0)
