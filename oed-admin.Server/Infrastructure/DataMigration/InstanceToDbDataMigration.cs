@@ -29,11 +29,11 @@ public class InstanceToDbDataMigration(
                 await channel.Reader.WaitToReadAsync(stoppingToken);
                 if (!channel.Reader.TryRead(out var trigger))
                 {
-                    logger.LogError("Unable to read {triggerName}", nameof(DataMigrationTrigger));
+                    logger.LogError("Unable to read {TriggerName}", nameof(DataMigrationTrigger));
                     continue;
                 }
 
-                logger.LogInformation("{triggerName} received at {timestamp} - Batchsize: {batchSize}, UpdateExisting: {updateExisting}",
+                logger.LogInformation("{TriggerName} received at {Timestamp} - Batchsize: {BatchSize}, UpdateExisting: {UpdateExisting}",
                     nameof(DataMigrationTrigger), trigger.Timestamp, trigger.BatchSize, trigger.UpdateExisting);
 
                 try
@@ -52,6 +52,8 @@ public class InstanceToDbDataMigration(
         }
     }
 
+    private enum MigrationOutcome { Skipped, Created, Updated }
+
     private async Task ExecuteDataMigration(int batchSize, bool updateExisting, CancellationToken stoppingToken)
     {
         var batchCount = 0;
@@ -59,10 +61,9 @@ public class InstanceToDbDataMigration(
         var skipped = 0;
         var created = 0;
         var updated = 0;
-        
-        //var instanceStream = _instanceReader.StreamInstances();
+
         var instanceBatchStream = _instanceReader.StreamInstancesInBatches(batchSize);
-        
+
         await foreach (var batch in instanceBatchStream)
         {
             batchCount++;
@@ -77,94 +78,19 @@ public class InstanceToDbDataMigration(
                 logger.LogInformation("{batchCount}:{count} - Handling instance {instanceId}",
                     batchCount, instanceCount, instance.Id);
 
-                if (!int.TryParse(instance.InstanceOwner.PartyId, out var instanceOwnerPartyId))
+                var outcome = await ProcessInstance(dbContext, instance, updateExisting, stoppingToken);
+                switch (outcome)
                 {
-                    skipped++;
-                    continue;
+                    case MigrationOutcome.Created:
+                        created++;
+                        break;
+                    case MigrationOutcome.Updated:
+                        updated++;
+                        break;
+                    default:
+                        skipped++;
+                        break;
                 }
-
-                var instanceData = await GetOedInstanceData(instance);
-                if (instanceData is null)
-                {
-                    skipped++;
-                    continue;
-                }
-
-                if (instanceData.DeceasedInfo is null)
-                {
-                    logger.LogWarning("Instance {instanceId} has no DeceasedInfo => skipping", instance.Id);
-                    skipped++;
-                    continue;
-                }
-
-                var dbItem = await dbContext.Estate.SingleOrDefaultAsync(estate =>
-                                     estate.InstanceId == instance.Id,
-                                 cancellationToken: stoppingToken);
-
-                if (dbItem is not null && !updateExisting)
-                {
-                    logger.LogInformation("Instance {instanceId} was found in database => skipping", instance.Id);
-                    skipped++;
-                    continue;
-                }
-
-                if (dbItem is null)
-                {
-                    logger.LogInformation("Instance {instanceId} was NOT found in the database => creating new row", instance.Id);
-                    created++;
-
-                    dbItem = new Estate { Id = Guid.NewGuid() };
-                    await dbContext.Estate.AddAsync(dbItem, stoppingToken);
-                }
-                else
-                {
-                    logger.LogInformation("Instance {instanceId} was found in database => updating row", instance.Id);
-                    updated++;
-                }
-
-                // Get declaration, if existing
-                var declarationInstance = (await altinnClient.GetInstances(AppIds.Declaration, instanceOwnerPartyId)).FirstOrDefault();
-
-                if (!DateOnly.TryParseExact(instanceData.DeceasedInfo.DateOfDeath, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateOfDeath))
-                    dateOfDeath = default;
-                
-                if (!DateTimeOffset.TryParseExact(instanceData.ProbateDeadline, "O", CultureInfo.InvariantCulture, DateTimeStyles.None, out var probateDeadline))
-                    probateDeadline = default;
-
-                if (!DateTimeOffset.TryParseExact(instanceData.ProbateResult?.Received, "O", CultureInfo.InvariantCulture, DateTimeStyles.None, out var probateIssued))
-                    probateIssued = default;
-                
-                dbItem.DeceasedNin = instanceData.DeceasedInfo.Deceased.Nin ?? string.Empty;
-                dbItem.DeceasedPartyId = instanceOwnerPartyId;
-                dbItem.DeceasedName = FormatName(instanceData.DeceasedInfo.Deceased);
-                dbItem.DateOfDeath = dateOfDeath;
-                dbItem.CaseNumber = instanceData.CaseNumber;
-                dbItem.CaseId = instanceData.CaseId;
-                dbItem.CaseStatus = instanceData.CaseStatus;
-                dbItem.DistrictCourtName = instanceData.DistrictCourtName;
-                dbItem.ProbateDeadline = probateDeadline != default
-                    ? probateDeadline.ToUniversalTime() 
-                    : null;
-                dbItem.ProbateResult = instanceData.ProbateResult?.Result is { Length: > 0} 
-                    ? instanceData.ProbateResult?.Result
-                    : null;
-                dbItem.ProbateIssued = instanceData.ProbateResult?.Result is { Length: > 0 } && probateIssued != default
-                    ? probateIssued.ToUniversalTime() 
-                    : null;
-                dbItem.InstanceId = instance.Id;
-                dbItem.Created = instance.Created?.ToUniversalTime() ?? DateTime.UtcNow;
-                dbItem.FirstHeirReceived = instanceData.FirstHeirReceivedDate?.ToUniversalTime();
-
-                if (declarationInstance is not null)
-                {
-                    dbItem.DeclarationInstanceId = declarationInstance.Id;
-                    dbItem.DelarationCreated = declarationInstance.Created?.ToUniversalTime() ?? DateTime.UtcNow;
-                    dbItem.DeclarationSubmitted = declarationInstance.Status.IsArchived
-                        ? declarationInstance.Status.Archived?.ToUniversalTime() ?? DateTimeOffset.UtcNow
-                        : null;
-                }
-
-                await dbContext.SaveChangesAsync(stoppingToken);
             }
 
             await transaction.CommitAsync(stoppingToken);
@@ -172,6 +98,99 @@ public class InstanceToDbDataMigration(
 
         logger.LogInformation("Datamigration completed: Batches {batchCount}, Instances: {instanceCount}, Skipped: {skipped}, Created: {created}, Updated: {updated}",
             batchCount, instanceCount, skipped, created, updated);
+    }
+
+    private async Task<MigrationOutcome> ProcessInstance(
+        OedDbContext dbContext, Instance instance, bool updateExisting, CancellationToken stoppingToken)
+    {
+        if (!int.TryParse(instance.InstanceOwner.PartyId, out var instanceOwnerPartyId))
+            return MigrationOutcome.Skipped;
+
+        var instanceData = await GetOedInstanceData(instance);
+        if (instanceData is null)
+            return MigrationOutcome.Skipped;
+
+        if (instanceData.DeceasedInfo is null)
+        {
+            logger.LogWarning("Instance {instanceId} has no DeceasedInfo => skipping", instance.Id);
+            return MigrationOutcome.Skipped;
+        }
+
+        var dbItem = await dbContext.Estate.SingleOrDefaultAsync(estate =>
+                             estate.InstanceId == instance.Id,
+                         cancellationToken: stoppingToken);
+
+        if (dbItem is not null && !updateExisting)
+        {
+            logger.LogInformation("Instance {instanceId} was found in database => skipping", instance.Id);
+            return MigrationOutcome.Skipped;
+        }
+
+        MigrationOutcome outcome;
+        if (dbItem is null)
+        {
+            logger.LogInformation("Instance {instanceId} was NOT found in the database => creating new row", instance.Id);
+            dbItem = new Estate { Id = Guid.NewGuid() };
+            await dbContext.Estate.AddAsync(dbItem, stoppingToken);
+            outcome = MigrationOutcome.Created;
+        }
+        else
+        {
+            logger.LogInformation("Instance {instanceId} was found in database => updating row", instance.Id);
+            outcome = MigrationOutcome.Updated;
+        }
+
+        await MapInstanceToEstate(dbItem, instance, instanceData, instanceOwnerPartyId);
+
+        await dbContext.SaveChangesAsync(stoppingToken);
+
+        return outcome;
+    }
+
+    private async Task MapInstanceToEstate(
+        Estate dbItem, Instance instance, OedInstanceData instanceData, int instanceOwnerPartyId)
+    {
+        // Get declaration, if existing
+        var declarationInstance = (await altinnClient.GetInstances(AppIds.Declaration, instanceOwnerPartyId)).FirstOrDefault();
+
+        if (!DateOnly.TryParseExact(instanceData.DeceasedInfo!.DateOfDeath, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateOfDeath))
+            dateOfDeath = default;
+
+        if (!DateTimeOffset.TryParseExact(instanceData.ProbateDeadline, "O", CultureInfo.InvariantCulture, DateTimeStyles.None, out var probateDeadline))
+            probateDeadline = default;
+
+        if (!DateTimeOffset.TryParseExact(instanceData.ProbateResult?.Received, "O", CultureInfo.InvariantCulture, DateTimeStyles.None, out var probateIssued))
+            probateIssued = default;
+
+        dbItem.DeceasedNin = instanceData.DeceasedInfo.Deceased.Nin ?? string.Empty;
+        dbItem.DeceasedPartyId = instanceOwnerPartyId;
+        dbItem.DeceasedName = FormatName(instanceData.DeceasedInfo.Deceased);
+        dbItem.DateOfDeath = dateOfDeath;
+        dbItem.CaseNumber = instanceData.CaseNumber;
+        dbItem.CaseId = instanceData.CaseId;
+        dbItem.CaseStatus = instanceData.CaseStatus;
+        dbItem.DistrictCourtName = instanceData.DistrictCourtName;
+        dbItem.ProbateDeadline = probateDeadline != default
+            ? probateDeadline.ToUniversalTime()
+            : null;
+        dbItem.ProbateResult = instanceData.ProbateResult?.Result is { Length: > 0}
+            ? instanceData.ProbateResult?.Result
+            : null;
+        dbItem.ProbateIssued = instanceData.ProbateResult?.Result is { Length: > 0 } && probateIssued != default
+            ? probateIssued.ToUniversalTime()
+            : null;
+        dbItem.InstanceId = instance.Id;
+        dbItem.Created = instance.Created?.ToUniversalTime() ?? DateTime.UtcNow;
+        dbItem.FirstHeirReceived = instanceData.FirstHeirReceivedDate?.ToUniversalTime();
+
+        if (declarationInstance is not null)
+        {
+            dbItem.DeclarationInstanceId = declarationInstance.Id;
+            dbItem.DelarationCreated = declarationInstance.Created?.ToUniversalTime() ?? DateTime.UtcNow;
+            dbItem.DeclarationSubmitted = declarationInstance.Status.IsArchived
+                ? declarationInstance.Status.Archived?.ToUniversalTime() ?? DateTimeOffset.UtcNow
+                : null;
+        }
     }
 
 
