@@ -10,6 +10,17 @@ import {
   ValidationMessage,
 } from "@digdir/designsystemet-react";
 import { fetchWithMsal } from "../../utils/msalUtils";
+import {
+  METRIC_COLUMNS,
+  formatTimestamp,
+  metricPoints,
+  metricSeries,
+  trendColor,
+  trendKind,
+  type Direction,
+  type MetricColumn,
+} from "./chartUtils";
+import { GateTimeline, MetricChart, Sparkline } from "./charts";
 
 // Mirrors the QaDashboardDto returned by GET /api/qa (read from the oedqa "reports" blob container).
 interface QaFinding {
@@ -43,34 +54,7 @@ interface QaDashboardDto {
   projects: QaProject[];
 }
 
-type Direction = "lower" | "higher" | "neutral";
-
-// "lower is better" for defect counts/duplication/debt, "higher is better" for coverage,
-// "neutral" for size (NCLOC).
-const METRIC_COLUMNS: {
-  key: string;
-  label: string;
-  dir: Direction;
-  debt?: boolean;
-}[] = [
-  { key: "bugs", label: "Bugs", dir: "lower" },
-  { key: "vulnerabilities", label: "Vulns", dir: "lower" },
-  { key: "code_smells", label: "Smells", dir: "lower" },
-  { key: "security_hotspots", label: "Hotspots", dir: "lower" },
-  { key: "coverage", label: "Cov %", dir: "higher" },
-  { key: "duplicated_lines_density", label: "Dup %", dir: "lower" },
-  { key: "ncloc", label: "LOC", dir: "neutral" },
-  { key: "complexity", label: "Cyclo", dir: "lower" },
-  { key: "cognitive_complexity", label: "Cognitive", dir: "lower" },
-  { key: "sqale_index", label: "Debt (t)", dir: "lower", debt: true },
-];
-
-function formatTimestamp(iso: string): string {
-  // Show the run time in UTC as yyyy-MM-dd HH:mm:ss, matching the standalone dashboard.
-  return new Date(iso).toISOString().slice(0, 19).replace("T", " ");
-}
-
-function displayValue(metrics: Record<string, string>, col: (typeof METRIC_COLUMNS)[number]): string {
+function displayValue(metrics: Record<string, string>, col: MetricColumn): string {
   const raw = metrics[col.key];
   if (raw === undefined || raw === "") return "–";
   if (col.debt) {
@@ -104,28 +88,37 @@ function Trend({ cur, prev, dir }: { cur?: string; prev?: string; dir: Direction
   const p = parseFloat(prev);
   if (!Number.isFinite(c) || !Number.isFinite(p) || c === p) return null;
 
-  const rose = c > p;
-  const kind =
-    dir === "neutral" ? "neutral" : dir === "lower" ? (rose ? "bad" : "good") : rose ? "good" : "bad";
-  const color = kind === "good" ? "#3fb950" : kind === "bad" ? "#f85149" : "#8b949e";
+  const color = trendColor(trendKind(p, c, dir));
 
   // Decorative: the number itself already conveys the value; colour is not the sole signal.
   return (
     <span aria-hidden style={{ color, marginLeft: "0.3em", fontSize: "0.8em" }} title={`Forrige: ${prev}`}>
-      {rose ? "▲" : "▼"}
+      {c > p ? "▲" : "▼"}
     </span>
   );
 }
 
 const numCellStyle = { textAlign: "right", fontVariantNumeric: "tabular-nums" } as const;
 
-function MetricCells({ snapshot, prev }: { snapshot: QaSnapshot; prev?: QaSnapshot }) {
+// `snapshots` (the project's full history, newest-first) is only passed in the overview,
+// where each row represents one project — there a sparkline shows the metric's evolution.
+// In the per-snapshot history table it is omitted (a one-row sparkline is meaningless).
+function MetricCells({
+  snapshot,
+  prev,
+  snapshots,
+}: {
+  snapshot: QaSnapshot;
+  prev?: QaSnapshot;
+  snapshots?: QaSnapshot[];
+}) {
   return (
     <>
       {METRIC_COLUMNS.map((col) => (
         <Table.Cell key={col.key} style={numCellStyle}>
           {displayValue(snapshot.metrics, col)}
           <Trend cur={snapshot.metrics[col.key]} prev={prev?.metrics[col.key]} dir={col.dir} />
+          {snapshots && <Sparkline values={metricSeries(snapshots, col)} dir={col.dir} />}
         </Table.Cell>
       ))}
     </>
@@ -179,7 +172,7 @@ function Overview({ projects, onSelect }: { projects: QaProject[]; onSelect: (na
               <Table.Cell>
                 <GateTag status={latest.gateStatus} />
               </Table.Cell>
-              <MetricCells snapshot={latest} prev={prev} />
+              <MetricCells snapshot={latest} prev={prev} snapshots={project.snapshots} />
             </Table.Row>
           );
         })}
@@ -289,6 +282,25 @@ function ProjectDetail({ project, onBack }: { project: QaProject; onBack: () => 
       <Heading level={2} data-size="sm" style={{ margin: "1rem 0 0" }}>
         {project.name}
       </Heading>
+
+      <Heading level={3} data-size="xs" style={{ margin: "2rem 0 var(--ds-size-3)" }}>
+        Trender
+      </Heading>
+      <GateTimeline snapshots={project.snapshots} />
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+          gap: "var(--ds-size-3)",
+          marginTop: "var(--ds-size-3)",
+          marginBottom: "var(--ds-size-4)",
+        }}
+      >
+        {METRIC_COLUMNS.map((col) => {
+          const points = metricPoints(project.snapshots, col);
+          return points.length === 0 ? null : <MetricChart key={col.key} col={col} points={points} />;
+        })}
+      </div>
 
       <Heading level={3} data-size="xs" style={{ margin: "2rem 0 var(--ds-size-3)" }}>
         Historikk
