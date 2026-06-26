@@ -66,7 +66,7 @@ export default function App() {
         <header className="header">
           <div className="flex-col">
             <Heading level={1} data-size="md">
-              DD Admin 👍
+              DD Admin
             </Heading>
             <Switch
               label="Mørk modus"
