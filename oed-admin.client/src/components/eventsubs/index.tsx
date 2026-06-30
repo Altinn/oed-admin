@@ -1,4 +1,13 @@
-import { Button, Dialog, Heading, Paragraph, Popover, Skeleton, Table, ValidationMessage } from "@digdir/designsystemet-react";
+import {
+  Button,
+  Dialog,
+  Heading,
+  Paragraph,
+  Popover,
+  Skeleton,
+  Table,
+  ValidationMessage,
+} from "@digdir/designsystemet-react";
 import { formatDateTime } from "../../utils/formatters";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckmarkIcon } from "@navikt/aksel-icons";
@@ -24,7 +33,8 @@ interface IEventSubscription {
 
 export default function EventSubs() {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [selectedSubscription, setSelectedSubscription] = useState<IEventSubscription | null>(null);
+  const [selectedSubscription, setSelectedSubscription] =
+    useState<IEventSubscription | null>(null);
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useQuery<string>({
     queryKey: ["eventsubscriptions"],
@@ -34,13 +44,13 @@ export default function EventSubs() {
         throw new Error("Failed to fetch event subscriptions");
       }
       return response.json();
-    }    
+    },
   });
-  
+
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
       const response = await fetchWithMsal(`/api/eventsubscriptions/${id}`, {
-        method: 'DELETE'
+        method: "DELETE",
       });
       if (!response.ok) {
         throw new Error("Failed to delete event subscription");
@@ -57,21 +67,23 @@ export default function EventSubs() {
     },
   });
 
-  const subs = !data 
-    ? null
-    : JSON.parse(data) as IEventSubscriptionsResponse;
+  const subs = !data ? null : (JSON.parse(data) as IEventSubscriptionsResponse);
 
   const resourcesOfInterest = [
-    "urn:altinn:resource:app_digdir_oed", 
-    "urn:altinn:resource:app_digdir_oed-declaration", 
-    "urn:altinn:resource:dodsbo-domstoladmin-api"];
+    "urn:altinn:resource:app_digdir_oed",
+    "urn:altinn:resource:app_digdir_oed-declaration",
+    "urn:altinn:resource:app_digdir_dd-private-probate",
+    "urn:altinn:resource:dodsbo-domstoladmin-api",
+  ];
 
-  const filteredData = subs?.subscriptions.filter(s => resourcesOfInterest.includes(s.resourceFilter));
-  
+  const filteredData = subs?.subscriptions.filter((s) =>
+    resourcesOfInterest.includes(s.resourceFilter),
+  );
+
   if (isLoading) {
     return <Skeleton aria-label="Henter event subscriptions" />;
   }
-  
+
   if (error) {
     return (
       <ValidationMessage>
@@ -83,7 +95,7 @@ export default function EventSubs() {
   if (!subs || subs?.subscriptions?.length === 0) {
     <ValidationMessage data-color="info">
       Ingen event subscriptions funnet
-    </ValidationMessage>
+    </ValidationMessage>;
   }
 
   return (
@@ -106,16 +118,22 @@ export default function EventSubs() {
           </Table.Row>
         </Table.Head>
         <Table.Body>
-          {filteredData?.map(sub => (
-            <Table.Row key = {sub.id}>
+          {filteredData?.map((sub) => (
+            <Table.Row key={sub.id}>
               <Table.Cell>{sub.id}</Table.Cell>
               <Table.Cell>{sub.endPoint}</Table.Cell>
               <Table.Cell>{sub.resourceFilter}</Table.Cell>
               <Table.Cell>{sub.typeFilter}</Table.Cell>
               <Table.Cell>{formatDateTime(sub.created)}</Table.Cell>
-              <Table.Cell>{sub.validated ? <CheckmarkIcon /> : ''}</Table.Cell>
+              <Table.Cell>{sub.validated ? <CheckmarkIcon /> : ""}</Table.Cell>
               <Table.Cell>
-                <Button variant="tertiary" onClick={() => { setSelectedSubscription(sub); dialogRef.current?.showModal() }}>
+                <Button
+                  variant="tertiary"
+                  onClick={() => {
+                    setSelectedSubscription(sub);
+                    dialogRef.current?.showModal();
+                  }}
+                >
                   <TrashIcon />
                 </Button>
               </Table.Cell>
@@ -127,7 +145,8 @@ export default function EventSubs() {
       <Dialog ref={dialogRef}>
         <Heading>Slette event subscription?</Heading>
         <Paragraph>
-          Er du sikker på at du vil slette subscription med id: {selectedSubscription?.id} ?
+          Er du sikker på at du vil slette subscription med id:{" "}
+          {selectedSubscription?.id} ?
         </Paragraph>
         <div
           style={{
@@ -135,20 +154,19 @@ export default function EventSubs() {
           }}
           className="flex-row"
         >
-          <Button 
+          <Button
             data-color="danger"
             variant="secondary"
             onClick={() => {
               deleteMutation.mutate(selectedSubscription!.id);
-              dialogRef.current?.close()}}
+              dialogRef.current?.close();
+            }}
           >
             Ja, slett!
           </Button>
-          <Button onClick={() => dialogRef.current?.close()} >
-            Avbryt
-          </Button>
+          <Button onClick={() => dialogRef.current?.close()}>Avbryt</Button>
         </div>
       </Dialog>
     </>
-  )
+  );
 }
