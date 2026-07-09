@@ -130,7 +130,7 @@ export interface AltinnEvent {
   subject: string;
   resource: string;
   datacontenttype: string;
-  data: string;
+  data: unknown;
 }
 
 export interface EstateEventsResponse {

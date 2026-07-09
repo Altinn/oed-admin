@@ -55,8 +55,8 @@ export default function EstateEvents({ estateId }: Props) {
 
   const sortedData = [...(altinnEvents || [])].sort((a, b) => {
     if (sortField === null) return 0;
-    const aValue = a[sortField] ?? "";
-    const bValue = b[sortField] ?? "";
+    const aValue = String(a[sortField] ?? "");
+    const bValue = String(b[sortField] ?? "");
     if (aValue < bValue) return sortDirection === "ascending" ? -1 : 1;
     if (aValue > bValue) return sortDirection === "ascending" ? 1 : -1;
     return 0;
@@ -118,22 +118,19 @@ export default function EstateEvents({ estateId }: Props) {
                   <Dialog.Trigger
                     variant="tertiary"
                     data-size="lg"
-                    disabled={!event.data}
                   >
                     <CodeIcon />
                   </Dialog.Trigger>
-                  {event.data && (
-                    <Dialog style={{ maxWidth: 1200 }} data-size="sm" closedby="any">
-                      <Heading
-                        level={3}
-                        style={{ marginBottom: "var(--ds-size-2)" }}
-                      >
-                        Eventdata
-                      </Heading>
-                      <JSONPretty id="json-pretty" data={event.data}></JSONPretty>
+                  <Dialog style={{ maxWidth: 1200 }} data-size="sm" closedby="any">
+                    <Heading
+                      level={3}
+                      style={{ marginBottom: "var(--ds-size-2)" }}
+                    >
+                      Event
+                    </Heading>
+                    <JSONPretty data={event}></JSONPretty>
                   </Dialog>
-                )}
-                </Dialog.TriggerContext>                  
+                </Dialog.TriggerContext>
               </Table.Cell>
             </Table.Row>
           ))}
