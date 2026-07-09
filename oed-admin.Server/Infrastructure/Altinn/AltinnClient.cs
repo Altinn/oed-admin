@@ -1,6 +1,7 @@
 ﻿using Altinn.Platform.Storage.Interface.Models;
 using CloudNative.CloudEvents;
 using CloudNative.CloudEvents.SystemTextJson;
+using Microsoft.Extensions.Options;
 using oed_testdata.Server.Infrastructure.Altinn;
 
 namespace oed_admin.Server.Infrastructure.Altinn;
@@ -12,12 +13,15 @@ public interface IAltinnClient
     public Task<IReadOnlyCollection<CloudEvent>> GetEvents(string resource, string subject, string? after = "0");
     public Task<Instance?> GetInstance(int instanceOwnerPartyId, Guid instanceGuid);
     public Task<string> GetInstanceDataAsString(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid);
+    public Task<InstanceDataContent> GetInstanceDataAsBytes(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid);
     public Task<TData> GetInstanceData<TData>(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid);
     public Task<InstanceSearchResponse> GetInstances(string appId, int count, string? continuationToken);
     public Task<List<Instance>> GetInstances(string appId, int instanceOwnerPartyId);
+
+    public Task<object?> GetOedSigneeStatus(int instanceOwnerPartyId, Guid instanceGuid);
 }
 
-public class AltinnClient(HttpClient httpClient) : IAltinnClient
+public class AltinnClient(HttpClient httpClient, IOptionsMonitor<AltinnSettings> altinnSettingsOptionsMonitor) : IAltinnClient
 {
     public async Task<string> GetEventSubscriptions()
     {
@@ -82,6 +86,20 @@ public class AltinnClient(HttpClient httpClient) : IAltinnClient
         return contentString;
     }
 
+    public async Task<InstanceDataContent> GetInstanceDataAsBytes(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid)
+    {
+        var path = $"/storage/api/v1/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}";
+
+        var response = await httpClient.GetAsync(path);
+
+        response.EnsureSuccessStatusCode();
+
+        var contentType = response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream";
+        var content = await response.Content.ReadAsByteArrayAsync();
+
+        return new InstanceDataContent(content, contentType);
+    }
+
     public async Task<TData> GetInstanceData<TData>(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid)
     {
         var path = $"/storage/api/v1/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}";
@@ -129,6 +147,21 @@ public class AltinnClient(HttpClient httpClient) : IAltinnClient
         return searchResponse.Instances;
     }
 
+    public async Task<object?> GetOedSigneeStatus(int instanceOwnerPartyId, Guid instanceGuid)
+    {
+        var path = $"{altinnSettingsOptionsMonitor.CurrentValue.AppsUrl}/{AppIds.Oed}/api/app/{instanceOwnerPartyId}/{instanceGuid}/subapps";
+        return await GetObjectFromPath(path);
+    }
+
+    private async Task<object?> GetObjectFromPath(string path)
+    {
+        var response = await httpClient.GetAsync(path);
+
+        response.EnsureSuccessStatusCode();
+        var contentString = await response.Content.ReadFromJsonAsync<object>();
+
+        return contentString;
+    }
     //https://{{PlatformHostUrl}}/storage/api/v1/instances?org=digdir&appId=digdir/{{app}}&status.isHardDeleted=false&status.isSoftDeleted=false&size=10
 }
 
@@ -153,3 +186,5 @@ public class InstanceSearchResponse
     public string Next { get; init; } = string.Empty;
     public List<Instance> Instances { get; init; } = [];
 }
+
+public record InstanceDataContent(byte[] Content, string ContentType);

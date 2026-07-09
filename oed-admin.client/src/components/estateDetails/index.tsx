@@ -19,6 +19,7 @@ import {
   InformationSquareIcon,
   KeyVerticalIcon,
   ParagraphIcon,
+  PencilWritingIcon,
   ShieldCheckmarkIcon,
   TasklistIcon,
 } from "@navikt/aksel-icons";
@@ -36,6 +37,7 @@ import {
 import EstateInstance from "../estateInstance";
 import EstateDeclaration from "../estateDeclaration";
 import EstateProbateInformation from "../estateProbateInformation";
+import EstateSigneeStatus from "../estateSigneeStatus";
 import EstateDaObject from "../estateDaObject";
 import { fetchWithMsal } from "../../utils/msalUtils";
 import EstateSearchRoles from "../estateSearchRoles";
@@ -118,6 +120,10 @@ export default function EstateDetails() {
             <DocPencilIcon />
             Skifteerklæring
           </Tabs.Tab>
+          <Tabs.Tab value="signeestatus">
+            <PencilWritingIcon />
+            Signeringer
+          </Tabs.Tab>
           <Tabs.Tab value="probateinformation">
             <GavelIcon />
             DA Probate Information
@@ -198,6 +204,9 @@ export default function EstateDetails() {
         </Tabs.Panel>
         <Tabs.Panel value="declaration">
           <EstateDeclaration estateId={id} />
+        </Tabs.Panel>
+        <Tabs.Panel value="signeestatus">
+          <EstateSigneeStatus estateId={id} />
         </Tabs.Panel>
         <Tabs.Panel value="probateinformation">
           <EstateProbateInformation estateId={id} />

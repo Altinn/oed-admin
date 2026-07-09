@@ -12,11 +12,11 @@ public static class Endpoint
         if (!request.IsValid())
             return TypedResults.BadRequest();
         
-        var instanceData = await storageClient.GetInstanceDataAsString(
+        var instanceData = await storageClient.GetInstanceDataAsBytes(
             request.InstanceOwnerPartyId,
             request.InstanceGuid,
             request.DataGuid);
 
-        return TypedResults.Ok(new Response(instanceData));
+        return TypedResults.File(instanceData.Content, instanceData.ContentType);
     }
 }
