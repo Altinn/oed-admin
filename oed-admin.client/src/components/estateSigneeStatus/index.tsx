@@ -11,12 +11,19 @@ import {
 } from "@digdir/designsystemet-react";
 import { fetchWithMsal } from "../../utils/msalUtils";
 import { formatDateTime } from "../../utils/formatters";
-import { CodeIcon, FileJsonIcon, FilePdfIcon } from "@navikt/aksel-icons";
-import JSONPretty from "react-json-pretty";
-import "react-json-pretty/themes/monikai.css";
+import { CodeIcon, FilePdfIcon } from "@navikt/aksel-icons";
+import Instance from "../instance";
 
 interface Props {
   estateId: string;
+}
+interface DataElement {
+  id: string;
+  contentType: string | null;
+  selfLinks: { apps: string | null; platform: string | null } | null;
+}
+interface AltinnInstance {
+  data: DataElement[] | null;
 }
 interface Signee {
   partyId: number;
@@ -134,7 +141,7 @@ function SubAppInstanceCell({ signee }: { signee: Signee }) {
     ? toInstanceProxyUrl(signee.subAppInstanceUrl)
     : null;
 
-  const { data, isLoading, error } = useQuery<{ instance: unknown }>({
+  const { data, isLoading, error } = useQuery<{ instance: AltinnInstance }>({
     queryKey: ["instance", proxyUrl],
     queryFn: async () => {
       const response = await fetchWithMsal(proxyUrl!);
@@ -146,9 +153,38 @@ function SubAppInstanceCell({ signee }: { signee: Signee }) {
     enabled: enabled && !!proxyUrl,
   });
 
+  // The instance's data array holds both the PDF receipt and the XML submission,
+  // so pick by content type rather than position. selfLinks.apps is null when the
+  // element came from platform storage, which is why we read selfLinks.platform.
+  const platformUrl = data?.instance?.data?.find((dataElement) =>
+    dataElement.contentType?.toLowerCase().includes("xml"),
+  )?.selfLinks?.platform;
+  const xmlProxyUrl = platformUrl ? toProxyUrl(platformUrl) : null;
+
+  const {
+    data: xml,
+    isLoading: isXmlLoading,
+    error: xmlError,
+  } = useQuery<string>({
+    queryKey: ["instance-data", xmlProxyUrl],
+    queryFn: async () => {
+      const response = await fetchWithMsal(xmlProxyUrl!);
+      if (!response.ok) {
+        throw new Error("Failed to fetch instance data");
+      }
+      return response.text();
+    },
+    enabled: !!xmlProxyUrl,
+  });
+
   if (!proxyUrl) {
     return <>-</>;
   }
+
+  // Without the xmlProxyUrl guard an instance carrying no xml element would keep
+  // isXmlLoading true forever, since that query never becomes enabled.
+  const isPending = isLoading || (!!xmlProxyUrl && isXmlLoading);
+  const failed = error ?? xmlError;
 
   return (
     <>
@@ -160,26 +196,31 @@ function SubAppInstanceCell({ signee }: { signee: Signee }) {
           setEnabled(true);
           dialogRef.current?.showModal();
         }}
-        aria-label="Vis instans-JSON"
+        aria-label="Vis subapp-instans"
       >
-        <FileJsonIcon />
+        <CodeIcon />
       </Button>
       <Dialog
         ref={dialogRef}
-        style={{ maxWidth: 1200 }}
+        // Pin the height so expanding a pane scrolls inside the dialog instead of
+        // resizing it. .ds-dialog is vertically centred (inset: 0; margin: auto),
+        // so a content-driven height makes the whole box move as panes open.
+        style={{ maxWidth: 1200, height: "var(--dsc-dialog-max-height)" }}
         data-size="sm"
         closedby="any"
       >
         <Heading level={3} style={{ marginBottom: "var(--ds-size-2)" }}>
-          Instans
+          SubApp instans
         </Heading>
-        {isLoading && (
+        {isPending && (
           <Skeleton variant="rectangle" aria-label="Henter instans" />
         )}
-        {error && (
+        {failed && (
           <ValidationMessage>Kunne ikke hente instans.</ValidationMessage>
         )}
-        {data && <JSONPretty data={data.instance} />}
+        {!isPending && !failed && data && (
+          <Instance data={{ instance: data.instance, instanceData: xml }} />
+        )}
       </Dialog>
     </>
   );
@@ -241,9 +282,8 @@ export default function EstateSigneeStatus({ estateId }: Props) {
               <Table.HeaderCell>Status</Table.HeaderCell>
               <Table.HeaderCell>Innsendt</Table.HeaderCell>
               <Table.HeaderCell>Ekstra</Table.HeaderCell>
-              <Table.HeaderCell>PDF</Table.HeaderCell>
-              <Table.HeaderCell>JSON</Table.HeaderCell>
               <Table.HeaderCell>Instans</Table.HeaderCell>
+              <Table.HeaderCell>PDF</Table.HeaderCell>
             </Table.Row>
           </Table.Head>
           <Table.Body>
@@ -266,30 +306,10 @@ export default function EstateSigneeStatus({ estateId }: Props) {
                     : "-"}
                 </Table.Cell>
                 <Table.Cell>
-                  <ReceiptCell signee={signee} />
-                </Table.Cell>
-                <Table.Cell>
-                  <Dialog.TriggerContext>
-                    <Dialog.Trigger variant="tertiary" data-size="lg">
-                      <CodeIcon />
-                    </Dialog.Trigger>
-                    <Dialog
-                      style={{ maxWidth: 1200 }}
-                      data-size="sm"
-                      closedby="any"
-                    >
-                      <Heading
-                        level={3}
-                        style={{ marginBottom: "var(--ds-size-2)" }}
-                      >
-                        JSON Payload
-                      </Heading>
-                      <JSONPretty id="json-pretty" data={signee}></JSONPretty>
-                    </Dialog>
-                  </Dialog.TriggerContext>
-                </Table.Cell>
-                <Table.Cell>
                   <SubAppInstanceCell signee={signee} />
+                </Table.Cell>
+                <Table.Cell>
+                  <ReceiptCell signee={signee} />
                 </Table.Cell>
               </Table.Row>
             ))}
