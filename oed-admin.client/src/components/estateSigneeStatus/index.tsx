@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Button,
@@ -11,7 +11,7 @@ import {
 } from "@digdir/designsystemet-react";
 import { fetchWithMsal } from "../../utils/msalUtils";
 import { formatDateTime } from "../../utils/formatters";
-import { CodeIcon, FilePdfIcon } from "@navikt/aksel-icons";
+import { CodeIcon, FileJsonIcon, FilePdfIcon } from "@navikt/aksel-icons";
 import JSONPretty from "react-json-pretty";
 import "react-json-pretty/themes/monikai.css";
 
@@ -22,6 +22,7 @@ interface Signee {
   partyId: number;
   probateType: string | null;
   subAppStatus: string | null;
+  subAppInstanceUrl: string | null;
   receiptUrl: string | null;
   submitted: string | null;
   subApp: string | null;
@@ -46,6 +47,25 @@ const toProxyUrl = (receiptUrl: string): string | null => {
       return null;
     }
     return `/api/instances/${ownerPartyId}/${instanceGuid}/data/${dataGuid}`;
+  } catch {
+    return null;
+  }
+};
+
+// subAppInstanceUrl points at Altinn Storage, which our msal token is not valid for.
+// Its last two path segments are the ids our own proxy endpoint needs:
+// .../storage/api/v1/instances/{ownerPartyId}/{instanceGuid}
+// Note ownerPartyId is the instance owner, not the signee's partyId.
+const toInstanceProxyUrl = (subAppInstanceUrl: string): string | null => {
+  try {
+    const segments = new URL(subAppInstanceUrl).pathname.split("/");
+    const instanceGuid = segments.at(-1);
+    const ownerPartyId = segments.at(-2);
+
+    if (!instanceGuid || !ownerPartyId) {
+      return null;
+    }
+    return `/api/instances/${ownerPartyId}/${instanceGuid}`;
   } catch {
     return null;
   }
@@ -102,6 +122,65 @@ function ReceiptCell({ signee }: { signee: Signee }) {
           Kunne ikke hente kvittering.
         </ValidationMessage>
       )}
+    </>
+  );
+}
+
+function SubAppInstanceCell({ signee }: { signee: Signee }) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [enabled, setEnabled] = useState(false);
+
+  const proxyUrl = signee.subAppInstanceUrl
+    ? toInstanceProxyUrl(signee.subAppInstanceUrl)
+    : null;
+
+  const { data, isLoading, error } = useQuery<{ instance: unknown }>({
+    queryKey: ["instance", proxyUrl],
+    queryFn: async () => {
+      const response = await fetchWithMsal(proxyUrl!);
+      if (!response.ok) {
+        throw new Error("Failed to fetch instance");
+      }
+      return response.json();
+    },
+    enabled: enabled && !!proxyUrl,
+  });
+
+  if (!proxyUrl) {
+    return <>-</>;
+  }
+
+  return (
+    <>
+      <Button
+        variant="tertiary"
+        data-size="lg"
+        icon
+        onClick={() => {
+          setEnabled(true);
+          dialogRef.current?.showModal();
+        }}
+        aria-label="Vis instans-JSON"
+      >
+        <FileJsonIcon />
+      </Button>
+      <Dialog
+        ref={dialogRef}
+        style={{ maxWidth: 1200 }}
+        data-size="sm"
+        closedby="any"
+      >
+        <Heading level={3} style={{ marginBottom: "var(--ds-size-2)" }}>
+          Instans
+        </Heading>
+        {isLoading && (
+          <Skeleton variant="rectangle" aria-label="Henter instans" />
+        )}
+        {error && (
+          <ValidationMessage>Kunne ikke hente instans.</ValidationMessage>
+        )}
+        {data && <JSONPretty data={data.instance} />}
+      </Dialog>
     </>
   );
 }
@@ -164,6 +243,7 @@ export default function EstateSigneeStatus({ estateId }: Props) {
               <Table.HeaderCell>Ekstra</Table.HeaderCell>
               <Table.HeaderCell>PDF</Table.HeaderCell>
               <Table.HeaderCell>JSON</Table.HeaderCell>
+              <Table.HeaderCell>Instans</Table.HeaderCell>
             </Table.Row>
           </Table.Head>
           <Table.Body>
@@ -207,6 +287,9 @@ export default function EstateSigneeStatus({ estateId }: Props) {
                       <JSONPretty id="json-pretty" data={signee}></JSONPretty>
                     </Dialog>
                   </Dialog.TriggerContext>
+                </Table.Cell>
+                <Table.Cell>
+                  <SubAppInstanceCell signee={signee} />
                 </Table.Cell>
               </Table.Row>
             ))}
