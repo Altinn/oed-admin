@@ -11,7 +11,8 @@ import {
 } from "@digdir/designsystemet-react";
 import { fetchWithMsal } from "../../utils/msalUtils";
 import { formatDateTime } from "../../utils/formatters";
-import { CodeIcon, FilePdfIcon, GavelIcon } from "@navikt/aksel-icons";
+import { CodeIcon, FilePdfIcon } from "@navikt/aksel-icons";
+import BracesIcon from "../icons/BracesIcon";
 import Instance from "../instance";
 import JSONPretty from "react-json-pretty";
 import "react-json-pretty/themes/monikai.css";
@@ -291,7 +292,7 @@ function HeirDeclarationCell({
         }}
         aria-label="Vis DA-erklæring"
       >
-        <GavelIcon />
+        <BracesIcon />
       </Button>
       <Dialog
         ref={dialogRef}
