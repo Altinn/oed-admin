@@ -1,9 +1,6 @@
-import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Alert,
-  Button,
-  Dialog,
   Heading,
   Paragraph,
   Skeleton,
@@ -12,334 +9,17 @@ import {
 } from "@digdir/designsystemet-react";
 import { fetchWithMsal } from "../../utils/msalUtils";
 import { formatDateTime } from "../../utils/formatters";
-import { CodeIcon, FilePdfIcon } from "@navikt/aksel-icons";
-import BracesIcon from "../icons/BracesIcon";
-import Instance from "../instance";
-import JSONPretty from "react-json-pretty";
-import "react-json-pretty/themes/monikai.css";
+import HeirDeclarationCell from "./HeirDeclarationCell";
+import ReceiptCell from "./ReceiptCell";
+import SubAppInstanceCell from "./SubAppInstanceCell";
+import {
+  DECLARATION_SUBAPP,
+  isDeclarationSubApp,
+  type SigneeStatusResponse,
+} from "./types";
 
 interface Props {
   estateId: string;
-}
-interface DataElement {
-  id: string;
-  contentType: string | null;
-  selfLinks: { apps: string | null; platform: string | null } | null;
-}
-interface AltinnInstance {
-  data: DataElement[] | null;
-}
-interface Signee {
-  partyId: number;
-  probateType: string | null;
-  subAppStatus: string | null;
-  subAppInstanceUrl: string | null;
-  receiptUrl: string | null;
-  submitted: string | null;
-  subApp: string | null;
-  extraInfo: Record<string, string> | null;
-}
-interface SigneeStatusResponse {
-  signeeStatus: { signeeStatus: Signee[] } | null;
-}
-interface HeirDeclarationResponse {
-  heirDeclaration: unknown;
-}
-interface ProbateInformationResponse {
-  probateInformation: unknown;
-}
-
-// The oed-declaration subapp does not expose a per-heir declaration through the
-// subapps endpoint. Its DA-erklæring is the estate-level declaration, the same
-// payload the "DA Probate Information" tab shows as "Data v1".
-const DECLARATION_SUBAPP = "oed-declaration";
-
-// receiptUrl points at the Altinn apps host, which our msal token is not valid for.
-// Its path carries the ids our own proxy endpoint needs:
-// .../instances/{ownerPartyId}/{instanceGuid}/data/{dataGuid}
-// Note ownerPartyId is the instance owner, not the signee's partyId.
-const toProxyUrl = (receiptUrl: string): string | null => {
-  try {
-    const segments = new URL(receiptUrl).pathname.split("/");
-    const dataGuid = segments.at(-1);
-    const instanceGuid = segments.at(-3);
-    const ownerPartyId = segments.at(-4);
-
-    if (!dataGuid || !instanceGuid || !ownerPartyId) {
-      return null;
-    }
-    return `/api/instances/${ownerPartyId}/${instanceGuid}/data/${dataGuid}`;
-  } catch {
-    return null;
-  }
-};
-
-// subAppInstanceUrl points at Altinn Storage, which our msal token is not valid for.
-// Its last two path segments are the ids our own proxy endpoint needs:
-// .../storage/api/v1/instances/{ownerPartyId}/{instanceGuid}
-// Note ownerPartyId is the instance owner, not the signee's partyId.
-const toInstanceProxyUrl = (subAppInstanceUrl: string): string | null => {
-  try {
-    const segments = new URL(subAppInstanceUrl).pathname.split("/");
-    const instanceGuid = segments.at(-1);
-    const ownerPartyId = segments.at(-2);
-
-    if (!instanceGuid || !ownerPartyId) {
-      return null;
-    }
-    return `/api/instances/${ownerPartyId}/${instanceGuid}`;
-  } catch {
-    return null;
-  }
-};
-
-// The heir's subapp instance guid is the last path segment of subAppInstanceUrl (Altinn Storage):
-// .../storage/api/v1/instances/{ownerPartyId}/{instanceGuid}
-const toSubAppInstanceGuid = (subAppInstanceUrl: string): string | null => {
-  try {
-    return new URL(subAppInstanceUrl).pathname.split("/").at(-1) || null;
-  } catch {
-    return null;
-  }
-};
-
-function ReceiptCell({ signee }: { signee: Signee }) {
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [failed, setFailed] = useState(false);
-
-  const proxyUrl = signee.receiptUrl ? toProxyUrl(signee.receiptUrl) : null;
-
-  if (!proxyUrl) {
-    return <>-</>;
-  }
-
-  const download = async () => {
-    setIsDownloading(true);
-    setFailed(false);
-
-    try {
-      const response = await fetchWithMsal(proxyUrl);
-      if (!response.ok) {
-        throw new Error("Failed to fetch receipt");
-      }
-
-      const objectUrl = URL.createObjectURL(await response.blob());
-      const anchor = document.createElement("a");
-      anchor.href = objectUrl;
-      anchor.download = `kvittering-${signee.partyId}.pdf`;
-      anchor.click();
-      URL.revokeObjectURL(objectUrl);
-    } catch {
-      setFailed(true);
-    } finally {
-      setIsDownloading(false);
-    }
-  };
-
-  return (
-    <>
-      <Button
-        variant="tertiary"
-        data-size="lg"
-        icon
-        loading={isDownloading}
-        disabled={isDownloading}
-        onClick={download}
-        aria-label="Last ned kvittering som PDF"
-      >
-        <FilePdfIcon />
-      </Button>
-      {failed && (
-        <ValidationMessage data-size="sm">
-          Kunne ikke hente kvittering.
-        </ValidationMessage>
-      )}
-    </>
-  );
-}
-
-function SubAppInstanceCell({ signee }: { signee: Signee }) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const [enabled, setEnabled] = useState(false);
-
-  const proxyUrl = signee.subAppInstanceUrl
-    ? toInstanceProxyUrl(signee.subAppInstanceUrl)
-    : null;
-
-  const { data, isLoading, error } = useQuery<{ instance: AltinnInstance }>({
-    queryKey: ["instance", proxyUrl],
-    queryFn: async () => {
-      const response = await fetchWithMsal(proxyUrl!);
-      if (!response.ok) {
-        throw new Error("Failed to fetch instance");
-      }
-      return response.json();
-    },
-    enabled: enabled && !!proxyUrl,
-  });
-
-  // The instance's data array holds both the PDF receipt and the XML submission,
-  // so pick by content type rather than position. selfLinks.apps is null when the
-  // element came from platform storage, which is why we read selfLinks.platform.
-  const platformUrl = data?.instance?.data?.find((dataElement) =>
-    dataElement.contentType?.toLowerCase().includes("xml"),
-  )?.selfLinks?.platform;
-  const xmlProxyUrl = platformUrl ? toProxyUrl(platformUrl) : null;
-
-  const {
-    data: xml,
-    isLoading: isXmlLoading,
-    error: xmlError,
-  } = useQuery<string>({
-    queryKey: ["instance-data", xmlProxyUrl],
-    queryFn: async () => {
-      const response = await fetchWithMsal(xmlProxyUrl!);
-      if (!response.ok) {
-        throw new Error("Failed to fetch instance data");
-      }
-      return response.text();
-    },
-    enabled: !!xmlProxyUrl,
-  });
-
-  if (!proxyUrl) {
-    return <>-</>;
-  }
-
-  // Without the xmlProxyUrl guard an instance carrying no xml element would keep
-  // isXmlLoading true forever, since that query never becomes enabled.
-  const isPending = isLoading || (!!xmlProxyUrl && isXmlLoading);
-  const failed = error ?? xmlError;
-
-  return (
-    <>
-      <Button
-        variant="tertiary"
-        data-size="lg"
-        icon
-        onClick={() => {
-          setEnabled(true);
-          dialogRef.current?.showModal();
-        }}
-        aria-label="Vis subapp-instans"
-      >
-        <CodeIcon />
-      </Button>
-      <Dialog
-        ref={dialogRef}
-        // Pin the height so expanding a pane scrolls inside the dialog instead of
-        // resizing it. .ds-dialog is vertically centred (inset: 0; margin: auto),
-        // so a content-driven height makes the whole box move as panes open.
-        style={{ maxWidth: 1200, height: "var(--dsc-dialog-max-height)" }}
-        data-size="sm"
-        closedby="any"
-      >
-        <Heading level={3} style={{ marginBottom: "var(--ds-size-2)" }}>
-          SubApp instans
-        </Heading>
-        {isPending && (
-          <Skeleton variant="rectangle" aria-label="Henter instans" />
-        )}
-        {failed && (
-          <ValidationMessage>Kunne ikke hente instans.</ValidationMessage>
-        )}
-        {!isPending && !failed && data && (
-          <Instance data={{ instance: data.instance, instanceData: xml }} />
-        )}
-      </Dialog>
-    </>
-  );
-}
-
-// Shows the payload DA receives when it fetches this heir's declaration. The backend derives the
-// deceased instance from the estate row; the heir side needs the subApp, the heir's partyId, and
-// the heir's subapp instance guid (parsed from subAppInstanceUrl).
-function HeirDeclarationCell({
-  estateId,
-  signee,
-}: {
-  estateId: string;
-  signee: Signee;
-}) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const [enabled, setEnabled] = useState(false);
-
-  const heirInstanceGuid = signee.subAppInstanceUrl
-    ? toSubAppInstanceGuid(signee.subAppInstanceUrl)
-    : null;
-
-  const isDeclarationSubApp =
-    signee.subApp?.toLowerCase() === DECLARATION_SUBAPP;
-
-  const url = isDeclarationSubApp
-    ? `/api/estate/${estateId}/probateinformation`
-    : signee.subApp && heirInstanceGuid
-      ? `/api/estate/${estateId}/heirdeclaration/${signee.partyId}` +
-        `/${encodeURIComponent(signee.subApp)}/${heirInstanceGuid}`
-      : null;
-
-  const queryKey = isDeclarationSubApp
-    ? ["probateinformation", estateId]
-    : ["heir-declaration", estateId, signee.partyId];
-
-  const { data, isLoading, error } = useQuery<
-    HeirDeclarationResponse | ProbateInformationResponse
-  >({
-    queryKey,
-    queryFn: async () => {
-      const response = await fetchWithMsal(url!);
-      if (!response.ok) {
-        throw new Error("Failed to fetch heir declaration");
-      }
-      return response.json();
-    },
-    enabled: enabled && !!url,
-  });
-
-  const declaration = isDeclarationSubApp
-    ? (data as ProbateInformationResponse | undefined)?.probateInformation
-    : (data as HeirDeclarationResponse | undefined)?.heirDeclaration;
-
-  if (!url) {
-    return <>-</>;
-  }
-
-  return (
-    <>
-      <Button
-        variant="tertiary"
-        data-size="lg"
-        icon
-        onClick={() => {
-          setEnabled(true);
-          dialogRef.current?.showModal();
-        }}
-        aria-label="Vis DA-erklæring"
-      >
-        <BracesIcon />
-      </Button>
-      <Dialog
-        ref={dialogRef}
-        // Pin the height so expanding content scrolls inside the dialog instead of resizing it.
-        style={{ maxWidth: 1200, height: "var(--dsc-dialog-max-height)" }}
-        data-size="sm"
-        closedby="any"
-      >
-        <Heading level={3} style={{ marginBottom: "var(--ds-size-2)" }}>
-          DA-erklæring
-        </Heading>
-        {isLoading && (
-          <Skeleton variant="rectangle" aria-label="Henter DA-erklæring" />
-        )}
-        {error && (
-          <ValidationMessage>Kunne ikke hente DA-erklæring.</ValidationMessage>
-        )}
-        {!isLoading && !error && data && (
-          <JSONPretty id="json-pretty" data={declaration} />
-        )}
-      </Dialog>
-    </>
-  );
 }
 
 export default function EstateSigneeStatus({ estateId }: Props) {
@@ -358,6 +38,8 @@ export default function EstateSigneeStatus({ estateId }: Props) {
 
   const signees = data?.signeeStatus?.signeeStatus;
 
+  const hasDeclarationSubApp = !!signees?.some(isDeclarationSubApp);
+
   return (
     <>
       <Heading
@@ -370,25 +52,28 @@ export default function EstateSigneeStatus({ estateId }: Props) {
       <Paragraph style={{ marginBottom: "var(--ds-size-2)" }}>
         Her vises arvingenes skifteerklæringer for dette boet.
       </Paragraph>
-      <Alert
-        data-color="info"
-        data-size="sm"
-        style={{ marginBottom: "var(--ds-size-5)" }}
-      >
-        <Heading level={3} data-size="2xs">
-          Viktig informasjon angående {DECLARATION_SUBAPP}
-        </Heading>
-        <Paragraph style={{ marginTop: "var(--ds-size-2)" }}>
-          For subappen "oed-declaration" deler alle arvingene det samme skjemaet
-          i altinn. Instans, PDF og DA-erklæring vil derfor vise samme
-          informasjon for alle radene. Status viser likevel den enkelte
-          arvingens utfyllingsstatus, mens Innsendt-datoen kun vises på raden
-          til arvingen som faktisk sendte inn den felles erklæringen.
-        </Paragraph>
-        <Paragraph style={{ marginTop: "var(--ds-size-2)" }}>
-          For alle andre subapper er skjemaet individuelt for hver arving.{" "}
-        </Paragraph>
-      </Alert>
+      {hasDeclarationSubApp && (
+        <Alert
+          data-color="info"
+          data-size="sm"
+          style={{ marginBottom: "var(--ds-size-5)" }}
+        >
+          <Heading level={3} data-size="2xs">
+            Viktig informasjon angående {DECLARATION_SUBAPP}
+          </Heading>
+          <Paragraph style={{ marginTop: "var(--ds-size-2)" }}>
+            For subappen "oed-declaration" deler alle arvingene det samme
+            skjemaet i altinn. Instans, PDF og DA-erklæring vil derfor vise
+            samme informasjon for alle radene. Status viser likevel den enkelte
+            arvingens utfyllingsstatus, mens Innsendt-datoen kun vises på raden
+            til arvingen som faktisk sendte inn den felles erklæringen.
+          </Paragraph>
+          <Paragraph style={{ marginTop: "var(--ds-size-2)" }}>
+            For alle andre subapper er skjemaet individuelt for hver
+            arving.{" "}
+          </Paragraph>
+        </Alert>
+      )}
 
       {isLoading && (
         <Skeleton variant="rectangle" aria-label="Henter skjemaer" />
