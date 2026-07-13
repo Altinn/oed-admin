@@ -19,9 +19,6 @@ public interface IAltinnClient
     public Task<List<Instance>> GetInstances(string appId, int instanceOwnerPartyId);
 
     public Task<object?> GetOedSigneeStatus(int instanceOwnerPartyId, Guid instanceGuid);
-
-    public Task<object?> GetHeirDeclaration(int instanceOwnerPartyId, Guid instanceGuid, string subApp, int heirPartyId,
-        Guid heirInstanceId);
 }
 
 public class AltinnClient(HttpClient httpClient, IOptionsMonitor<AltinnSettings> altinnSettingsOptionsMonitor) : IAltinnClient
@@ -153,15 +150,6 @@ public class AltinnClient(HttpClient httpClient, IOptionsMonitor<AltinnSettings>
     public async Task<object?> GetOedSigneeStatus(int instanceOwnerPartyId, Guid instanceGuid)
     {
         var path = $"{altinnSettingsOptionsMonitor.CurrentValue.AppsUrl}/{AppIds.Oed}/api/app/{instanceOwnerPartyId}/{instanceGuid}/subapps";
-        return await GetObjectFromPath(path);
-    }
-
-    // NOTE: This method lives on AltinnClient only because the OED endpoint it targets is
-    // temporarily secured with the authorization this client is configured for. Once the OED
-    // endpoint's authorization is changed back to the correct one, move this method to OedClient.
-    public async Task<object?> GetHeirDeclaration(int instanceOwnerPartyId, Guid instanceGuid, string subApp, int heirPartyId, Guid heirInstanceId)
-    {
-        var path = $"{altinnSettingsOptionsMonitor.CurrentValue.AppsUrl}/{AppIds.Oed}/api/app/{instanceOwnerPartyId}/{instanceGuid}/subapps/{subApp}/{heirPartyId}/{heirInstanceId}/declaration";
         return await GetObjectFromPath(path);
     }
 

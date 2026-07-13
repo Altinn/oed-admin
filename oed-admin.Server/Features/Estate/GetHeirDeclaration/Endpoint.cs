@@ -10,7 +10,7 @@ public static class Endpoint
     public static async Task<IResult> Get(
         [AsParameters] Request request,
         [FromServices] OedDbContext dbContext,
-        [FromServices] IAltinnClient altinnClient)
+        [FromServices] IOedClient oedClient)
     {
         if (!request.IsValid())
             return TypedResults.BadRequest();
@@ -36,7 +36,7 @@ public static class Endpoint
         if (!Guid.TryParse(parts[1], out var instanceGuid))
             return TypedResults.Ok(new Response(null));
 
-        var heirDeclaration = await altinnClient.GetHeirDeclaration(
+        var heirDeclaration = await oedClient.GetHeirDeclaration(
             instanceOwnerPartyId, instanceGuid, request.SubApp, request.HeirPartyId, request.HeirInstanceId);
 
         return TypedResults.Ok(new Response(heirDeclaration));
