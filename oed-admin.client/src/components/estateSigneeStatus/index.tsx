@@ -44,6 +44,14 @@ interface SigneeStatusResponse {
 interface HeirDeclarationResponse {
   heirDeclaration: unknown;
 }
+interface ProbateInformationResponse {
+  probateInformation: unknown;
+}
+
+// The oed-declaration subapp does not expose a per-heir declaration through the
+// subapps endpoint. Its DA-erklæring is the estate-level declaration, the same
+// payload the "DA Probate Information" tab shows as "Data v1".
+const DECLARATION_SUBAPP = "oed-declaration";
 
 // receiptUrl points at the Altinn apps host, which our msal token is not valid for.
 // Its path carries the ids our own proxy endpoint needs:
@@ -258,14 +266,26 @@ function HeirDeclarationCell({
   const heirInstanceGuid = signee.subAppInstanceUrl
     ? toSubAppInstanceGuid(signee.subAppInstanceUrl)
     : null;
-  const url =
-    signee.subApp && heirInstanceGuid
+
+  const isDeclarationSubApp =
+    signee.subApp?.toLowerCase() === DECLARATION_SUBAPP;
+
+  const url = isDeclarationSubApp
+    ? `/api/estate/${estateId}/probateinformation?version=1`
+    : signee.subApp && heirInstanceGuid
       ? `/api/estate/${estateId}/heirdeclaration/${signee.partyId}` +
         `/${encodeURIComponent(signee.subApp)}/${heirInstanceGuid}`
       : null;
 
-  const { data, isLoading, error } = useQuery<HeirDeclarationResponse>({
-    queryKey: ["heir-declaration", estateId, signee.partyId],
+  // Same key the DA Probate Information tab uses, so the two share one fetch.
+  const queryKey = isDeclarationSubApp
+    ? ["probateinformationq", estateId, 1]
+    : ["heir-declaration", estateId, signee.partyId];
+
+  const { data, isLoading, error } = useQuery<
+    HeirDeclarationResponse | ProbateInformationResponse
+  >({
+    queryKey,
     queryFn: async () => {
       const response = await fetchWithMsal(url!);
       if (!response.ok) {
@@ -275,6 +295,10 @@ function HeirDeclarationCell({
     },
     enabled: enabled && !!url,
   });
+
+  const declaration = isDeclarationSubApp
+    ? (data as ProbateInformationResponse | undefined)?.probateInformation
+    : (data as HeirDeclarationResponse | undefined)?.heirDeclaration;
 
   if (!url) {
     return <>-</>;
@@ -311,7 +335,7 @@ function HeirDeclarationCell({
           <ValidationMessage>Kunne ikke hente DA-erklæring.</ValidationMessage>
         )}
         {!isLoading && !error && data && (
-          <JSONPretty id="json-pretty" data={data.heirDeclaration} />
+          <JSONPretty id="json-pretty" data={declaration} />
         )}
       </Dialog>
     </>
