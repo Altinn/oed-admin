@@ -19,7 +19,6 @@ import {
   InformationSquareIcon,
   KeyVerticalIcon,
   ParagraphIcon,
-  PencilWritingIcon,
   ShieldCheckmarkIcon,
   TasklistIcon,
 } from "@navikt/aksel-icons";
@@ -121,8 +120,8 @@ export default function EstateDetails() {
             Skifteerklæring
           </Tabs.Tab>
           <Tabs.Tab value="signeestatus">
-            <PencilWritingIcon />
-            Signeringer
+            <DocPencilIcon />
+            Skjemaer
           </Tabs.Tab>
           <Tabs.Tab value="probateinformation">
             <GavelIcon />

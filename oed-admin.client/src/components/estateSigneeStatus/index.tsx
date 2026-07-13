@@ -341,26 +341,26 @@ export default function EstateSigneeStatus({ estateId }: Props) {
         data-size="sm"
         style={{ marginBottom: "var(--ds-size-2)" }}
       >
-        Signeringsstatus
+        Skjemaer
       </Heading>
       <Paragraph style={{ marginBottom: "var(--ds-size-5)" }}>
-        Her vises status for de som skal signere skifteerklæringen for dette
-        boet.
+        Her vises arvingenes individuelle skifteerklæringer for dette boet, med
+        status og innsendte dokumenter.
       </Paragraph>
 
       {isLoading && (
-        <Skeleton variant="rectangle" aria-label="Henter signeringsstatus" />
+        <Skeleton variant="rectangle" aria-label="Henter skjemaer" />
       )}
       {error && (
         <ValidationMessage>
-          Det oppstod en feil under henting av signeringsstatus:
+          Det oppstod en feil under henting av skjemaer:
           {error.message}
         </ValidationMessage>
       )}
 
       {data && !signees?.length && (
         <ValidationMessage data-color="info">
-          Fant ingen signeringsstatus for dette boet.
+          Fant ingen skjemaer for dette boet.
         </ValidationMessage>
       )}
 
