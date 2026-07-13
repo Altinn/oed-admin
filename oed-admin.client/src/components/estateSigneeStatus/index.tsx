@@ -11,8 +11,10 @@ import {
 } from "@digdir/designsystemet-react";
 import { fetchWithMsal } from "../../utils/msalUtils";
 import { formatDateTime } from "../../utils/formatters";
-import { CodeIcon, FilePdfIcon } from "@navikt/aksel-icons";
+import { CodeIcon, FilePdfIcon, GavelIcon } from "@navikt/aksel-icons";
 import Instance from "../instance";
+import JSONPretty from "react-json-pretty";
+import "react-json-pretty/themes/monikai.css";
 
 interface Props {
   estateId: string;
@@ -37,6 +39,9 @@ interface Signee {
 }
 interface SigneeStatusResponse {
   signeeStatus: { signeeStatus: Signee[] } | null;
+}
+interface HeirDeclarationResponse {
+  heirDeclaration: unknown;
 }
 
 // receiptUrl points at the Altinn apps host, which our msal token is not valid for.
@@ -73,6 +78,16 @@ const toInstanceProxyUrl = (subAppInstanceUrl: string): string | null => {
       return null;
     }
     return `/api/instances/${ownerPartyId}/${instanceGuid}`;
+  } catch {
+    return null;
+  }
+};
+
+// The heir's subapp instance guid is the last path segment of subAppInstanceUrl (Altinn Storage):
+// .../storage/api/v1/instances/{ownerPartyId}/{instanceGuid}
+const toSubAppInstanceGuid = (subAppInstanceUrl: string): string | null => {
+  try {
+    return new URL(subAppInstanceUrl).pathname.split("/").at(-1) || null;
   } catch {
     return null;
   }
@@ -226,6 +241,82 @@ function SubAppInstanceCell({ signee }: { signee: Signee }) {
   );
 }
 
+// Shows the payload DA receives when it fetches this heir's declaration. The backend derives the
+// deceased instance from the estate row; the heir side needs the subApp, the heir's partyId, and
+// the heir's subapp instance guid (parsed from subAppInstanceUrl).
+function HeirDeclarationCell({
+  estateId,
+  signee,
+}: {
+  estateId: string;
+  signee: Signee;
+}) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [enabled, setEnabled] = useState(false);
+
+  const heirInstanceGuid = signee.subAppInstanceUrl
+    ? toSubAppInstanceGuid(signee.subAppInstanceUrl)
+    : null;
+  const url =
+    signee.subApp && heirInstanceGuid
+      ? `/api/estate/${estateId}/heirdeclaration/${signee.partyId}` +
+        `/${encodeURIComponent(signee.subApp)}/${heirInstanceGuid}`
+      : null;
+
+  const { data, isLoading, error } = useQuery<HeirDeclarationResponse>({
+    queryKey: ["heir-declaration", estateId, signee.partyId],
+    queryFn: async () => {
+      const response = await fetchWithMsal(url!);
+      if (!response.ok) {
+        throw new Error("Failed to fetch heir declaration");
+      }
+      return response.json();
+    },
+    enabled: enabled && !!url,
+  });
+
+  if (!url) {
+    return <>-</>;
+  }
+
+  return (
+    <>
+      <Button
+        variant="tertiary"
+        data-size="lg"
+        icon
+        onClick={() => {
+          setEnabled(true);
+          dialogRef.current?.showModal();
+        }}
+        aria-label="Vis DA-erklæring"
+      >
+        <GavelIcon />
+      </Button>
+      <Dialog
+        ref={dialogRef}
+        // Pin the height so expanding content scrolls inside the dialog instead of resizing it.
+        style={{ maxWidth: 1200, height: "var(--dsc-dialog-max-height)" }}
+        data-size="sm"
+        closedby="any"
+      >
+        <Heading level={3} style={{ marginBottom: "var(--ds-size-2)" }}>
+          DA-erklæring
+        </Heading>
+        {isLoading && (
+          <Skeleton variant="rectangle" aria-label="Henter DA-erklæring" />
+        )}
+        {error && (
+          <ValidationMessage>Kunne ikke hente DA-erklæring.</ValidationMessage>
+        )}
+        {!isLoading && !error && data && (
+          <JSONPretty id="json-pretty" data={data.heirDeclaration} />
+        )}
+      </Dialog>
+    </>
+  );
+}
+
 export default function EstateSigneeStatus({ estateId }: Props) {
   const { data, isLoading, error } = useQuery<SigneeStatusResponse>({
     queryKey: ["signeestatus", estateId],
@@ -284,6 +375,7 @@ export default function EstateSigneeStatus({ estateId }: Props) {
               <Table.HeaderCell>Ekstra</Table.HeaderCell>
               <Table.HeaderCell>Instans</Table.HeaderCell>
               <Table.HeaderCell>PDF</Table.HeaderCell>
+              <Table.HeaderCell>DA-erklæring</Table.HeaderCell>
             </Table.Row>
           </Table.Head>
           <Table.Body>
@@ -310,6 +402,9 @@ export default function EstateSigneeStatus({ estateId }: Props) {
                 </Table.Cell>
                 <Table.Cell>
                   <ReceiptCell signee={signee} />
+                </Table.Cell>
+                <Table.Cell>
+                  <HeirDeclarationCell estateId={estateId} signee={signee} />
                 </Table.Cell>
               </Table.Row>
             ))}
