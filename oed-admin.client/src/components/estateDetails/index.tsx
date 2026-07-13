@@ -34,7 +34,6 @@ import {
   isValidDateTime,
 } from "../../utils/formatters";
 import EstateInstance from "../estateInstance";
-import EstateDeclaration from "../estateDeclaration";
 import EstateProbateInformation from "../estateProbateInformation";
 import EstateSigneeStatus from "../estateSigneeStatus";
 import EstateDaObject from "../estateDaObject";
@@ -114,10 +113,6 @@ export default function EstateDetails() {
           <Tabs.Tab value="instance">
             <DatabaseIcon />
             Instans
-          </Tabs.Tab>
-          <Tabs.Tab value="declaration">
-            <DocPencilIcon />
-            Skifteerklæring
           </Tabs.Tab>
           <Tabs.Tab value="signeestatus">
             <DocPencilIcon />
@@ -200,9 +195,6 @@ export default function EstateDetails() {
         </Tabs.Panel>
         <Tabs.Panel value="instance">
           <EstateInstance estateId={id} />
-        </Tabs.Panel>
-        <Tabs.Panel value="declaration">
-          <EstateDeclaration estateId={id} />
         </Tabs.Panel>
         <Tabs.Panel value="signeestatus">
           <EstateSigneeStatus estateId={id} />

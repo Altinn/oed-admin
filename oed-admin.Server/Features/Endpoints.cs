@@ -54,7 +54,6 @@ public static class Endpoints
             group.MapGet("/{estateId:guid}/tasks", Estate.GetTasks.Endpoint.Get);
             group.MapGet("/{estateId:guid}/events", Estate.GetEvents.Endpoint.Get);
             group.MapGet("/{estateId:guid}/instance", Estate.GetInstance.Endpoint.Get);
-            group.MapGet("/{estateId:guid}/declarationinstance", Estate.GetDeclarationInstance.Endpoint.Get);
             group.MapGet("/{estateId:guid}/probateinformation", Estate.GetProbateInformation.Endpoint.Get);
             group.MapGet("/{estateId:guid}/signeestatus", Estate.GetSigneeStatus.Endpoint.Get);
             group.MapGet("/{estateId:guid}/heirdeclaration/{heirPartyId:int}/{subApp}/{heirInstanceId:guid}", Estate.GetHeirDeclaration.Endpoint.Get);
