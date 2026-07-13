@@ -272,15 +272,14 @@ function HeirDeclarationCell({
     signee.subApp?.toLowerCase() === DECLARATION_SUBAPP;
 
   const url = isDeclarationSubApp
-    ? `/api/estate/${estateId}/probateinformation?version=1`
+    ? `/api/estate/${estateId}/probateinformation`
     : signee.subApp && heirInstanceGuid
       ? `/api/estate/${estateId}/heirdeclaration/${signee.partyId}` +
         `/${encodeURIComponent(signee.subApp)}/${heirInstanceGuid}`
       : null;
 
-  // Same key the DA Probate Information tab uses, so the two share one fetch.
   const queryKey = isDeclarationSubApp
-    ? ["probateinformationq", estateId, 1]
+    ? ["probateinformation", estateId]
     : ["heir-declaration", estateId, signee.partyId];
 
   const { data, isLoading, error } = useQuery<

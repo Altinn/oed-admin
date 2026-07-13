@@ -15,7 +15,6 @@ import {
   DatabaseIcon,
   DocPencilIcon,
   EnvelopeClosedIcon,
-  GavelIcon,
   InformationSquareIcon,
   KeyVerticalIcon,
   ParagraphIcon,
@@ -34,7 +33,6 @@ import {
   isValidDateTime,
 } from "../../utils/formatters";
 import EstateInstance from "../estateInstance";
-import EstateProbateInformation from "../estateProbateInformation";
 import EstateSigneeStatus from "../estateSigneeStatus";
 import EstateDaObject from "../estateDaObject";
 import { fetchWithMsal } from "../../utils/msalUtils";
@@ -118,10 +116,6 @@ export default function EstateDetails() {
             <DocPencilIcon />
             Skjemaer
           </Tabs.Tab>
-          <Tabs.Tab value="probateinformation">
-            <GavelIcon />
-            DA Probate Information
-          </Tabs.Tab>
           <Tabs.Tab value="daobject">
             <ParagraphIcon />
             DA Source
@@ -198,9 +192,6 @@ export default function EstateDetails() {
         </Tabs.Panel>
         <Tabs.Panel value="signeestatus">
           <EstateSigneeStatus estateId={id} />
-        </Tabs.Panel>
-        <Tabs.Panel value="probateinformation">
-          <EstateProbateInformation estateId={id} />
         </Tabs.Panel>
         <Tabs.Panel value="daobject">
           <EstateDaObject estateId={id} caseId={data?.estate.caseId} />
