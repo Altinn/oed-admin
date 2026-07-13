@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
+  Alert,
   Button,
   Dialog,
   Heading,
@@ -367,10 +368,28 @@ export default function EstateSigneeStatus({ estateId }: Props) {
       >
         Skjemaer
       </Heading>
-      <Paragraph style={{ marginBottom: "var(--ds-size-5)" }}>
-        Her vises arvingenes individuelle skifteerklæringer for dette boet, med
-        status og innsendte dokumenter.
+      <Paragraph style={{ marginBottom: "var(--ds-size-2)" }}>
+        Her vises arvingenes skifteerklæringer for dette boet.
       </Paragraph>
+      <Alert
+        data-color="info"
+        data-size="sm"
+        style={{ marginBottom: "var(--ds-size-5)" }}
+      >
+        <Heading level={3} data-size="2xs">
+          Viktig informasjon angående {DECLARATION_SUBAPP}
+        </Heading>
+        <Paragraph style={{ marginTop: "var(--ds-size-2)" }}>
+          For subappen "oed-declaration" deler alle arvingene det samme skjemaet
+          i altinn. Instans, PDF og DA-erklæring vil derfor vise samme
+          informasjon for alle radene. Status viser likevel den enkelte
+          arvingens utfyllingsstatus, mens Innsendt-datoen kun vises på raden
+          til arvingen som faktisk sendte inn den felles erklæringen.
+        </Paragraph>
+        <Paragraph style={{ marginTop: "var(--ds-size-2)" }}>
+          For alle andre subapper er skjemaet individuelt for hver arving.{" "}
+        </Paragraph>
+      </Alert>
 
       {isLoading && (
         <Skeleton variant="rectangle" aria-label="Henter skjemaer" />
