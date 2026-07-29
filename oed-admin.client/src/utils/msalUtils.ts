@@ -1,5 +1,12 @@
-import type { AccountInfo, SilentRequest } from '@azure/msal-browser';
+import type { AccountInfo } from '@azure/msal-browser';
 import { msalInstance, msalScopes } from '../msal';
+import {
+  SessionExpiredError,
+  clearSessionExpired,
+  isSessionExpired,
+  isSessionOver,
+  markSessionExpired
+} from '../auth/sessionExpiry';
 
 export const hasRole = function (account: AccountInfo | null, role: string): boolean {
   if (!account || !account.idTokenClaims) {
@@ -14,24 +21,41 @@ export const hasRole = function (account: AccountInfo | null, role: string): boo
 }
 
 export const fetchWithMsal = async function (input: string | URL | Request, init?: RequestInit | undefined): Promise<Response> {
+  // Once we know the session is over, fail fast. Tabs.Panel renders its children
+  // unconditionally, so Home mounts ~8 query-bearing panels and estateDetails ~10; without
+  // this each one would burn its own 10s silent-renewal iframe timeout.
+  if (isSessionExpired()) {
+    throw new SessionExpiredError();
+  }
+
   const account = msalInstance.getActiveAccount();
   if (!account) {
-    // Maybe do not throw, but redirect to login
-    throw Error('No active account! Verify a user has been signed in and setActiveAccount has been called.');
+    // Reachable in production: MSAL's cacheRetentionDays defaults to 5, so the account entity
+    // is evicted after a few days away.
+    markSessionExpired();
+    throw new SessionExpiredError();
   }
-  const msalResponse = await msalInstance.acquireTokenSilent({
-    scopes: msalScopes.api,
-    account: account,
-    redirectUri: '/redirect'
-  } as SilentRequest);
-  const accessToken = msalResponse?.accessToken;
 
-  if (!accessToken) {
-    await msalInstance.acquireTokenRedirect({
+  let accessToken: string;
+  try {
+    // Note: acquireTokenSilent *rejects* on failure - it never resolves with a falsy token.
+    const msalResponse = await msalInstance.acquireTokenSilent({
       scopes: msalScopes.api,
-      redirectUri: '/redirect'
+      account: account
     });
+    accessToken = msalResponse.accessToken;
+  } catch (error) {
+    if (isSessionOver(error)) {
+      markSessionExpired();
+      throw new SessionExpiredError();
+    }
+    // Not an auth problem (offline, Entra 5xx, hidden-iframe guards): let the existing inline
+    // error UI report it.
+    throw error;
   }
+
+  clearSessionExpired();
+
   const initOverride: RequestInit = {
     ...init,
     headers: {

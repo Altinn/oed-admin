@@ -4,6 +4,7 @@ import Home from "./components/Home";
 import EstateDetails from "./components/estateDetails";
 import {
   Avatar,
+  Button,
   Dropdown,
   Heading,
   Paragraph,
@@ -16,7 +17,6 @@ import DataMigration from "./components/dataMigration";
 import {
   AuthenticatedTemplate,
   MsalAuthenticationTemplate,
-  UnauthenticatedTemplate,
   useMsal,
   type MsalAuthenticationResult,
 } from "@azure/msal-react";
@@ -146,25 +146,23 @@ export default function App() {
       );
     }
 
+    // Not wrapped in UnauthenticatedTemplate: a signed-in user without an app role *is*
+    // authenticated, so that wrapper rendered nothing and they were left with a blank page.
     return (
-      <UnauthenticatedTemplate>
-        <main className="container" style={{ maxWidth: 1600 }}>
-          <Paragraph>
-            Du har ikke tilgang til denne applikasjonen. Kontakt
-            systemansvarlig.
-          </Paragraph>
-        </main>
-      </UnauthenticatedTemplate>
+      <main className="container" style={{ maxWidth: 1600 }}>
+        <Paragraph>
+          Du har ikke tilgang til denne applikasjonen. Kontakt systemansvarlig.
+        </Paragraph>
+      </main>
     );
   };
 
+  // Deliberately no `prompt: "none"`. msal-react forwards this same request object into the
+  // *interactive* loginRedirect when the silent call fails, so a dead Entra session answers
+  // login_required - and MsalAuthenticationTemplate checks `error` before `isAuthenticated`,
+  // replacing the whole app with an error screen it never retries out of.
   const authRequest = account
-    ? {
-        scopes: msalScopes.api,
-        ...(account.username?.endsWith("@digdir.no")
-          ? { prompt: "none" }
-          : { loginHint: account.username }),
-      }
+    ? { scopes: msalScopes.api, loginHint: account.username }
     : { scopes: msalScopes.api, prompt: "select_account" };
 
   return (
@@ -172,9 +170,24 @@ export default function App() {
       interactionType={InteractionType.Redirect}
       authenticationRequest={authRequest}
       errorComponent={(authResult: MsalAuthenticationResult) => (
-        <Paragraph>An Error Occurred: {authResult!.error!.errorCode}</Paragraph>
+        <main className="container" style={{ maxWidth: 1600 }}>
+          <Heading level={1} data-size="md">
+            Innlogging feilet
+          </Heading>
+          <Paragraph data-size="sm" style={{ marginTop: "var(--ds-size-2)" }}>
+            {authResult.error?.errorCode}
+          </Paragraph>
+          <Button
+            style={{ marginTop: "var(--ds-size-4)" }}
+            onClick={() =>
+              void instance.loginRedirect({ scopes: msalScopes.api })
+            }
+          >
+            Logg inn på nytt
+          </Button>
+        </main>
       )}
-      loadingComponent={() => <Paragraph>Loading... Please wait.</Paragraph>}
+      loadingComponent={() => <Paragraph>Laster … Vennligst vent.</Paragraph>}
     >
       {roleBasedRoutes()}
     </MsalAuthenticationTemplate>

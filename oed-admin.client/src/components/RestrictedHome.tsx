@@ -1,4 +1,4 @@
-import { Field, Fieldset, Heading, Link, Search, Tabs } from "@digdir/designsystemet-react";
+import { Alert, Field, Fieldset, Heading, Link, Search, Tabs } from "@digdir/designsystemet-react";
 import EstateRestrictedCard from "./estateRestrictedCard";
 import { fetchWithMsal, hasRole } from "../utils/msalUtils";
 import type { MinimalEstate, MinimalSearchResponse } from "../types/IEstate";
@@ -12,6 +12,7 @@ const RestrictedSearch = () => {
   const [estate, setEstate] = useState<MinimalEstate>();
   const [loadingEstate, setLoadingEstate] = useState<boolean>(false);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
+  const [searchError, setSearchError] = useState<boolean>(false);
 
   const { instance } = useMsal();
   const account = instance.getActiveAccount() as AccountInfo;
@@ -19,6 +20,7 @@ const RestrictedSearch = () => {
 
   const handleSearch = async () => {
     setEstate(undefined);
+    setSearchError(false);
     // TODO: Implement search functionality with only one search result
     const searchInput = document.getElementById(
       "search-input"
@@ -26,26 +28,32 @@ const RestrictedSearch = () => {
     if (searchInput.value.length === 11) {
       setLoadingEstate(true);
       setHasSearched(true);
-      const response = await fetchWithMsal(`/api/estate/minimalsearch`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ nin: searchInput.value }),
-      });
+      try {
+        const response = await fetchWithMsal(`/api/estate/minimalsearch`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ nin: searchInput.value }),
+        });
 
-      if (!response.ok) {
+        if (!response.ok) {
+          throw new Error("noe gikk galt");
+        }
+
+        const data = await response.json() as MinimalSearchResponse;
+        if (data.estate) {
+          data.estate.heirs.map(heir => heir.birthdate = new Intl.DateTimeFormat('nb-NO', { dateStyle: 'short' })
+            .format(new Date(heir.birthdate)));
+          setEstate(data.estate);
+        }
+      } catch {
+        setSearchError(true);
+      } finally {
+        // Always clear the spinner. This used to be skipped whenever fetchWithMsal threw,
+        // which left "Søker etter dødsbo..." on screen forever.
         setLoadingEstate(false);
-        throw new Error("noe gikk galt");
       }
-
-      const data = await response.json() as MinimalSearchResponse;
-      if (data.estate) {
-        data.estate.heirs.map(heir => heir.birthdate = new Intl.DateTimeFormat('nb-NO', { dateStyle: 'short' })
-          .format(new Date(heir.birthdate)));
-        setEstate(data.estate);
-      }
-      setLoadingEstate(false);
     }
   };
 
@@ -67,7 +75,7 @@ const RestrictedSearch = () => {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          handleSearch();
+          void handleSearch();
         }}
       >
         <Fieldset data-color="neutral" className="search-fieldset">
@@ -95,7 +103,16 @@ const RestrictedSearch = () => {
           Søkeresultat
         </Heading>
         {loadingEstate && !estate && <p>Søker etter dødsbo...</p>}
-        {hasSearched && !loadingEstate && !estate && <p>Fikk ingen treff</p>}
+        {searchError && !loadingEstate && (
+          <Alert data-color="danger">
+            Søket kunne ikke fullføres. Prøv igjen.
+          </Alert>
+        )}
+        {/* A failed search must never claim "no hits" - that told staff an estate did not
+            exist when in fact the request never succeeded. */}
+        {hasSearched && !loadingEstate && !estate && !searchError && (
+          <p>Fikk ingen treff</p>
+        )}
         {estate && <EstateRestrictedCard estate={estate!} />}
       </section>
     </div>
