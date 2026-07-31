@@ -2,10 +2,11 @@ import type { AccountInfo } from '@azure/msal-browser';
 import { msalInstance, msalScopes } from '../msal';
 import {
   SessionExpiredError,
-  clearSessionExpired,
-  isSessionExpired,
+  TokenRejectedError,
+  authBlockedReason,
+  clearAuthBlocked,
   isSessionOver,
-  markSessionExpired
+  markAuthBlocked
 } from '../auth/sessionExpiry';
 
 export const hasRole = function (account: AccountInfo | null, role: string): boolean {
@@ -40,7 +41,7 @@ const acquireToken = async function (account: AccountInfo, forceRefresh: boolean
     return msalResponse.accessToken;
   } catch (error) {
     if (isSessionOver(error)) {
-      markSessionExpired();
+      markAuthBlocked("expired");
       throw new SessionExpiredError();
     }
     // Not an auth problem (offline, Entra 5xx, hidden-iframe guards): let the existing inline
@@ -50,18 +51,19 @@ const acquireToken = async function (account: AccountInfo, forceRefresh: boolean
 }
 
 export const fetchWithMsal = async function (input: string | URL | Request, init?: RequestInit | undefined): Promise<Response> {
-  // Once we know the session is over, fail fast. Tabs.Panel renders its children
-  // unconditionally, so Home mounts ~8 query-bearing panels and estateDetails ~10; without
-  // this each one would burn its own 10s silent-renewal iframe timeout.
-  if (isSessionExpired()) {
-    throw new SessionExpiredError();
+  // Once we know auth is blocked, fail fast. Tabs.Panel renders its children unconditionally,
+  // so Home mounts ~8 query-bearing panels and estateDetails ~10; without this each one would
+  // burn its own 10s silent-renewal iframe timeout.
+  const blocked = authBlockedReason();
+  if (blocked !== null) {
+    throw blocked === "rejected" ? new TokenRejectedError() : new SessionExpiredError();
   }
 
   const account = msalInstance.getActiveAccount();
   if (!account) {
     // Reachable in production: MSAL's cacheRetentionDays defaults to 5, so the account entity
     // is evicted after a few days away.
-    markSessionExpired();
+    markAuthBlocked("expired");
     throw new SessionExpiredError();
   }
 
@@ -91,15 +93,19 @@ export const fetchWithMsal = async function (input: string | URL | Request, init
   }
 
   if (response.status === 401) {
-    // A freshly refreshed token was still rejected: the session really is over.
-    markSessionExpired();
-    throw new SessionExpiredError();
+    // A token minted seconds ago was still refused, so this is NOT expiry: the Entra session is
+    // demonstrably alive - it just produced this token. The server is refusing to accept it, and
+    // re-authenticating would only mint another token with the same properties. Server-side
+    // causes look exactly like this: an audience or issuer mismatch, or the JWKS the API caches
+    // from the authority having gone stale (every token 401s until the API restarts).
+    markAuthBlocked("rejected");
+    throw new TokenRejectedError();
   }
 
-  // Any other status means the request was authenticated and reached the endpoint, so the
-  // session is healthy - including 403, which is a missing role and must NOT trigger re-auth
+  // Any other status means the request was authenticated and reached the endpoint, so auth is
+  // healthy - including 403, which is a missing role and must NOT trigger re-auth
   // (re-authenticating cannot grant a role, and treating it as expiry would loop).
-  clearSessionExpired();
+  clearAuthBlocked();
 
   return response;
 }

@@ -9,15 +9,16 @@ import { MsalProvider } from "@azure/msal-react";
 import { msalInstance } from "./msal.ts";
 import { EventType, type AuthenticationResult, type EventMessage } from "@azure/msal-browser";
 import SessionExpiredDialog from "./components/sessionExpired";
-import { isSessionExpiredError } from "./auth/sessionExpiry.ts";
+import { isAuthBlockedError } from "./auth/sessionExpiry.ts";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Retrying an expired session buys nothing and costs another silent-renewal iframe
-      // timeout (10s each) per attempt, which is what used to leave skeletons on screen for
-      // ~40 seconds before any error appeared.
-      retry: (failureCount, error) => !isSessionExpiredError(error) && failureCount < 3
+      // Retrying blocked auth buys nothing and costs another silent-renewal iframe timeout
+      // (10s each) per attempt, which is what used to leave skeletons on screen for ~40 seconds
+      // before any error appeared. A rejected token is just as hopeless to retry as an expired
+      // session: the server refuses it on grounds no number of attempts will change.
+      retry: (failureCount, error) => !isAuthBlockedError(error) && failureCount < 3
     },
     mutations: {
       retry: false
