@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Routes, Route, Outlet, Navigate } from "react-router-dom";
+import { Routes, Route, Outlet, Navigate, useLocation } from "react-router-dom";
 import Home from "./components/Home";
 import EstateDetails from "./components/estateDetails";
 import {
@@ -25,6 +25,8 @@ import { hasRole } from "./utils/msalUtils";
 import RestrictedHome from "./components/RestrictedHome";
 import { msalScopes } from "./msal";
 import EnvironmentInformation from "./components/environmentInformation";
+import AuthRedirect from "./components/authRedirect";
+import NotFound from "./components/notFound";
 
 export default function App() {
   const [darkMode, setDarkMode] = React.useState<boolean>(
@@ -32,6 +34,7 @@ export default function App() {
   );
 
   const { instance } = useMsal();
+  const location = useLocation();
   const account = instance.getActiveAccount() as AccountInfo;
   const isAdmin = hasRole(account, "Admin");
   const isReader = hasRole(account, "Read");
@@ -119,6 +122,7 @@ export default function App() {
               path="/maintenance/datamigration"
               element={<DataMigration />}
             />
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
       );
@@ -141,6 +145,7 @@ export default function App() {
               index
               element={<RestrictedHome />}
             />
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
       );
@@ -156,6 +161,14 @@ export default function App() {
       </main>
     );
   };
+
+  // MSAL's redirectUri is served index.html, so the SPA mounts here after every interactive
+  // login. Handle it before MsalAuthenticationTemplate gets a chance to start a competing login:
+  // loginRedirect defaults its return page to the current URL, so a login fired from /redirect
+  // makes Entra send the user straight back to /redirect - the blank page that never resolves.
+  if (location.pathname === "/redirect") {
+    return <AuthRedirect />;
+  }
 
   // Deliberately no `prompt: "none"`. msal-react forwards this same request object into the
   // *interactive* loginRedirect when the silent call fails, so a dead Entra session answers
