@@ -66,6 +66,14 @@ public class AltinnClient(HttpClient httpClient, IOptionsMonitor<AltinnSettings>
         var path = $"/storage/api/v1/instances/{instanceOwnerPartyId}/{instanceGuid}";
         var response = await httpClient.GetAsync(path);
 
+        // A hard-deleted instance answers 404, and every caller of this method already handles
+        // a null instance. Letting EnsureSuccessStatusCode throw turned that into a 500
+        // "An unexpected error occurred", which reads to an operator as the admin tool being
+        // broken rather than the instance being gone. Estate.InstanceId is never cleared when
+        // an instance is deleted, so dangling ids reach this method routinely.
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            return null;
+
         response.EnsureSuccessStatusCode();
 
         await using var contentStream = await response.Content.ReadAsStreamAsync();

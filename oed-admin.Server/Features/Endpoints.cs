@@ -92,6 +92,9 @@ public static class Endpoints
             var group = app.MapGroup("/api/maintenance");
 
             group.MapPost("/datamigration", Maintenance.DataMigration.Endpoint.Post);
+            group.MapPost("/declarationpdfmigration", Maintenance.DeclarationPdfMigration.StartMigration.Endpoint.Post);
+            group.MapDelete("/declarationpdfmigration", Maintenance.DeclarationPdfMigration.CancelMigration.Endpoint.Delete);
+            group.MapGet("/declarationpdfmigration/progress", Maintenance.DeclarationPdfMigration.GetProgress.Endpoint.Get);
 
             return group;
         }

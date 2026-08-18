@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Routes, Route, Outlet, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, Outlet, Navigate, useLocation, useNavigate } from "react-router-dom";
 import Home from "./components/Home";
 import EstateDetails from "./components/estateDetails";
 import {
@@ -14,6 +14,7 @@ import {
 // import { useQuery } from "@tanstack/react-query";
 import { DoorOpenIcon } from "@navikt/aksel-icons";
 import DataMigration from "./components/dataMigration";
+import DeclarationPdfMigration from "./components/declarationPdfMigration";
 import {
   AuthenticatedTemplate,
   MsalAuthenticationTemplate,
@@ -35,6 +36,7 @@ export default function App() {
 
   const { instance } = useMsal();
   const location = useLocation();
+  const navigate = useNavigate();
   const account = instance.getActiveAccount() as AccountInfo;
   const isAdmin = hasRole(account, "Admin");
   const isReader = hasRole(account, "Read");
@@ -100,6 +102,22 @@ export default function App() {
                   </Dropdown.Button>
                 </Dropdown.Item>
               </Dropdown.List>
+              {/* Layout is shared with the reader route tree, so the admin
+                  section must stay behind the isAdmin guard. */}
+              {isAdmin && (
+                <>
+                  <Dropdown.Heading>Administrasjon</Dropdown.Heading>
+                  <Dropdown.List>
+                    <Dropdown.Item>
+                      <Dropdown.Button
+                        onClick={() => navigate("/maintenance/declarationpdfmigration")}
+                      >
+                        Migrering av skifteerklæring
+                      </Dropdown.Button>
+                    </Dropdown.Item>
+                  </Dropdown.List>
+                </>
+              )}
             </Dropdown>
           </Dropdown.TriggerContext>
         </header>
@@ -121,6 +139,10 @@ export default function App() {
             <Route
               path="/maintenance/datamigration"
               element={<DataMigration />}
+            />
+            <Route
+              path="/maintenance/declarationpdfmigration"
+              element={<DeclarationPdfMigration />}
             />
             <Route path="*" element={<NotFound />} />
           </Route>
