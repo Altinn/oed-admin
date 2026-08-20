@@ -5,7 +5,7 @@ namespace oed_admin.Server.Infrastructure.Altinn;
 
 /// <summary>
 /// Client for the oed app's admin API (Maskinporten scope digdir:dd:systemadmin).
-/// See the consumer guide in the oed repo: docs/migrate-declaration-pdf-consumer-guide.md
+/// See the consumer guide in the oed repo: docs/migrate-declaration-consumer-guide.md
 /// </summary>
 public interface IOedSystemAdminClient
 {
@@ -22,7 +22,7 @@ public record MigrateDeclarationPdfResult(int HttpStatus, string? Outcome, strin
 
 public class OedSystemAdminClient(HttpClient httpClient, ILogger<OedSystemAdminClient> logger) : IOedSystemAdminClient
 {
-    private const string MigrateDeclarationPdfPath = $"/{AppIds.Oed}/api/admin/declaration-pdf";
+    private const string MigrateDeclarationPdfPath = $"/{AppIds.Oed}/api/admin/migrate-declaration";
 
     public async Task<MigrateDeclarationPdfResult> MigrateDeclarationPdf(
         Guid estateId,

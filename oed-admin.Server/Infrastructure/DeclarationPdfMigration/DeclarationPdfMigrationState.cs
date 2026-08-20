@@ -33,6 +33,12 @@ public class DeclarationPdfMigrationState
         "Overwritten",
         "AlreadyMigrated",
         "NoPdfOnDeclaration",
+        // The declaration instance's form data is missing or unreadable, so there are no heir
+        // choices to migrate. The PDF still copied.
+        "NoDeclarationData",
+        // The declaration's form data has no signed signature claims, so there is no heir choice
+        // to record. The PDF still copied.
+        "NoSignedDeclarationClaims",
         "NoDeclarationInstance",
         // The estate's own oed instance is gone, so there is nowhere to write the PDF.
         // Permanent, and the dominant outcome of the first TT02 sweep.
@@ -40,6 +46,11 @@ public class DeclarationPdfMigrationState
         "EstateNotFound",
         "InvalidEstateData",
         "StorageError",
+        // A retry issued after a StorageError came back AlreadyMigrated: the PDF may have landed
+        // without the choices (the two Storage writes aren't atomic). Recorded as a failure -
+        // not folded into AlreadyMigrated's Done count - so the operator re-runs it with
+        // overwrite=true.
+        "AlreadyMigratedAfterStorageError",
         "Unknown"
     ];
 
