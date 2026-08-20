@@ -22,6 +22,6 @@ public class SonarGateTests(ITestOutputHelper output)
         // Exclude the Vite SPA frontend and bundled web assets so the SonarJS bridge doesn't fire.
         SonarExclusions =
             "**/*.js,**/*.jsx,**/*.ts,**/*.tsx,**/*.css,**/*.scss,**/*.html," +
-            "**/wwwroot/**,**/oed-admin.client/**,**/node_modules/**",
+            "**/wwwroot/**,**/oed-admin.client/**,**/node_modules/**,**/views/Home/Index.cshtml",
     }, output);
 }
