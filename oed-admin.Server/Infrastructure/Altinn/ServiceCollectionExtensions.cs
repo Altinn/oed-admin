@@ -128,24 +128,6 @@ public static class ServiceCollectionExtensions
                 client.BaseAddress = new Uri(settings.CurrentValue.AppsUrl);
             });
 
-        services
-            .AddMaskinportenHttpClient<SettingsJwkClientDefinition, IOedSystemAdminClient, OedSystemAdminClient>(
-                maskinportenSettings with
-                {
-                    Scope = "digdir:dd:systemadmin"
-                },
-                clientDefinition =>
-                {
-                    clientDefinition.ClientSettings.ExhangeToAltinnToken = false;
-                    clientDefinition.ClientSettings.EnableDebugLogging = true;
-                })
-            .ConfigureHttpClient((provider, client) =>
-            {
-                var settings = provider.GetRequiredService<IOptionsMonitor<AltinnSettings>>();
-                client.BaseAddress = new Uri(settings.CurrentValue.AppsUrl);
-                // Each call blocks on two or three Altinn Storage round-trips.
-                client.Timeout = TimeSpan.FromSeconds(60);
-            });
 
         return services;
     }
