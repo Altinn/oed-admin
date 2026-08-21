@@ -70,9 +70,14 @@ public class AuditingLoggingMiddleware(
         if (context.Response is { StatusCode: >= 200 and < 300 })
         {
             var response = await GetResponseBody(context.Response);
-            var partialSearchResponse = JsonSerializer.Deserialize<PartialSearchResponse>(
-                response, 
-                JsonSerializerOptions.Web);
+            // GetResponseBody returns "" for a body that is absent or not JSON, and
+            // Deserialize throws on "". A POST that legitimately returns no content must not
+            // become a 500 in the audit middleware.
+            var partialSearchResponse = string.IsNullOrWhiteSpace(response)
+                ? null
+                : JsonSerializer.Deserialize<PartialSearchResponse>(
+                    response,
+                    JsonSerializerOptions.Web);
 
             estateDetails = partialSearchResponse?.Estate is not null 
                 ? [new EstateDetails(partialSearchResponse.Estate.Id)]
