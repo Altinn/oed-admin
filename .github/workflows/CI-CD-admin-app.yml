@@ -24,7 +24,7 @@ jobs:
           printf "%s on %s by %s\n" "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME" "$GITHUB_ACTOR"
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -71,7 +71,7 @@ jobs:
           printf "%s on %s by %s\n" "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME" "$GITHUB_ACTOR"
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
