@@ -84,16 +84,9 @@ export default function DeclarationPdfMigration() {
         Migrering av skifteerklæring (PDF)
       </Heading>
       <Paragraph>
-        Kopierer skifteerklæringen (PDF) fra oed-declaration-instansen til oed-instansen, og
-        registrerer samtidig hver arvings valgte skifteform og innsendingstidspunktet, for alle
+        Kopierer skifteerklæringen (PDF) fra oed-declaration-instansen til oed-instansen for alle
         dødsbo med innsendt skifteerklæring. Kjøringen er trygg å gjenta: bo som allerede er
         migrert rapporteres som <code>AlreadyMigrated</code> uten at noe skrives på nytt.
-      </Paragraph>
-      <Paragraph>
-        PDF-en og skifteformene skrives i to separate kall. Dersom PDF-en ble kopiert, men
-        skifteformene feilet underveis, dukker dødsboet opp som{" "}
-        <code>AlreadyMigratedAfterStorageError</code> i feillisten under. Kjør migreringen på
-        nytt med «Overskriv» påslått for å fullføre disse boene.
       </Paragraph>
 
       <form action={handleStart}>
@@ -112,7 +105,7 @@ export default function DeclarationPdfMigration() {
           />
           <Switch
             label="Overskriv"
-            description="Erstatt PDF-en og skriv skifteformene på nytt for dødsbo som allerede er migrert. Brukes for å reparere en feilaktig kopi, eller for å fullføre dødsbo som stanset mellom PDF- og skifteform-skrivingen (se AlreadyMigratedAfterStorageError i feillisten)."
+            description="Erstatt PDF-en på oed-instansen dersom den allerede finnes. Brukes kun for å reparere en feilaktig kopi."
             defaultChecked={false}
             value="overwrite"
             name="overwrite"

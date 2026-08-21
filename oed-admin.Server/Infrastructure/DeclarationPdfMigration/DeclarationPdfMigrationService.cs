@@ -146,8 +146,6 @@ public class DeclarationPdfMigrationService(
         CancellationTokenSource cts,
         CancellationToken cancellationToken)
     {
-        var sawStorageError = false;
-
         for (var attempt = 1; ; attempt++)
         {
             var result = await client.MigrateDeclarationPdf(estateId, overwrite, cancellationToken);
@@ -155,33 +153,12 @@ public class DeclarationPdfMigrationService(
 
             if (disposition == Disposition.Retryable && attempt < MaxAttempts)
             {
-                sawStorageError = true;
                 var delay = RetryDelay(attempt);
                 logger.LogWarning(
                     "Estate {EstateId} failed with [{Status}] {Reason} on attempt {Attempt} - retrying in {Delay}",
                     estateId, result.HttpStatus, result.Reason, attempt, delay);
                 await Task.Delay(delay, cancellationToken);
                 continue;
-            }
-
-            // The PDF write and the choices write aren't atomic (consumer guide, "the PDF can
-            // land without the choices"). A StorageError on an earlier attempt for this estate
-            // may mean the PDF already landed; if this attempt now comes back AlreadyMigrated,
-            // a plain retry can never repair it - Classify would map that to Done and silently
-            // count the estate as fully migrated while its heirs may still have no
-            // ChosenProbateTypes rows. Record it as a failure instead, so it lands in the
-            // operator's failure list with a note to re-run with overwrite=true.
-            if (sawStorageError && result.Reason == "AlreadyMigrated")
-            {
-                Record(
-                    estateId,
-                    result,
-                    Disposition.PermanentFailure,
-                    outcomeKeyOverride: "AlreadyMigratedAfterStorageError",
-                    detailOverride:
-                    "AlreadyMigrated after a prior StorageError for this estate - the PDF may " +
-                    "have landed without the heir choices. Re-run with overwrite=true.");
-                return;
             }
 
             Record(estateId, result, disposition);
@@ -200,7 +177,7 @@ public class DeclarationPdfMigrationService(
     }
 
     /// <summary>
-    /// Branches on reason rather than status: three reasons share 404 and five share 409.
+    /// Branches on reason rather than status: two reasons share 404 and three share 409.
     /// An unknown reason is a permanent failure, so a future addition to the taxonomy
     /// cannot become an infinite retry loop.
     /// </summary>
@@ -216,31 +193,19 @@ public class DeclarationPdfMigrationService(
         {
             "AlreadyMigrated" => Disposition.Done,
             "NoPdfOnDeclaration" => Disposition.Skipped,
-            // The PDF still copied in both cases below - there just are no heir choices to
-            // migrate for it. Not actionable and not retryable, so skip rather than fail.
-            "NoDeclarationData" => Disposition.Skipped,
-            "NoSignedDeclarationClaims" => Disposition.Skipped,
             "StorageError" => Disposition.Retryable,
             _ => Disposition.PermanentFailure
         };
     }
 
-    private void Record(
-        Guid estateId,
-        MigrateDeclarationPdfResult result,
-        Disposition disposition,
-        string? outcomeKeyOverride = null,
-        string? detailOverride = null)
+    private void Record(Guid estateId, MigrateDeclarationPdfResult result, Disposition disposition)
     {
         var isSuccess = result.HttpStatus is >= 200 and < 300;
 
         // The real reason/outcome string from the oed endpoint, kept intact for logging and for
         // the failure list - unlike the folded key below, it must not lose an unrecognised value
         // to "Unknown", since a new failure mode is exactly what needs to stay diagnosable.
-        // outcomeKeyOverride lets a caller record a locally-synthesised outcome (one the oed
-        // endpoint itself never returns) instead, e.g. AlreadyMigratedAfterStorageError.
-        var reason = outcomeKeyOverride ?? (isSuccess ? result.Outcome : result.Reason) ?? "Unknown";
-        var detail = detailOverride ?? result.Detail;
+        var reason = (isSuccess ? result.Outcome : result.Reason) ?? "Unknown";
 
         // Folded to the bounded set RecordOutcome's fixed counters understand.
         var key = reason;
@@ -256,8 +221,8 @@ public class DeclarationPdfMigrationService(
         else
         {
             logger.LogWarning("Estate {EstateId} failed: [{Status}] {Reason} - {Detail}",
-                estateId, result.HttpStatus, reason, detail);
-            state.RecordFailure(new MigrationFailure(estateId, reason, detail, result.HttpStatus));
+                estateId, result.HttpStatus, reason, result.Detail);
+            state.RecordFailure(new MigrationFailure(estateId, reason, result.Detail, result.HttpStatus));
         }
 
         if (processed % HeartbeatEvery == 0)
