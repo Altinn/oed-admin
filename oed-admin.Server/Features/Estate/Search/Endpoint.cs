@@ -51,6 +51,12 @@ public static class Endpoint
                     EF.Functions.Like(
                         e.DeceasedName.ToLower(),
                         $"%{request.Name.ToLower()}%")),
+            { Court: not null } =>
+                query.Where(e =>
+                    e.DistrictCourtName != null &&
+                    EF.Functions.Like(
+                        e.DistrictCourtName.ToLower(),
+                        $"%{request.Court.ToLower()}%")),
             { CaseNumber: not null } =>
                 query.Where(e =>
                     e.CaseNumber != null &&

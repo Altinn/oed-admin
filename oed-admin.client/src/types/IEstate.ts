@@ -9,6 +9,7 @@ export interface RequestBody {
   CaseNumber?: string;
   CaseId?: string;
   Name?: string;
+  Court?: string;
   Page?: number;
   PageSize?: number;
 }

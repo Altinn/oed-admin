@@ -99,6 +99,10 @@ export default function EstateSearch() {
       submittedSearch?.type === "name" && submittedSearch?.query
         ? submittedSearch.query
         : undefined,
+    Court:
+      submittedSearch?.type === "court" && submittedSearch?.query
+        ? submittedSearch.query
+        : undefined,
   };
 
   const {
@@ -232,6 +236,10 @@ export default function EstateSearch() {
             <ToggleGroup.Item value="heir">
               <PersonGroupIcon aria-hidden />
               Arving
+            </ToggleGroup.Item>
+            <ToggleGroup.Item value="court">
+              <GavelIcon aria-hidden />
+              Tingrett
             </ToggleGroup.Item>
           </ToggleGroup>
 
