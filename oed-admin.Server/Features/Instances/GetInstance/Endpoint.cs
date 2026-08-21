@@ -16,9 +16,8 @@ public static class Endpoint
             request.InstanceOwnerPartyId, 
             request.InstanceGuid);
 
-        // Storage has no such instance — a plain 404, not a malformed request.
         if (instance is null)
-            return TypedResults.NotFound();
+            return TypedResults.BadRequest();
 
         return TypedResults.Ok(new Response(instance));
     }
