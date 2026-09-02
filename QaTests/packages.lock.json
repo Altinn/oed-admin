@@ -2,11 +2,21 @@
   "version": 1,
   "dependencies": {
     "net10.0": {
+      "Altinn.Dd.Tests.DependencyGate": {
+        "type": "Direct",
+        "requested": "[1.0.2, )",
+        "resolved": "1.0.2",
+        "contentHash": "b+ceoRzd2d1iFQp4DUIOtu6Wp8BKTBtXU22HMskKI/gBD2Q4U2lRO2j4R5PPgxlmi0w+OEdRabIu6UARIW8ODQ==",
+        "dependencies": {
+          "Xunit.SkippableFact": "1.4.13",
+          "xunit.abstractions": "2.0.3"
+        }
+      },
       "Altinn.Dd.Tests.SonarGate": {
         "type": "Direct",
-        "requested": "[2.0.1, )",
-        "resolved": "2.0.1",
-        "contentHash": "N1lT+kPZjGXljkgDJO1s8dnOztQLCvJ9yDd5lSeqFVr3UETxPynVgAscSUP1Zw9ZuZbod/s44jZqQ4oLAlmMsA==",
+        "requested": "[2.1.0, )",
+        "resolved": "2.1.0",
+        "contentHash": "wyAmqAtxJrGZrX6ikhqWtuWSw6WbYeuDoO1UKi2RHMdqEpkCEGu2fWu+b5nrpaa1bU3E0jpWo2FwjaHYwdrLSA==",
         "dependencies": {
           "Azure.Identity": "1.13.0",
           "Azure.Storage.Blobs": "12.22.2",
