@@ -10,7 +10,7 @@
     <UserSecretsId>42960fe2-3130-4e13-a1f7-74da08f71fd8</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="9.2.1" />
+    <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="10.1.0" />
     <PackageReference Include="Altinn.Dd.Correspondence" Version="2.2.0" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="4.7.1" />
     <PackageReference Include="Azure.Data.Tables" Version="12.12.0" />

@@ -13,6 +13,7 @@ public record MaskinportenSettings : IMaskinportenSettings
     public string? CertificateStoreThumbprint { get; set; }
     public string? EncodedJwk { get; set; }
     public string? EncodedX509 { get; set; }
+    public string? Kid { get; set; }
     public string? ConsumerOrgNo { get; set; }
     public string? EnterpriseUserName { get; set; }
     public string? EnterpriseUserPassword { get; set; }
