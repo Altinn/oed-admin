@@ -1,6 +1,6 @@
 import { Details, Paragraph } from "@digdir/designsystemet-react";
 import { CodeIcon, FileJsonIcon } from "@navikt/aksel-icons";
-import { prettifyXml } from "../../utils/formatters";
+import XmlView from "./XmlView";
 import JSONPretty from 'react-json-pretty';
 import 'react-json-pretty/themes/monikai.css';
 
@@ -30,14 +30,7 @@ export default function Instance({ data }: Props) {
         </Details.Summary>
         <Details.Content data-size="sm">
           {data?.instanceData ? (
-            <pre
-              style={{
-                whiteSpace: "pre-wrap",
-                wordBreak: "break-all",
-              }}
-            >
-              {prettifyXml(data.instanceData)}
-            </pre>
+            <XmlView xml={data.instanceData} />
           ) : (
             <Paragraph>Ingen data.</Paragraph>
           )}

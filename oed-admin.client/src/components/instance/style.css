@@ -1,0 +1,40 @@
+/* Monikai, matching the theme react-json-pretty uses for the instance JSON
+   above it, so the two panels read as one thing. */
+.xml-view {
+  line-height: 1.3;
+  color: #f8f8f2;
+  background: #272822;
+  overflow: auto;
+  margin: 0;
+  padding: 0.5rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.xml-view .xml-tag {
+  color: #f92672;
+}
+
+.xml-view .xml-attr-name {
+  color: #a6e22e;
+}
+
+.xml-view .xml-attr-value {
+  color: #fd971f;
+}
+
+.xml-view .xml-punctuation {
+  color: #8f908a;
+}
+
+.xml-view .xml-prolog {
+  color: #ac81fe;
+}
+
+.xml-view .xml-comment {
+  color: #75715e;
+}
+
+.xml-view .xml-cdata {
+  color: #66d9ef;
+}
