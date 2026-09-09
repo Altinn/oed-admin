@@ -137,8 +137,8 @@
       "Microsoft.AspNetCore.Authentication.JwtBearer": {
         "type": "Direct",
         "requested": "[10.0.*, )",
-        "resolved": "10.0.11",
-        "contentHash": "Dy9yElSej0rVQL8LBpCLatWTKXNH6h6VBVFmGndTCf1Wge0jSvH9U8mml6ddVDAQ089q1/fDYlhyukHSgx8unQ==",
+        "resolved": "10.0.12",
+        "contentHash": "DeE+Bq2OqB3FikFkZk+7gFBeLOQhkSolejLrbi+a9zpfvXtW1Ff6Nd6DIvHXIm+pc4aM4+52vDy3jnuau0qoUQ==",
         "dependencies": {
           "Microsoft.IdentityModel.Protocols.OpenIdConnect": "8.19.2"
         }
@@ -146,17 +146,17 @@
       "Microsoft.AspNetCore.OpenApi": {
         "type": "Direct",
         "requested": "[10.0.*, )",
-        "resolved": "10.0.11",
-        "contentHash": "R/1EATnPLU+gRfB6lwVkMcymmyAY5ppBBdRN/5lhNEiT3xP1sWccuSFkU/f1lQvN/WgRq5Vn8AhCdE3fqgsL/w==",
+        "resolved": "10.0.12",
+        "contentHash": "7RnQ/UKn+kK3JDLmTpW+vVqNErWthGPAVAy1aIiBzv4ucQ6g9NFvOJUuT0PHcpvcJxGVxctMxj6t+NESWMrgHQ==",
         "dependencies": {
-          "Microsoft.OpenApi": "[2.7.5, 3.0.0)"
+          "Microsoft.OpenApi": "[2.12.0, 3.0.0)"
         }
       },
       "Microsoft.AspNetCore.SpaProxy": {
         "type": "Direct",
         "requested": "[10.0.*, )",
-        "resolved": "10.0.11",
-        "contentHash": "bu1oRqZVuvBXTXFMciLm57Gledjv6Y8veHmXtayLOjkoHm/2hNd35dZOA9hko6VQhmbQuPIQQNerbpJHyibzVw=="
+        "resolved": "10.0.12",
+        "contentHash": "CsKyQCX3M8XjvZoy3WVn3B8+a89ZvvYvEDZn3omdZQbjGRkFGN9JD/KBAPzKNHB4gfpi4eR6iw0RPQw1tAszxw=="
       },
       "Microsoft.Extensions.Azure": {
         "type": "Direct",
@@ -454,8 +454,8 @@
       },
       "Microsoft.OpenApi": {
         "type": "Transitive",
-        "resolved": "2.7.5",
-        "contentHash": "0FA67RSnRM4tcBKqiqVu/HPdZ9+QOKbmeRjxRUGTCjPU4C0bmUhd97Dso7Yild5P7nOV6GxJ2xrK0Kv/O9xp0w=="
+        "resolved": "2.12.0",
+        "contentHash": "0xB/be+f6qYOhvQPUrVsLrau+fkowYv6gt9RIkajMhwT7sZnqtcA797yW3bS5kgSje+AQW4xZgyLnW641YFioQ=="
       },
       "Microsoft.Win32.SystemEvents": {
         "type": "Transitive",
