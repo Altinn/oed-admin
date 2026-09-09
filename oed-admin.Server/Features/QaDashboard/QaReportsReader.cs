@@ -6,8 +6,9 @@ using Azure.Storage.Blobs;
 namespace oed_admin.Server.Features.QaDashboard;
 
 // Reads the per-run SonarQube snapshot JSON the Altinn.Dd.Tests.SonarGate package archives to the
-// oedqa "{project}/history/*.json" blobs, and aggregates it into the QA dashboard model. This is
-// the native-render counterpart to the package's own HTML dashboard; the data is the source of truth.
+// oedqa "{project}/history/yyyyMMdd-HHmmss.json" blobs, and aggregates it into the QA dashboard
+// model. This is the native-render counterpart to the package's own HTML dashboard; the data is
+// the source of truth.
 public sealed class QaReportsReader
 {
     private const int HistoryRows = 30;
@@ -21,33 +22,22 @@ public sealed class QaReportsReader
 
     public async Task<QaDashboardDto> GetAsync(CancellationToken cancellationToken)
     {
-        // List every "{project}/history/*.json". Names are yyyyMMdd-HHmmss, so ordinal desc == newest first.
-        var byProject = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        var blobNames = new List<string>();
         await foreach (var blob in _container.GetBlobsAsync(cancellationToken: cancellationToken))
         {
-            var parts = blob.Name.Split('/');
-            if (parts.Length < 3 || parts[1] != "history"
-                || !parts[2].EndsWith(".json", StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
-
-            if (!byProject.TryGetValue(parts[0], out var list))
-            {
-                byProject[parts[0]] = list = [];
-            }
-            list.Add(blob.Name);
+            blobNames.Add(blob.Name);
         }
 
         var projects = new List<QaProject>();
-        foreach (var (name, blobs) in byProject)
+        foreach (var (name, newestFirst) in SelectSnapshotBlobs(blobNames))
         {
-            var newestFirst = blobs.OrderByDescending(b => b, StringComparer.Ordinal).Take(HistoryRows).ToList();
             var snapshots = new List<QaSnapshot>();
-            for (var i = 0; i < newestFirst.Count; i++)
+            foreach (var blobName in newestFirst)
             {
-                // Only the latest snapshot carries the top-N findings drilldown.
-                var snapshot = await ReadSnapshotAsync(newestFirst[i], includeTop: i == 0, cancellationToken);
+                // Only the latest snapshot carries the top-N findings drilldown. Hang it off the
+                // first blob that actually parses rather than the first listed, so one unreadable
+                // newest snapshot cannot take the whole drilldown down with it.
+                var snapshot = await ReadSnapshotAsync(blobName, includeTop: snapshots.Count == 0, cancellationToken);
                 if (snapshot is not null)
                 {
                     snapshots.Add(snapshot);
@@ -61,6 +51,62 @@ public sealed class QaReportsReader
         }
 
         return new QaDashboardDto(projects.OrderBy(p => p.Name, StringComparer.Ordinal).ToList());
+    }
+
+    // Groups the SonarGate snapshots under "{project}/history/" into newest-first, capped
+    // per-project lists.
+    // Pure and static so the selection rules can be exercised without blob storage.
+    public static Dictionary<string, List<string>> SelectSnapshotBlobs(IEnumerable<string> blobNames)
+    {
+        var byProject = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        foreach (var blobName in blobNames)
+        {
+            var parts = blobName.Split('/');
+            if (parts.Length < 3 || parts[1] != "history" || !IsSonarSnapshot(parts[2]))
+            {
+                continue;
+            }
+
+            if (!byProject.TryGetValue(parts[0], out var list))
+            {
+                byProject[parts[0]] = list = [];
+            }
+            list.Add(blobName);
+        }
+
+        // Names are yyyyMMdd-HHmmss, so ordinal desc == newest first.
+        var selected = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        foreach (var (project, list) in byProject)
+        {
+            selected[project] = list.OrderByDescending(b => b, StringComparer.Ordinal).Take(HistoryRows).ToList();
+        }
+        return selected;
+    }
+
+    // SonarGate names its snapshots "yyyyMMdd-HHmmss.json". Sibling gates archive under the same
+    // "{project}/history/" prefix with their own prefixed names — DependencyGate writes
+    // "deps-yyyyMMdd-HHmmss.json" — so match this gate's pattern rather than taking every *.json.
+    private static bool IsSonarSnapshot(string fileName)
+    {
+        const string Extension = ".json";
+        const int StampLength = 15; // yyyyMMdd-HHmmss
+
+        if (fileName.Length != StampLength + Extension.Length
+            || !fileName.EndsWith(Extension, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        for (var i = 0; i < StampLength; i++)
+        {
+            var ok = i == 8 ? fileName[i] == '-' : char.IsAsciiDigit(fileName[i]);
+            if (!ok)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private async Task<QaSnapshot?> ReadSnapshotAsync(string blobName, bool includeTop, CancellationToken cancellationToken)
