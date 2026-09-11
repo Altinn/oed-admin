@@ -1,6 +1,7 @@
 import { Heading, Paragraph, Tabs } from "@digdir/designsystemet-react";
 import {
   BarChartIcon,
+  CheckmarkCircleIcon,
   KeyVerticalIcon,
   CircleBrokenIcon,
   ExclamationmarkTriangleIcon,
@@ -17,6 +18,7 @@ import SecretExpiration from "./secretExpiration";
 import EventSubs from "./eventsubs";
 import DistrictCourts from "./districtCourts";
 import QaDashboard from "./qaDashboard";
+import EstateCompletion from "./estateCompletion";
 
 export default function Home() {
   return (
@@ -43,6 +45,9 @@ export default function Home() {
           </Tabs.Tab>
           <Tabs.Tab value="qa">
             <BarChartIcon /> Kvalitet
+          </Tabs.Tab>
+          <Tabs.Tab value="completion">
+            <CheckmarkCircleIcon /> Fullført
           </Tabs.Tab>
         </Tabs.List>
 
@@ -110,6 +115,9 @@ export default function Home() {
         </Tabs.Panel>
         <Tabs.Panel value="qa">
           <QaDashboard />
+        </Tabs.Panel>
+        <Tabs.Panel value="completion">
+          <EstateCompletion />
         </Tabs.Panel>
       </Tabs>
     </>

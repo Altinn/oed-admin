@@ -36,6 +36,12 @@ public static class Endpoints
         app.MapGet("/api/districtcourts", DistrictCourts.GetDistrictCourts.Endpoint.Get)
             .RequireAuthorization(AuthorizationPolicies.AtLeastReadRole);
 
+        // Aggregate estate-completion statistics, bucketed by the month the estate was opened.
+        // Returns counts only - no estate ids, no personal data - so the audit middleware has
+        // nothing to extract, which is correct here rather than an oversight. 
+        app.MapGet("/api/statistics/estatecompletion", Statistics.GetEstateCompletion.Endpoint.Get)
+            .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
+
         // Aggregated QA dashboard data (read from the oedqa "reports" blob container), rendered
         // natively by the React client. Auth intentionally not enforced.
         app.MapGet("/api/qa", QaDashboard.Endpoint.Get);
@@ -109,4 +115,4 @@ public static class Endpoints
             return group;
         }
     }
-}
+}

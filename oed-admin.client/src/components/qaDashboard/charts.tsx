@@ -1,55 +1,12 @@
 import type { CSSProperties } from "react";
 import { Paragraph } from "@digdir/designsystemet-react";
-import {
-  formatMetricValue,
-  formatTimestamp,
-  scalePoints,
-  toPolyline,
-  trendColor,
-  trendKind,
-  type Direction,
-  type MetricColumn,
-  type MetricPoint,
-} from "./chartUtils";
+import { formatMetricValue, formatTimestamp, type MetricColumn, type MetricPoint } from "./chartUtils";
+import { scalePoints, toPolyline, trendColor, trendKind } from "../charts/chartUtils";
 
 // Muted chrome colours fall back to GitHub-style hexes when the design tokens are absent,
 // so charts stay legible in both light and dark mode.
 const GRID = "var(--ds-color-neutral-border-subtle, #30363d)";
 const MUTED = "var(--ds-color-neutral-text-subtle, #8b949e)";
-
-// Tiny inline trend line for a single overview table cell. Decorative: the cell already
-// shows the value and the arrow, so this is aria-hidden.
-const SPARK_W = 64;
-const SPARK_H = 18;
-
-export function Sparkline({ values, dir }: { values: number[]; dir: Direction }) {
-  if (values.length === 0) return null;
-  const coords = scalePoints(values, SPARK_W, SPARK_H, 2);
-  const last = coords[coords.length - 1];
-  const kind = values.length >= 2 ? trendKind(values[0], values[values.length - 1], dir) : "neutral";
-  const color = trendColor(kind);
-  return (
-    <svg
-      aria-hidden
-      width={SPARK_W}
-      height={SPARK_H}
-      viewBox={`0 0 ${SPARK_W} ${SPARK_H}`}
-      style={{ display: "block", marginLeft: "auto" }}
-    >
-      {values.length >= 2 && (
-        <polyline
-          points={toPolyline(coords)}
-          fill="none"
-          stroke={color}
-          strokeWidth={1}
-          strokeLinejoin="round"
-          strokeLinecap="round"
-        />
-      )}
-      <circle cx={last.x} cy={last.y} r={1.6} fill={color} />
-    </svg>
-  );
-}
 
 // One small-multiple line chart for a single metric over the run history.
 const CHART_W = 240;

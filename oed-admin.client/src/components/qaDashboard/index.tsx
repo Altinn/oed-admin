@@ -15,12 +15,11 @@ import {
   formatTimestamp,
   metricPoints,
   metricSeries,
-  trendColor,
-  trendKind,
-  type Direction,
   type MetricColumn,
 } from "./chartUtils";
-import { GateTimeline, MetricChart, Sparkline } from "./charts";
+import { trendColor, trendKind, type Direction } from "../charts/chartUtils";
+import { Sparkline } from "../charts";
+import { GateTimeline, MetricChart } from "./charts";
 
 // Mirrors the QaDashboardDto returned by GET /api/qa (read from the oedqa "reports" blob container).
 interface QaFinding {
