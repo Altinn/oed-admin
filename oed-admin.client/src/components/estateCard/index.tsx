@@ -6,7 +6,7 @@ import {
   Label,
 } from "@digdir/designsystemet-react";
 import "./style.css";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import type { Estate } from "../../types/IEstate";
 import { statusColors, statusTexts } from "../../utils/statusMappers";
 
@@ -15,7 +15,6 @@ interface Props {
 }
 
 export default function EstateCard({ estate }: Props) {
-  const navigate = useNavigate();
   const {
     deceasedName,
     dateOfDeath,
@@ -34,17 +33,13 @@ export default function EstateCard({ estate }: Props) {
   const ddStatusColor = caseStatus ? statusColors[status] : "neutral";
   const ddStatusText = caseStatus ? statusTexts[status] : "Ukjent";
 
-  const handleClick = () => {
-    navigate(`/estate/${id}`);
-  };
-
   if (!estate) {
     return null;
   }
 
   return (
     <Card asChild data-color="neutral" className="deceased-card">
-      <button type="button" onClick={handleClick}>
+      <Link to={`/estate/${id}`}>
         <Card.Block>
           <Paragraph data-size="xs">
             <Label>Opprettet: </Label>
@@ -78,7 +73,7 @@ export default function EstateCard({ estate }: Props) {
             {caseNumber}
           </Paragraph>
         </Card.Block>
-      </button>
+      </Link>
     </Card>
   );
 }
