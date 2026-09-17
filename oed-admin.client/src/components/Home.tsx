@@ -52,7 +52,7 @@ export default function Home() {
             <CheckmarkCircleIcon /> Fullført
           </Tabs.Tab>
           <Tabs.Tab value="backlog">
-            <HourglassIcon /> Pågående
+            <HourglassIcon /> Åpne skifteerklæringer
           </Tabs.Tab>
         </Tabs.List>
 

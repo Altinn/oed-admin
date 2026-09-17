@@ -60,7 +60,7 @@ function Headline({ points, resolution }: { points: EstateBacklogPoint[]; resolu
 
   return (
     <Paragraph data-size="lg" style={{ marginBottom: "var(--ds-size-3)" }}>
-      Pågående nå: <strong>{last.toLocaleString("nb-NO")}</strong>
+      Åpne nå: <strong>{last.toLocaleString("nb-NO")}</strong>
       {change}
     </Paragraph>
   );
@@ -73,7 +73,7 @@ export default function EstateBacklog() {
 
   let content: ReactNode;
   if (isLoading) {
-    content = <Skeleton variant="rectangle" aria-label="Henter pågående dødsbo" style={{ height: "18rem" }} />;
+    content = <Skeleton variant="rectangle" aria-label="Henter åpne skifteerklæringer" style={{ height: "18rem" }} />;
   } else if (error) {
     content = <ValidationMessage>Det oppstod en feil under henting av statistikken: {error.message}</ValidationMessage>;
   } else if (!data || data.points.length === 0) {
@@ -84,7 +84,7 @@ export default function EstateBacklog() {
     content = (
       <div style={{ opacity: isPlaceholderData ? 0.5 : 1, transition: "opacity 150ms" }} aria-busy={isPlaceholderData}>
         <Headline points={data.points} resolution={resolution} />
-        <LineChart points={toChartPoints(data.points, resolution)} ariaLabel="Antall pågående dødsbo over tid" />
+        <LineChart points={toChartPoints(data.points, resolution)} ariaLabel="Antall åpne skifteerklæringer over tid" />
       </div>
     );
   }
@@ -92,10 +92,10 @@ export default function EstateBacklog() {
   return (
     <>
       <Heading level={2} data-size="xl">
-        Pågående dødsbo
+        Åpne skifteerklæringer
       </Heading>
       <Paragraph data-size="sm" style={{ marginBottom: "var(--ds-size-3)" }}>
-        Et dødsbo regnes som pågående fra skifteerklæringen er opprettet til skifteerklæringen er sendt inn eller skifteattesten er utstedt.
+        En skifteerklæring regnes som åpen fra den er opprettet til den er sendt inn eller skifteattesten er utstedt. Tallene gjelder kun oed-declarations, ikke skifteerklæringer i den nye subappen.
         Kansellerte og feilførte saker er holdt utenfor. Periodene er i UTC, og hvert punkt viser antallet
         ved slutten av perioden. Tall fra før juni 2025 er ufullstendige, fordi tabellen ble innført da.
       </Paragraph>

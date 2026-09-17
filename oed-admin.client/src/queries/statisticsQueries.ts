@@ -76,7 +76,7 @@ export const useEstateBacklogQuery = (resolution: BacklogResolution, range: Back
       if (from) params.set("from", from);
       const response = await fetchWithMsal(`/api/statistics/estatebacklog?${params}`);
       if (!response.ok) {
-        throw new Error("Kunne ikke hente statistikk for pågående dødsbo");
+        throw new Error("Kunne ikke hente statistikk for åpne skifteerklæringer");
       }
       return response.json();
     },
