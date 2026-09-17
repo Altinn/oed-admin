@@ -21,13 +21,11 @@ public static class Endpoint
         // it, so the running total needs the whole history.
         var estates = await dbContext.Estate
             .AsNoTracking()
+            .Where(estate => estate.IsCancelled != true)
+            .Where(estate => estate.CaseStatus != MispostedCaseStatus)
             .Where(estate => estate.DelarationCreated != null)
-            // Cancelled and mis-posted estates never reach probate and would sit in the backlog
-            // forever. Neither flag is timestamped, so they are dropped from all of history. The
-            // null branches are spelled out for the same reason as in GetEstateCompletion: a bare
-            // <> in SQL drops NULL rows.
-            .Where(estate => estate.IsCancelled == null || estate.IsCancelled == false)
-            .Where(estate => estate.CaseStatus == null || estate.CaseStatus != MispostedCaseStatus)
+            .Where(estate => estate.DeclarationSubmitted == null)
+            .Where(estate => estate.ProbateIssued == null)
             .Select(estate => new { estate.DelarationCreated, estate.ProbateIssued })
             .ToListAsync(cancellationToken);
 
