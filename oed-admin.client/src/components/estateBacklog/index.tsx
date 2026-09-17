@@ -95,7 +95,7 @@ export default function EstateBacklog() {
         Pågående dødsbo
       </Heading>
       <Paragraph data-size="sm" style={{ marginBottom: "var(--ds-size-3)" }}>
-        Et dødsbo regnes som pågående fra skifteerklæringen er opprettet til skifteattesten er utstedt.
+        Et dødsbo regnes som pågående fra skifteerklæringen er opprettet til skifteerklæringen er sendt inn eller skifteattesten er utstedt.
         Kansellerte og feilførte saker er holdt utenfor. Periodene er i UTC, og hvert punkt viser antallet
         ved slutten av perioden. Tall fra før juni 2025 er ufullstendige, fordi tabellen ble innført da.
       </Paragraph>

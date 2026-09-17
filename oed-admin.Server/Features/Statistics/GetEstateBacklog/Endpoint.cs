@@ -24,9 +24,7 @@ public static class Endpoint
             .Where(estate => estate.IsCancelled != true)
             .Where(estate => estate.CaseStatus != MispostedCaseStatus)
             .Where(estate => estate.DelarationCreated != null)
-            .Where(estate => estate.DeclarationSubmitted == null)
-            .Where(estate => estate.ProbateIssued == null)
-            .Select(estate => new { estate.DelarationCreated, estate.ProbateIssued })
+            .Select(estate => new { estate.DelarationCreated, estate.DeclarationSubmitted, estate.ProbateIssued })
             .ToListAsync(cancellationToken);
 
         var events = new List<(DateTimeOffset At, int Delta)>(estates.Count * 2);
@@ -34,13 +32,17 @@ public static class Endpoint
         {
             var declared = estate.DelarationCreated!.Value;
 
-            // Probate on or before the declaration is bad data; such an estate is never ongoing.
-            if (estate.ProbateIssued is { } probate && probate <= declared)
+            // An estate stops being ongoing at whichever comes first: the declaration is submitted
+            // or probate is issued.
+            var ended = Earliest(estate.DeclarationSubmitted, estate.ProbateIssued);
+
+            // Ending on or before the declaration is bad data; such an estate is never ongoing.
+            if (ended is { } end && end <= declared)
                 continue;
 
             events.Add((declared, +1));
-            if (estate.ProbateIssued is { } issued)
-                events.Add((issued, -1));
+            if (ended is { } endedAt)
+                events.Add((endedAt, -1));
         }
 
         if (request.From is null && events.Count == 0)
@@ -55,6 +57,9 @@ public static class Endpoint
 
         return TypedResults.Ok(new Response(Sweep(events, from, to, resolution)));
     }
+
+    private static DateTimeOffset? Earliest(DateTimeOffset? a, DateTimeOffset? b) =>
+        a is null ? b : b is null ? a : a < b ? a : b;
 
     /// <summary>
     /// Walks the sorted events once, recording the running total at the end of each UTC period.
