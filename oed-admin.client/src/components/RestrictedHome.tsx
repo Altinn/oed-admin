@@ -7,6 +7,7 @@ import { useMsal } from "@azure/msal-react";
 import type { AccountInfo } from "@azure/msal-browser";
 import { MagnifyingGlassIcon, GavelSoundBlockIcon } from "@navikt/aksel-icons";
 import DistrictCourts from "./districtCourts";
+import { useLazyTabs } from "../utils/useLazyTabs";
 
 const RestrictedSearch = () => {
   const [estate, setEstate] = useState<MinimalEstate>();
@@ -120,8 +121,10 @@ const RestrictedSearch = () => {
 };
 
 const RestrictedHome = () => {
+  const tabs = useLazyTabs("restrictedSearch");
+
   return (
-    <Tabs defaultValue="restrictedSearch" style={{ width: "100%" }}>
+    <Tabs value={tabs.value} onChange={tabs.onChange} style={{ width: "100%" }}>
       <Tabs.List style={{ marginBottom: "var(--ds-size-4)" }}>
         <Tabs.Tab value="restrictedSearch">
           <MagnifyingGlassIcon /> Søk etter dødsbo
@@ -131,10 +134,10 @@ const RestrictedHome = () => {
         </Tabs.Tab>
       </Tabs.List>
       <Tabs.Panel value="restrictedSearch">
-        <RestrictedSearch />
+        {tabs.isVisited("restrictedSearch") && <RestrictedSearch />}
       </Tabs.Panel>
       <Tabs.Panel value="districtCourts">
-        <DistrictCourts />
+        {tabs.isVisited("districtCourts") && <DistrictCourts />}
       </Tabs.Panel>
     </Tabs>
   );

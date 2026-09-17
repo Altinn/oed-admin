@@ -21,11 +21,70 @@ import DistrictCourts from "./districtCourts";
 import QaDashboard from "./qaDashboard";
 import EstateCompletion from "./estateCompletion";
 import EstateBacklog from "./estateBacklog";
+import { useLazyTabs } from "../utils/useLazyTabs";
+
+function TaskQueue() {
+  const tabs = useLazyTabs("dlq");
+
+  return (
+    <Tabs value={tabs.value} onChange={tabs.onChange}>
+      <Tabs.List style={{ marginBottom: "var(--ds-size-4)" }}>
+        <Tabs.Tab value="dlq">
+          <ExclamationmarkTriangleIcon /> Dead Letter Queue
+        </Tabs.Tab>
+        <Tabs.Tab value="retrying">
+          <CircleBrokenIcon /> Retrying
+        </Tabs.Tab>
+      </Tabs.List>
+      <Tabs.Panel value="dlq">
+        <section id="dead-letter-queue">
+          <Heading
+            level={2}
+            data-size="sm"
+            style={{ paddingBottom: "var(--ds-size-2)" }}
+          >
+            Dead Letter Queue
+          </Heading>
+          <Paragraph style={{ marginBottom: "2rem" }}>
+            Oppgaver i denne listen har feilet maksimalt antall ganger og
+            de vil ikke bli forsøkt igjen automatisk. Når grunnen til at
+            de feiler er løst kan de reschedules manuelt.
+          </Paragraph>
+          {tabs.isVisited("dlq") && <Tasks status="DeadLetterQueue" />}
+        </section>
+      </Tabs.Panel>
+      <Tabs.Panel value="retrying">
+        <section id="retrying-tasks">
+          <Heading
+            level={2}
+            data-size="sm"
+            style={{ paddingBottom: "var(--ds-size-2)" }}
+          >
+            Retrying
+          </Heading>
+          <Paragraph style={{ marginBottom: "2rem" }}>
+            Oppgaver i denne listen har feilet, men de har enda ikke nådd
+            maksimalt antall forsøk og de vil derfor automatisk bli
+            forsøkt igjen senere.
+          </Paragraph>
+
+          {tabs.isVisited("retrying") && <Tasks status="Retrying" />}
+        </section>
+      </Tabs.Panel>
+    </Tabs>
+  );
+}
 
 export default function Home() {
+  const tabs = useLazyTabs("search");
+
   return (
     <>
-      <Tabs defaultValue="search" style={{ width: "100%" }}>
+      <Tabs
+        value={tabs.value}
+        onChange={tabs.onChange}
+        style={{ width: "100%" }}
+      >
         <Tabs.List style={{ marginBottom: "var(--ds-size-4)" }}>
           <Tabs.Tab value="search">
             <MagnifyingGlassIcon /> Søk etter dødsbo
@@ -57,75 +116,31 @@ export default function Home() {
         </Tabs.List>
 
         <Tabs.Panel value="search">
-          <EstateSearch />
+          {tabs.isVisited("search") && <EstateSearch />}
         </Tabs.Panel>
         <Tabs.Panel value="tasks">
-          <Tabs defaultValue="dlq">
-            <Tabs.List style={{ marginBottom: "var(--ds-size-4)" }}>
-              <Tabs.Tab value="dlq">
-                <ExclamationmarkTriangleIcon /> Dead Letter Queue
-              </Tabs.Tab>
-              <Tabs.Tab value="retrying">
-                <CircleBrokenIcon /> Retrying
-              </Tabs.Tab>
-            </Tabs.List>
-            <Tabs.Panel value="dlq">
-              <section id="dead-letter-queue">
-                <Heading
-                  level={2}
-                  data-size="sm"
-                  style={{ paddingBottom: "var(--ds-size-2)" }}
-                >
-                  Dead Letter Queue
-                </Heading>
-                <Paragraph style={{ marginBottom: "2rem" }}>
-                  Oppgaver i denne listen har feilet maksimalt antall ganger og
-                  de vil ikke bli forsøkt igjen automatisk. Når grunnen til at
-                  de feiler er løst kan de reschedules manuelt.
-                </Paragraph>
-                <Tasks status="DeadLetterQueue" />
-              </section>
-            </Tabs.Panel>
-            <Tabs.Panel value="retrying">
-              <section id="retrying-tasks">
-                <Heading
-                  level={2}
-                  data-size="sm"
-                  style={{ paddingBottom: "var(--ds-size-2)" }}
-                >
-                  Retrying
-                </Heading>
-                <Paragraph style={{ marginBottom: "2rem" }}>
-                  Oppgaver i denne listen har feilet, men de har enda ikke nådd
-                  maksimalt antall forsøk og de vil derfor automatisk bli
-                  forsøkt igjen senere.
-                </Paragraph>
-
-                <Tasks status="Retrying" />
-              </section>
-            </Tabs.Panel>
-          </Tabs>
+          {tabs.isVisited("tasks") && <TaskQueue />}
         </Tabs.Panel>
         <Tabs.Panel value="superadmins">
-          <SuperAdmins />
+          {tabs.isVisited("superadmins") && <SuperAdmins />}
         </Tabs.Panel>
         <Tabs.Panel value="secrets">
-          <SecretExpiration />
+          {tabs.isVisited("secrets") && <SecretExpiration />}
         </Tabs.Panel>
         <Tabs.Panel value="event-sub">
-          <EventSubs />
+          {tabs.isVisited("event-sub") && <EventSubs />}
         </Tabs.Panel>
         <Tabs.Panel value="districtcourts">
-          <DistrictCourts />
+          {tabs.isVisited("districtcourts") && <DistrictCourts />}
         </Tabs.Panel>
         <Tabs.Panel value="qa">
-          <QaDashboard />
+          {tabs.isVisited("qa") && <QaDashboard />}
         </Tabs.Panel>
         <Tabs.Panel value="completion">
-          <EstateCompletion />
+          {tabs.isVisited("completion") && <EstateCompletion />}
         </Tabs.Panel>
         <Tabs.Panel value="backlog">
-          <EstateBacklog />
+          {tabs.isVisited("backlog") && <EstateBacklog />}
         </Tabs.Panel>
       </Tabs>
     </>

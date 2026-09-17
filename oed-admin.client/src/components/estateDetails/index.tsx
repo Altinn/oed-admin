@@ -38,6 +38,7 @@ import EstateDaObject from "../estateDaObject";
 import { fetchWithMsal } from "../../utils/msalUtils";
 import EstateSearchRoles from "../estateSearchRoles";
 import EstateCorrespondences from "../estateCorrespondences";
+import { useLazyTabs } from "../../utils/useLazyTabs";
 
 interface EstateDetailsResponse {
   estate: Estate;
@@ -46,6 +47,7 @@ interface EstateDetailsResponse {
 export default function EstateDetails() {
   const location = useLocation();
   const id = location.pathname.split("/").pop() || "";
+  const tabs = useLazyTabs("details");
 
   const { data, isLoading, error } = useQuery<EstateDetailsResponse>({
     queryKey: ["estate", id],
@@ -95,7 +97,7 @@ export default function EstateDetails() {
         Her kan du se detaljer om dødsboet til den avdøde personen. Du kan også
         navigere tilbake til oversikten for å se andre dødsbo.
       </Paragraph>
-      <Tabs defaultValue="details" style={{ width: "100%" }}>
+      <Tabs value={tabs.value} onChange={tabs.onChange} style={{ width: "100%" }}>
         <Tabs.List style={{ marginBottom: "var(--ds-size-4)" }}>
           <Tabs.Tab value="details">
             <InformationSquareIcon /> Detaljer
@@ -182,31 +184,31 @@ export default function EstateDetails() {
         </Tabs.Panel>
 
         <Tabs.Panel value="roles">
-          <EstateRoles estateId={id} />
+          {tabs.isVisited("roles") && <EstateRoles estateId={id} />}
         </Tabs.Panel>
         <Tabs.Panel value="authzroles">
-          <EstateSearchRoles estateId={id} />
+          {tabs.isVisited("authzroles") && <EstateSearchRoles estateId={id} />}
         </Tabs.Panel>
         <Tabs.Panel value="instance">
-          <EstateInstance estateId={id} />
+          {tabs.isVisited("instance") && <EstateInstance estateId={id} />}
         </Tabs.Panel>
         <Tabs.Panel value="signeestatus">
-          <EstateSigneeStatus estateId={id} />
+          {tabs.isVisited("signeestatus") && <EstateSigneeStatus estateId={id} />}
         </Tabs.Panel>
         <Tabs.Panel value="daobject">
-          <EstateDaObject estateId={id} caseId={data?.estate.caseId} />
+          {tabs.isVisited("daobject") && <EstateDaObject estateId={id} caseId={data?.estate.caseId} />}
         </Tabs.Panel>
         <Tabs.Panel value="events">
-          <EstateEvents estateId={id} />
+          {tabs.isVisited("events") && <EstateEvents estateId={id} />}
         </Tabs.Panel>
         <Tabs.Panel value="tasks">
-          <EstateTasks estateId={id} />
+          {tabs.isVisited("tasks") && <EstateTasks estateId={id} />}
         </Tabs.Panel>
         <Tabs.Panel value="correspondences">
-          <EstateCorrespondences estateId={id} />
+          {tabs.isVisited("correspondences") && <EstateCorrespondences estateId={id} />}
         </Tabs.Panel>
         <Tabs.Panel value="super-admin">
-          <SuperAdmin estateId={id} instanceId={data?.estate.instanceId} />
+          {tabs.isVisited("super-admin") && <SuperAdmin estateId={id} instanceId={data?.estate.instanceId} />}
         </Tabs.Panel>
       </Tabs>
     </>
