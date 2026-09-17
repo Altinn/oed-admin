@@ -10,6 +10,7 @@ import {
   BroadcastIcon,
   GavelSoundBlockIcon,
   PadlockLockedIcon,
+  HourglassIcon,
 } from "@navikt/aksel-icons";
 import Tasks from "./tasks";
 import EstateSearch from "./estateSearch";
@@ -19,6 +20,7 @@ import EventSubs from "./eventsubs";
 import DistrictCourts from "./districtCourts";
 import QaDashboard from "./qaDashboard";
 import EstateCompletion from "./estateCompletion";
+import EstateBacklog from "./estateBacklog";
 
 export default function Home() {
   return (
@@ -48,6 +50,9 @@ export default function Home() {
           </Tabs.Tab>
           <Tabs.Tab value="completion">
             <CheckmarkCircleIcon /> Fullført
+          </Tabs.Tab>
+          <Tabs.Tab value="backlog">
+            <HourglassIcon /> Pågående
           </Tabs.Tab>
         </Tabs.List>
 
@@ -118,6 +123,9 @@ export default function Home() {
         </Tabs.Panel>
         <Tabs.Panel value="completion">
           <EstateCompletion />
+        </Tabs.Panel>
+        <Tabs.Panel value="backlog">
+          <EstateBacklog />
         </Tabs.Panel>
       </Tabs>
     </>

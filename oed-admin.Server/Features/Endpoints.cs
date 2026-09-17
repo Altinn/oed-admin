@@ -38,8 +38,14 @@ public static class Endpoints
 
         // Aggregate estate-completion statistics, bucketed by the month the estate was opened.
         // Returns counts only - no estate ids, no personal data - so the audit middleware has
-        // nothing to extract, which is correct here rather than an oversight. 
+        // nothing to extract, which is correct here rather than an oversight.
         app.MapGet("/api/statistics/estatecompletion", Statistics.GetEstateCompletion.Endpoint.Get)
+            .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
+
+        // Ongoing-estate backlog over time, bucketed by UTC day/week/month. Counts only - no estate
+        // ids, no personal data - so the audit middleware has nothing to extract, which is correct
+        // here rather than an oversight.
+        app.MapGet("/api/statistics/estatebacklog", Statistics.GetEstateBacklog.Endpoint.Get)
             .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
 
         // Aggregated QA dashboard data (read from the oedqa "reports" blob container), rendered
