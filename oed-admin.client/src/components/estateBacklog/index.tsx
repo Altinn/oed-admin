@@ -6,7 +6,7 @@ import {
   type BacklogResolution,
   type EstateBacklogPoint,
 } from "../../queries/statisticsQueries";
-import { LineChart, type LineChartPoint } from "../charts";
+import { LineChart, type LineChartMarker, type LineChartPoint } from "../charts";
 import { trendColor, trendKind } from "../charts/chartUtils";
 
 const MONTH_FORMAT = new Intl.DateTimeFormat("nb-NO", { month: "short", year: "2-digit", timeZone: "UTC" });
@@ -35,6 +35,37 @@ function formatPeriod(periodStart: string, resolution: BacklogResolution): strin
 
 function toChartPoints(points: EstateBacklogPoint[], resolution: BacklogResolution): LineChartPoint[] {
   return points.map((point) => ({ label: formatPeriod(point.periodStart, resolution), value: point.ongoing }));
+}
+
+const RELEASES = [{ at: Date.parse("2026-09-28T10:00:00Z"), label: "Ett skjema pr arving" }];
+
+// Exclusive end of the period starting at `periodStart`, in epoch ms.
+function periodEnd(periodStart: string, resolution: BacklogResolution): number {
+  const date = new Date(`${periodStart}T00:00:00Z`);
+  switch (resolution) {
+    case "Day":
+      date.setUTCDate(date.getUTCDate() + 1);
+      break;
+    case "Week":
+      date.setUTCDate(date.getUTCDate() + 7);
+      break;
+    case "Month":
+      date.setUTCMonth(date.getUTCMonth() + 1);
+      break;
+  }
+  return date.getTime();
+}
+
+// Each point is the count at the end of its period, so a release is placed by interpolating
+// between period ends. Releases outside the plotted span come out of range and the chart drops them.
+function toReleaseMarkers(points: EstateBacklogPoint[], resolution: BacklogResolution): LineChartMarker[] {
+  const ends = points.map((point) => periodEnd(point.periodStart, resolution));
+  return RELEASES.flatMap(({ at, label }) => {
+    const next = ends.findIndex((end) => end >= at);
+    if (next <= 0) return [];
+    const position = next - 1 + (at - ends[next - 1]) / (ends[next] - ends[next - 1]);
+    return [{ position, label }];
+  });
 }
 
 function Headline({ points, resolution }: { points: EstateBacklogPoint[]; resolution: BacklogResolution }) {
@@ -84,7 +115,11 @@ export default function EstateBacklog() {
     content = (
       <div style={{ opacity: isPlaceholderData ? 0.5 : 1, transition: "opacity 150ms" }} aria-busy={isPlaceholderData}>
         <Headline points={data.points} resolution={resolution} />
-        <LineChart points={toChartPoints(data.points, resolution)} ariaLabel="Antall åpne skifteerklæringer over tid" />
+        <LineChart
+          points={toChartPoints(data.points, resolution)}
+          markers={toReleaseMarkers(data.points, resolution)}
+          ariaLabel="Antall åpne skifteerklæringer over tid"
+        />
       </div>
     );
   }

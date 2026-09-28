@@ -49,6 +49,13 @@ export interface LineChartPoint {
   value: number;
 }
 
+// A labelled vertical line marking an event. `position` is a fractional point index, so a marker
+// can sit between two points (1.5 is halfway between the second and third point).
+export interface LineChartMarker {
+  position: number;
+  label: string;
+}
+
 // Full-width line chart with a zero-based y axis, gridlines, thinned x labels and a hover tooltip
 // that snaps to the nearest point. Subject-agnostic: callers format their own labels. Drawn in a
 // fixed viewBox and scaled to the container width.
@@ -60,13 +67,22 @@ const LC_GRID = "var(--ds-color-neutral-border-subtle, #30363d)";
 const LC_MUTED = "var(--ds-color-neutral-text-subtle, #8b949e)";
 const LC_TEXT = "var(--ds-color-neutral-text-default, #e6edf3)";
 const LC_LINE = "var(--ds-color-accent-base-default, #58a6ff)";
+const LC_MARKER = "var(--ds-color-danger-base-default, #f85149)";
 const LC_TOOLTIP_BG = "var(--ds-color-neutral-background-default, #0d1117)";
 const LC_TOOLTIP_W = 140;
 const LC_TOOLTIP_H = 40;
 
 const formatCount = (value: number) => value.toLocaleString("nb-NO");
 
-export function LineChart({ points, ariaLabel }: { points: LineChartPoint[]; ariaLabel?: string }) {
+export function LineChart({
+  points,
+  ariaLabel,
+  markers = [],
+}: {
+  points: LineChartPoint[];
+  ariaLabel?: string;
+  markers?: LineChartMarker[];
+}) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [hovered, setHovered] = useState<number | null>(null);
 
@@ -83,6 +99,16 @@ export function LineChart({ points, ariaLabel }: { points: LineChartPoint[]; ari
   }));
   const yFor = (value: number) => LC_MARGIN.top + plotH - (value / topTick) * plotH;
   const labelEvery = Math.max(1, Math.ceil(points.length / LC_MAX_X_LABELS));
+  // Markers outside the plotted span are dropped rather than clamped to an edge, where they would
+  // misstate when the event happened.
+  const visibleMarkers = markers
+    .filter((m) => m.position >= 0 && m.position <= points.length - 1)
+    .map((m) => {
+      const before = Math.floor(m.position);
+      const after = Math.ceil(m.position);
+      const x = coords[before].x + (m.position - before) * (coords[after].x - coords[before].x);
+      return { label: m.label, x };
+    });
 
   const onMouseMove = (event: MouseEvent<SVGRectElement>) => {
     const svg = svgRef.current;
@@ -138,6 +164,33 @@ export function LineChart({ points, ariaLabel }: { points: LineChartPoint[]; ari
           </text>
         ) : null,
       )}
+
+      {visibleMarkers.map(({ label, x }) => {
+        // Labels in the right half hang to the left of the line so they stay inside the chart.
+        const rightHalf = x > LC_MARGIN.left + plotW / 2;
+        return (
+          <g key={label} pointerEvents="none">
+            <line
+              x1={x}
+              x2={x}
+              y1={LC_MARGIN.top}
+              y2={LC_MARGIN.top + plotH}
+              stroke={LC_MARKER}
+              strokeWidth={1.5}
+              strokeDasharray="2 3"
+            />
+            <text
+              x={rightHalf ? x - 4 : x + 4}
+              y={LC_MARGIN.top + 10}
+              textAnchor={rightHalf ? "end" : "start"}
+              fontSize={11}
+              fill={LC_MARKER}
+            >
+              {label}
+            </text>
+          </g>
+        );
+      })}
 
       {points.length >= 2 ? (
         <polyline
