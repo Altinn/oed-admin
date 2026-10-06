@@ -24,7 +24,7 @@
           {
             "type": "command",
             "shell": "bash",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/block-az.js\"",
+            "command": "node .claude/hooks/block-az.js",
             "statusMessage": "Checking for az CLI usage",
             "timeout": 15
           }
@@ -38,7 +38,7 @@
           {
             "type": "command",
             "shell": "bash",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/eslint-client.sh\"",
+            "command": "bash .claude/hooks/eslint-client.sh",
             "statusMessage": "Linting client sources...",
             "timeout": 60
           }
@@ -50,7 +50,7 @@
           {
             "type": "command",
             "shell": "bash",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/endpoint-registration-reminder.sh\"",
+            "command": "bash .claude/hooks/endpoint-registration-reminder.sh",
             "timeout": 15
           }
         ]
