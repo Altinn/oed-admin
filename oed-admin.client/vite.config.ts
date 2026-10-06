@@ -1,11 +1,11 @@
 import { fileURLToPath, URL } from 'node:url';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { join } from 'node:path';
+import { env } from 'node:process';
 
 import { defineConfig } from 'vite';
 import plugin from '@vitejs/plugin-react';
-import fs from 'fs';
-import path from 'path';
-import child_process from 'child_process';
-import { env } from 'process';
 
 const baseFolder =
     env.APPDATA !== undefined && env.APPDATA !== ''
@@ -13,15 +13,15 @@ const baseFolder =
         : `${env.HOME}/.aspnet/https`;
 
 const certificateName = "oed-admin.client";
-const certFilePath = path.join(baseFolder, `${certificateName}.pem`);
-const keyFilePath = path.join(baseFolder, `${certificateName}.key`);
+const certFilePath = join(baseFolder, `${certificateName}.pem`);
+const keyFilePath = join(baseFolder, `${certificateName}.key`);
 
-if (!fs.existsSync(baseFolder)) {
-    fs.mkdirSync(baseFolder, { recursive: true });
+if (!existsSync(baseFolder)) {
+    mkdirSync(baseFolder, { recursive: true });
 }
 
-if (!fs.existsSync(certFilePath) || !fs.existsSync(keyFilePath)) {
-    if (0 !== child_process.spawnSync('dotnet', [
+if (!existsSync(certFilePath) || !existsSync(keyFilePath)) {
+    if (0 !== spawnSync('dotnet', [
         'dev-certs',
         'https',
         '--export-path',
@@ -54,8 +54,8 @@ export default defineConfig({
         },
         port: parseInt(env.DEV_SERVER_PORT || '60475'),
         https: {
-            key: fs.readFileSync(keyFilePath),
-            cert: fs.readFileSync(certFilePath),
+            key: readFileSync(keyFilePath),
+            cert: readFileSync(certFilePath),
         }
     }
 })
