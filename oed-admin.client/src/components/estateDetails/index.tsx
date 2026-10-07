@@ -90,7 +90,7 @@ export default function EstateDetails() {
         </Breadcrumbs.Link>
       </Breadcrumbs>
 
-      <Heading level={1} data-size="xl">
+      <Heading level={1} data-size="md">
         Dødsbo etter {data?.estate.deceasedName || "ukjent"}
       </Heading>
       <Paragraph>
