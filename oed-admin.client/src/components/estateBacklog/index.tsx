@@ -154,6 +154,7 @@ export default function EstateBacklog() {
           <ToggleGroup.Item value="30d">30 dager</ToggleGroup.Item>
           <ToggleGroup.Item value="90d">90 dager</ToggleGroup.Item>
           <ToggleGroup.Item value="1y">1 år</ToggleGroup.Item>
+          <ToggleGroup.Item value="sep27">Fra 27. sep</ToggleGroup.Item>
           <ToggleGroup.Item value="all">Alt</ToggleGroup.Item>
         </ToggleGroup>
       </div>

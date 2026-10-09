@@ -38,7 +38,7 @@ export const useEstateCompletionQuery = () => {
 // first; `ongoing` is the number of estates with a declaration created and no probate issued at
 // the end of that period (or as of now, for the current period).
 export type BacklogResolution = "Day" | "Week" | "Month";
-export type BacklogRange = "30d" | "90d" | "1y" | "all";
+export type BacklogRange = "30d" | "90d" | "1y" | "sep27" | "all";
 
 export interface EstateBacklogPoint {
   periodStart: string; // yyyy-MM-dd, UTC
@@ -59,6 +59,8 @@ export const estateBacklogKeys = {
 // the earliest declaration.
 function rangeStart(range: BacklogRange): string | undefined {
   if (range === "all") return undefined;
+  // The day before the "Ett skjema pr arving" release, so the chart shows the backlog either side of it.
+  if (range === "sep27") return "2026-09-27T00:00:00.000Z";
   const now = new Date();
   const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
   if (range === "30d") start.setUTCDate(start.getUTCDate() - 30);
