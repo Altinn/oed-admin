@@ -25,6 +25,7 @@ import { InteractionType, type AccountInfo } from "@azure/msal-browser";
 import { hasRole } from "./utils/msalUtils";
 import RestrictedHome from "./components/RestrictedHome";
 import { msalScopes } from "./msal";
+import { forgetLoginHint, loginHintRequest } from "./auth/loginHint";
 import EnvironmentInformation from "./components/environmentInformation";
 import AuthRedirect from "./components/authRedirect";
 import NotFound from "./components/notFound";
@@ -60,8 +61,10 @@ export default function App() {
   };
 
   const logoutUser = () => {
+    forgetLoginHint();
     instance.logoutRedirect({
       account: account,
+      logoutHint: account?.loginHint,
     });
   };
 
@@ -196,9 +199,9 @@ export default function App() {
   // *interactive* loginRedirect when the silent call fails, so a dead Entra session answers
   // login_required - and MsalAuthenticationTemplate checks `error` before `isAuthenticated`,
   // replacing the whole app with an error screen it never retries out of.
-  const authRequest = account
-    ? { scopes: msalScopes.api, loginHint: account.username }
-    : { scopes: msalScopes.api, prompt: "select_account" };
+  // loginHintRequest falls back to our own stored hint when MSAL's cache has lost the account
+  // (e.g. after a browser restart), so a returning user skips the account picker.
+  const authRequest = { scopes: msalScopes.api, ...loginHintRequest(account) };
 
   return (
     <MsalAuthenticationTemplate
@@ -215,7 +218,7 @@ export default function App() {
           <Button
             style={{ marginTop: "var(--ds-size-4)" }}
             onClick={() =>
-              void instance.loginRedirect({ scopes: msalScopes.api })
+              void instance.loginRedirect({ scopes: msalScopes.api, ...loginHintRequest(account) })
             }
           >
             Logg inn på nytt

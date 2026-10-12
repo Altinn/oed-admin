@@ -3,6 +3,7 @@ import { useMsal } from "@azure/msal-react";
 import { InteractionStatus } from "@azure/msal-browser";
 import { Navigate } from "react-router-dom";
 import { msalScopes } from "../../msal";
+import { loginHintRequest } from "../../auth/loginHint";
 
 /**
  * Landing page for MSAL's redirectUri ('/redirect').
@@ -49,6 +50,7 @@ export default function AuthRedirect() {
         onClick={() =>
           void instance.loginRedirect({
             scopes: msalScopes.api,
+            ...loginHintRequest(instance.getActiveAccount()),
             // Never let /redirect become the page we are sent back to.
             redirectStartPage: `${window.location.origin}/`
           })

@@ -10,6 +10,7 @@ import { msalInstance } from "./msal.ts";
 import { EventType, type AuthenticationResult, type EventMessage } from "@azure/msal-browser";
 import SessionExpiredDialog from "./components/sessionExpired";
 import { isAuthBlockedError } from "./auth/sessionExpiry.ts";
+import { rememberLoginHint } from "./auth/loginHint.ts";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,6 +55,8 @@ const bootstrap = function () {
   if (accounts.length > 0 && !msalInstance.getActiveAccount()) {
     msalInstance.setActiveAccount(accounts[0]);
   }
+  // Backfills the hint for users who were already signed in before it existed.
+  rememberLoginHint(msalInstance.getActiveAccount());
 
   // Optional - This will update account state if a user signs in from another tab or window
   msalInstance.enableAccountStorageEvents();
@@ -63,6 +66,7 @@ const bootstrap = function () {
       const payload = event.payload as AuthenticationResult;
       const account = payload.account;
       msalInstance.setActiveAccount(account);
+      rememberLoginHint(account);
     }
   });
 

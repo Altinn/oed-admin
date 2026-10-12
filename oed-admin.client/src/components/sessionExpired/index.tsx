@@ -10,6 +10,7 @@ import {
   reauthAttempts,
   useAuthBlockedReason
 } from "../../auth/sessionExpiry";
+import { forgetLoginHint, loginHintRequest } from "../../auth/loginHint";
 
 /**
  * Tells the user why the app has stopped working, instead of leaving it looking signed in while
@@ -73,7 +74,7 @@ export default function SessionExpiredDialog() {
       // `prompt` - "none" is exactly what just failed.
       await msalInstance.loginRedirect({
         scopes: msalScopes.api,
-        loginHint: account?.username
+        ...loginHintRequest(account)
       });
     } catch {
       setBusy(false);
@@ -83,7 +84,8 @@ export default function SessionExpiredDialog() {
   const logoutUser = () => {
     // Also the escape hatch of last resort: a stranded interaction.status entry (tab closed
     // mid-redirect) blocks all further MSAL interaction, and logoutRedirect clears it.
-    msalInstance.logoutRedirect({ account: account ?? undefined });
+    forgetLoginHint();
+    msalInstance.logoutRedirect({ account: account ?? undefined, logoutHint: account?.loginHint });
   };
 
   return (
