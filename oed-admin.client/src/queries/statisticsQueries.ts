@@ -69,7 +69,37 @@ function rangeStart(range: BacklogRange): string | undefined {
   return start.toISOString();
 }
 
-export const useEstateBacklogQuery = (resolution: BacklogResolution, range: BacklogRange) => {
+// Mirrors GET /api/statistics/estatecreated. One entry per UTC day, oldest first, with no gaps;
+// the last entry is today and is a partial day.
+export interface EstateCreatedDay {
+  day: string; // yyyy-MM-dd, UTC
+  created: number;
+}
+
+export interface EstateCreatedResponse {
+  days: EstateCreatedDay[];
+}
+
+export const estateCreatedKeys = {
+  all: ["estateCreated"] as const,
+  list: (days: number) => [...estateCreatedKeys.all, days] as const,
+};
+
+export const useEstateCreatedQuery = (days: number) => {
+  return useQuery<EstateCreatedResponse>({
+    queryKey: estateCreatedKeys.list(days),
+    queryFn: async () => {
+      const response = await fetchWithMsal(`/api/statistics/estatecreated?days=${days}`);
+      if (!response.ok) {
+        throw new Error("Kunne ikke hente statistikk for opprettede dødsbo");
+      }
+      return response.json();
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+export const useEstateBacklogQuery =(resolution: BacklogResolution, range: BacklogRange) => {
   return useQuery<EstateBacklogResponse>({
     queryKey: estateBacklogKeys.list(resolution, range),
     queryFn: async () => {

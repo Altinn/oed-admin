@@ -48,6 +48,11 @@ public static class Endpoints
         app.MapGet("/api/statistics/estatebacklog", Statistics.GetEstateBacklog.Endpoint.Get)
             .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
 
+        // Estates created per UTC day. Counts only - no estate ids, no personal data - so the audit
+        // middleware has nothing to extract, which is correct here rather than an oversight.
+        app.MapGet("/api/statistics/estatecreated", Statistics.GetEstateCreated.Endpoint.Get)
+            .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
+
         // Aggregated QA dashboard data (read from the oedqa "reports" blob container), rendered
         // natively by the React client. Auth intentionally not enforced.
         app.MapGet("/api/qa", QaDashboard.Endpoint.Get);

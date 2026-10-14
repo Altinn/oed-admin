@@ -11,6 +11,8 @@ import {
   GavelSoundBlockIcon,
   PadlockLockedIcon,
   HourglassIcon,
+  PlusCircleIcon,
+  LineGraphIcon,
 } from "@navikt/aksel-icons";
 import Tasks from "./tasks";
 import EstateSearch from "./estateSearch";
@@ -21,6 +23,7 @@ import DistrictCourts from "./districtCourts";
 import QaDashboard from "./qaDashboard";
 import EstateCompletion from "./estateCompletion";
 import EstateBacklog from "./estateBacklog";
+import EstateCreated from "./estateCreated";
 import { useLazyTabs } from "../utils/useLazyTabs";
 
 function TaskQueue() {
@@ -75,6 +78,35 @@ function TaskQueue() {
   );
 }
 
+function Statistics() {
+  const tabs = useLazyTabs("completion");
+
+  return (
+    <Tabs value={tabs.value} onChange={tabs.onChange}>
+      <Tabs.List style={{ marginBottom: "var(--ds-size-4)" }}>
+        <Tabs.Tab value="completion">
+          <CheckmarkCircleIcon /> Fullført
+        </Tabs.Tab>
+        <Tabs.Tab value="backlog">
+          <HourglassIcon /> Åpne skifteerklæringer
+        </Tabs.Tab>
+        <Tabs.Tab value="created">
+          <PlusCircleIcon /> Opprettede dødsbo
+        </Tabs.Tab>
+      </Tabs.List>
+      <Tabs.Panel value="completion">
+        {tabs.isVisited("completion") && <EstateCompletion />}
+      </Tabs.Panel>
+      <Tabs.Panel value="backlog">
+        {tabs.isVisited("backlog") && <EstateBacklog />}
+      </Tabs.Panel>
+      <Tabs.Panel value="created">
+        {tabs.isVisited("created") && <EstateCreated />}
+      </Tabs.Panel>
+    </Tabs>
+  );
+}
+
 export default function Home() {
   const tabs = useLazyTabs("search");
 
@@ -107,11 +139,8 @@ export default function Home() {
           <Tabs.Tab value="qa">
             <BarChartIcon /> Kvalitet
           </Tabs.Tab>
-          <Tabs.Tab value="completion">
-            <CheckmarkCircleIcon /> Fullført
-          </Tabs.Tab>
-          <Tabs.Tab value="backlog">
-            <HourglassIcon /> Åpne skifteerklæringer
+          <Tabs.Tab value="statistics">
+            <LineGraphIcon /> Statistikk
           </Tabs.Tab>
         </Tabs.List>
 
@@ -136,11 +165,8 @@ export default function Home() {
         <Tabs.Panel value="qa">
           {tabs.isVisited("qa") && <QaDashboard />}
         </Tabs.Panel>
-        <Tabs.Panel value="completion">
-          {tabs.isVisited("completion") && <EstateCompletion />}
-        </Tabs.Panel>
-        <Tabs.Panel value="backlog">
-          {tabs.isVisited("backlog") && <EstateBacklog />}
+        <Tabs.Panel value="statistics">
+          {tabs.isVisited("statistics") && <Statistics />}
         </Tabs.Panel>
       </Tabs>
     </>
