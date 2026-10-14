@@ -3,7 +3,7 @@ import { Card, Heading, Paragraph, Skeleton, Table, ValidationMessage } from "@d
 import { useEstateCreatedQuery, type EstateCreatedDay } from "../../queries/statisticsQueries";
 
 const DAYS = 90;
-const TOP_COUNT = 10;
+const TOP_COUNT = 15;
 
 const ACCENT = "var(--ds-color-accent-base-default)";
 const TRACK = "var(--ds-color-neutral-background-tinted)";
@@ -278,7 +278,8 @@ function Dashboard({ days }: { days: EstateCreatedDay[] }) {
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(24rem, 1fr))",
           gap: "var(--ds-size-4)",
-          alignItems: "start",
+          // Stretch so the top-days card ends level with the weekday and month cards beside it.
+          alignItems: "stretch",
         }}
       >
         <TopDays days={topDays(fullDays)} average={average} />
