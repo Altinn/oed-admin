@@ -13,6 +13,10 @@ import {
   HourglassIcon,
   PlusCircleIcon,
   LineGraphIcon,
+  TimerIcon,
+  CalendarIcon,
+  PieChartIcon,
+  GavelIcon,
 } from "@navikt/aksel-icons";
 import Tasks from "./tasks";
 import EstateSearch from "./estateSearch";
@@ -24,6 +28,10 @@ import QaDashboard from "./qaDashboard";
 import EstateCompletion from "./estateCompletion";
 import EstateBacklog from "./estateBacklog";
 import EstateCreated from "./estateCreated";
+import EstateLeadTimes from "./estateLeadTimes";
+import ProbateDeadlines from "./probateDeadlines";
+import EstateOutcomes from "./estateOutcomes";
+import DistrictCourtStatistics from "./districtCourtStatistics";
 import { useLazyTabs } from "../utils/useLazyTabs";
 
 function TaskQueue() {
@@ -93,6 +101,18 @@ function Statistics() {
         <Tabs.Tab value="created">
           <PlusCircleIcon /> Opprettede dødsbo
         </Tabs.Tab>
+        <Tabs.Tab value="leadtimes">
+          <TimerIcon /> Behandlingstid
+        </Tabs.Tab>
+        <Tabs.Tab value="deadlines">
+          <CalendarIcon /> Frister
+        </Tabs.Tab>
+        <Tabs.Tab value="outcomes">
+          <PieChartIcon /> Utfall
+        </Tabs.Tab>
+        <Tabs.Tab value="courts">
+          <GavelIcon /> Tingretter
+        </Tabs.Tab>
       </Tabs.List>
       <Tabs.Panel value="completion">
         {tabs.isVisited("completion") && <EstateCompletion />}
@@ -102,6 +122,18 @@ function Statistics() {
       </Tabs.Panel>
       <Tabs.Panel value="created">
         {tabs.isVisited("created") && <EstateCreated />}
+      </Tabs.Panel>
+      <Tabs.Panel value="leadtimes">
+        {tabs.isVisited("leadtimes") && <EstateLeadTimes />}
+      </Tabs.Panel>
+      <Tabs.Panel value="deadlines">
+        {tabs.isVisited("deadlines") && <ProbateDeadlines />}
+      </Tabs.Panel>
+      <Tabs.Panel value="outcomes">
+        {tabs.isVisited("outcomes") && <EstateOutcomes />}
+      </Tabs.Panel>
+      <Tabs.Panel value="courts">
+        {tabs.isVisited("courts") && <DistrictCourtStatistics />}
       </Tabs.Panel>
     </Tabs>
   );

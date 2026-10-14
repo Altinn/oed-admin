@@ -117,3 +117,122 @@ export const useEstateBacklogQuery =(resolution: BacklogResolution, range: Backl
     staleTime: 5 * 60 * 1000,
   });
 };
+
+// The remaining statistics endpoints take no client-side parameters and scan every estate since
+// mid-2025, so they share a fetch helper and a five-minute staleTime.
+async function fetchStatistics<T>(path: string, errorMessage: string): Promise<T> {
+  const response = await fetchWithMsal(`/api/statistics/${path}`);
+  if (!response.ok) {
+    throw new Error(errorMessage);
+  }
+  return response.json();
+}
+
+const STATISTICS_STALE_TIME = 5 * 60 * 1000;
+
+// Mirrors GET /api/statistics/estateleadtimes. Durations in days; null when no estate has reached
+// both ends of the measure.
+export type LeadTimeMeasure =
+  | "deathToCreated"
+  | "createdToFirstHeir"
+  | "declarationDuration"
+  | "createdToDeclarationSubmitted"
+  | "createdToProbate";
+
+export interface LeadTime {
+  measure: LeadTimeMeasure;
+  count: number;
+  medianDays: number | null;
+  p75Days: number | null;
+}
+
+export interface LeadTimeMonth {
+  month: string; // yyyy-MM, UTC
+  estates: number;
+  measures: LeadTime[];
+}
+
+export interface EstateLeadTimesResponse {
+  overall: LeadTime[];
+  months: LeadTimeMonth[];
+}
+
+export const estateLeadTimesKeys = { all: ["estateLeadTimes"] as const };
+
+export const useEstateLeadTimesQuery = () =>
+  useQuery<EstateLeadTimesResponse>({
+    queryKey: estateLeadTimesKeys.all,
+    queryFn: () => fetchStatistics("estateleadtimes", "Kunne ikke hente behandlingstider"),
+    staleTime: STATISTICS_STALE_TIME,
+  });
+
+// Mirrors GET /api/statistics/probatedeadlines. Open estates by distance to their probate
+// deadline, plus the deadlines falling in each of the coming ISO weeks.
+export type DeadlineBucket =
+  | "overdueMoreThan30"
+  | "overdue"
+  | "within7"
+  | "within30"
+  | "within90"
+  | "later"
+  | "noDeadline";
+
+export interface ProbateDeadlinesResponse {
+  buckets: { bucket: DeadlineBucket; count: number }[];
+  weeks: { weekStart: string; count: number }[]; // weekStart: yyyy-MM-dd, a Monday
+}
+
+export const probateDeadlinesKeys = { all: ["probateDeadlines"] as const };
+
+export const useProbateDeadlinesQuery = () =>
+  useQuery<ProbateDeadlinesResponse>({
+    queryKey: probateDeadlinesKeys.all,
+    queryFn: () => fetchStatistics("probatedeadlines", "Kunne ikke hente frister"),
+    staleTime: STATISTICS_STALE_TIME,
+  });
+
+// Mirrors GET /api/statistics/estateoutcomes. Per monthly cohort; `results` splits the estates
+// that are neither cancelled nor misposted by ProbateResult, null meaning no result yet.
+export interface OutcomeMonth {
+  month: string; // yyyy-MM, UTC
+  total: number;
+  cancelled: number;
+  misposted: number;
+  results: { result: string | null; count: number }[];
+}
+
+export interface EstateOutcomesResponse {
+  months: OutcomeMonth[];
+}
+
+export const estateOutcomesKeys = { all: ["estateOutcomes"] as const };
+
+export const useEstateOutcomesQuery = () =>
+  useQuery<EstateOutcomesResponse>({
+    queryKey: estateOutcomesKeys.all,
+    queryFn: () => fetchStatistics("estateoutcomes", "Kunne ikke hente utfall"),
+    staleTime: STATISTICS_STALE_TIME,
+  });
+
+// Mirrors GET /api/statistics/districtcourts. A null name collects estates with no court recorded.
+export interface DistrictCourtStatistics {
+  districtCourtName: string | null;
+  estates: number;
+  openDeclarations: number;
+  probateIssued: number;
+  pctProbateIssued: number;
+  medianDaysToProbate: number | null;
+}
+
+export interface DistrictCourtStatisticsResponse {
+  courts: DistrictCourtStatistics[];
+}
+
+export const districtCourtStatisticsKeys = { all: ["districtCourtStatistics"] as const };
+
+export const useDistrictCourtStatisticsQuery = () =>
+  useQuery<DistrictCourtStatisticsResponse>({
+    queryKey: districtCourtStatisticsKeys.all,
+    queryFn: () => fetchStatistics("districtcourts", "Kunne ikke hente statistikk for tingretter"),
+    staleTime: STATISTICS_STALE_TIME,
+  });
