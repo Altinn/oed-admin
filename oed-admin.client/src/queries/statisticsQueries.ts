@@ -213,26 +213,3 @@ export const useEstateOutcomesQuery = () =>
     queryFn: () => fetchStatistics("estateoutcomes", "Kunne ikke hente utfall"),
     staleTime: STATISTICS_STALE_TIME,
   });
-
-// Mirrors GET /api/statistics/districtcourts. A null name collects estates with no court recorded.
-export interface DistrictCourtStatistics {
-  districtCourtName: string | null;
-  estates: number;
-  openDeclarations: number;
-  probateIssued: number;
-  pctProbateIssued: number;
-  medianDaysToProbate: number | null;
-}
-
-export interface DistrictCourtStatisticsResponse {
-  courts: DistrictCourtStatistics[];
-}
-
-export const districtCourtStatisticsKeys = { all: ["districtCourtStatistics"] as const };
-
-export const useDistrictCourtStatisticsQuery = () =>
-  useQuery<DistrictCourtStatisticsResponse>({
-    queryKey: districtCourtStatisticsKeys.all,
-    queryFn: () => fetchStatistics("districtcourts", "Kunne ikke hente statistikk for tingretter"),
-    staleTime: STATISTICS_STALE_TIME,
-  });

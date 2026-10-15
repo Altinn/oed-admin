@@ -53,7 +53,7 @@ public static class Endpoints
         app.MapGet("/api/statistics/estatecreated", Statistics.GetEstateCreated.Endpoint.Get)
             .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
 
-        // Lead times, probate deadlines, outcomes and per-court figures. All aggregates - counts and
+        // Lead times, probate deadlines and outcomes. All aggregates - counts and
         // durations, no estate ids, no personal data - so the audit middleware has nothing to
         // extract, which is correct here rather than an oversight.
         app.MapGet("/api/statistics/estateleadtimes", Statistics.GetEstateLeadTimes.Endpoint.Get)
@@ -61,8 +61,6 @@ public static class Endpoints
         app.MapGet("/api/statistics/probatedeadlines", Statistics.GetProbateDeadlines.Endpoint.Get)
             .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
         app.MapGet("/api/statistics/estateoutcomes", Statistics.GetEstateOutcomes.Endpoint.Get)
-            .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
-        app.MapGet("/api/statistics/districtcourts", Statistics.GetDistrictCourtStatistics.Endpoint.Get)
             .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
 
         // Aggregated QA dashboard data (read from the oedqa "reports" blob container), rendered

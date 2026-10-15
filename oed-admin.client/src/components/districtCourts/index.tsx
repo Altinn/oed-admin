@@ -3,16 +3,50 @@ import {
   Badge,
   Heading,
   List,
+  Paragraph,
   Skeleton,
   ValidationMessage,
 } from "@digdir/designsystemet-react";
 import { fetchWithMsal, hasRole } from "../../utils/msalUtils";
 import { useMsal } from "@azure/msal-react";
 import type { AccountInfo } from "@azure/msal-browser";
+import { GavelSoundBlockIcon } from "@navikt/aksel-icons";
+import { Bar } from "../statistics/panels";
+import { formatCount, numCellStyle } from "../statistics/statsFormat";
 
 interface DistrictCourtSummaryResponse {
   districtCourtName: string;
   numberOfCases?: number;
+}
+
+// Same layout as the week list on Statistikk → Frister: name, bar scaled to the busiest court, count.
+function CaseCountBars({ courts }: { courts: DistrictCourtSummaryResponse[] }) {
+  const counts = courts.map((court) => court.numberOfCases ?? 0);
+  const max = Math.max(0, ...counts);
+  const total = counts.reduce((sum, count) => sum + count, 0);
+  const rowStyle = {
+    display: "grid",
+    gridTemplateColumns: "minmax(10rem, 16rem) 1fr 3.5rem",
+    alignItems: "center",
+    gap: "var(--ds-size-2)",
+  } as const;
+
+  return (
+    <ol style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "var(--ds-size-2)" }}>
+      {courts.map((court) => (
+        <li key={court.districtCourtName} style={rowStyle}>
+          <span>{court.districtCourtName}</span>
+          <Bar fraction={max === 0 ? 0 : (court.numberOfCases ?? 0) / max} />
+          <strong style={numCellStyle}>{formatCount(court.numberOfCases ?? 0)}</strong>
+        </li>
+      ))}
+      <li style={{ ...rowStyle, marginTop: "var(--ds-size-4)" }}>
+        <strong>Totalt antall saker</strong>
+        <span />
+        <strong style={numCellStyle}>{formatCount(total)}</strong>
+      </li>
+    </ol>
+  );
 }
 
 export default function DistrictCourts() {
@@ -50,16 +84,27 @@ export default function DistrictCourts() {
       )}
 
       {data?.connectedDistrictCourts && (
-        <List.Unordered data-size="md">
+        <Paragraph style={{ marginBottom: "var(--ds-size-3)" }}>
+          {/* Read users get no case counts, so their line counts courts instead. */}
+          {isAdmin
+            ? "Antall bo per tingrett"
+            : `${data.connectedDistrictCourts.length} tingretter er koblet til Digitalt dødsbo.`}
+        </Paragraph>
+      )}
+
+      {/* Admins get case counts and see them as bars; Read users get the names only. */}
+      {data?.connectedDistrictCourts && isAdmin && (
+        <CaseCountBars courts={data.connectedDistrictCourts} />
+      )}
+
+      {data?.connectedDistrictCourts && !isAdmin && (
+        // The gavel replaces the bullet, matching the icon on the tab.
+        <List.Unordered data-size="md" style={{ listStyle: "none", paddingLeft: 0 }}>
           {data.connectedDistrictCourts?.map(
             (court: DistrictCourtSummaryResponse) => (
               <List.Item key={court.districtCourtName} className="flex-row">
+                <GavelSoundBlockIcon aria-hidden />
                 {court.districtCourtName}
-                <Badge
-                  data-color="neutral"
-                  count={court.numberOfCases}
-                  style={{ fontVariantNumeric: "tabular-nums" }}
-                />
               </List.Item>
             ),
           )}

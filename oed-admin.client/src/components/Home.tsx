@@ -16,7 +16,6 @@ import {
   TimerIcon,
   CalendarIcon,
   PieChartIcon,
-  GavelIcon,
 } from "@navikt/aksel-icons";
 import Tasks from "./tasks";
 import EstateSearch from "./estateSearch";
@@ -31,7 +30,6 @@ import EstateCreated from "./estateCreated";
 import EstateLeadTimes from "./estateLeadTimes";
 import ProbateDeadlines from "./probateDeadlines";
 import EstateOutcomes from "./estateOutcomes";
-import DistrictCourtStatistics from "./districtCourtStatistics";
 import { useLazyTabs } from "../utils/useLazyTabs";
 
 function TaskQueue() {
@@ -110,9 +108,6 @@ function Statistics() {
         <Tabs.Tab value="outcomes">
           <PieChartIcon /> Utfall
         </Tabs.Tab>
-        <Tabs.Tab value="courts">
-          <GavelIcon /> Tingretter
-        </Tabs.Tab>
       </Tabs.List>
       <Tabs.Panel value="completion">
         {tabs.isVisited("completion") && <EstateCompletion />}
@@ -131,9 +126,6 @@ function Statistics() {
       </Tabs.Panel>
       <Tabs.Panel value="outcomes">
         {tabs.isVisited("outcomes") && <EstateOutcomes />}
-      </Tabs.Panel>
-      <Tabs.Panel value="courts">
-        {tabs.isVisited("courts") && <DistrictCourtStatistics />}
       </Tabs.Panel>
     </Tabs>
   );
