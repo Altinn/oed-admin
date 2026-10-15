@@ -8,7 +8,24 @@ const RELEASES = [{ month: "2026-09", label: "Ett skjema pr arving 28.9." }];
 // Results are keyed by their raw ProbateResult value; "none" stands in for estates without one.
 const NO_RESULT = "none";
 const resultKey = (result: string | null) => result ?? NO_RESULT;
-const resultLabel = (key: string) => (key === NO_RESULT ? "Ingen ennå" : key);
+const resultLabel = (key: string) => (key === NO_RESULT ? "Ingen ennå" : sentenceCase(key));
+
+// ProbateResult values are ASCII-only, so words that need æ/ø/å are restored here. Matched
+// against whole words only - "A" must not touch the A in other words.
+const NORWEGIAN_WORDS: Record<string, string> = {
+  FORSTE: "første",
+  A: "å",
+  BEGJARING: "begjæring",
+};
+
+// INTET_TIL_SKIFTE_UFORMUENDE -> "Intet til skifte uformuende".
+function sentenceCase(value: string): string {
+  const words = value
+    .split("_")
+    .map((word) => NORWEGIAN_WORDS[word] ?? word.toLowerCase())
+    .join(" ");
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
 
 // Every result value seen in any month, most common first, with "no result yet" last.
 function resultColumns(months: OutcomeMonth[]): string[] {
@@ -25,7 +42,7 @@ function resultColumns(months: OutcomeMonth[]): string[] {
 
 function CountCell({ count, total }: { count: number; total: number }) {
   return (
-    <Table.Cell style={numCellStyle}>
+    <Table.Cell style={{ ...numCellStyle, whiteSpace: "nowrap" }}>
       {formatCount(count)}{" "}
       <span style={{ color: MUTED }}>({formatPercent(total === 0 ? 0 : (100 * count) / total)})</span>
     </Table.Cell>
@@ -51,7 +68,11 @@ function Outcomes({ months }: { months: OutcomeMonth[] }) {
               <Table.HeaderCell style={{ textAlign: "right" }}>Kansellert</Table.HeaderCell>
               <Table.HeaderCell style={{ textAlign: "right" }}>Feilført</Table.HeaderCell>
               {columns.map((key) => (
-                <Table.HeaderCell key={key} style={{ textAlign: "right" }}>
+                // ProbateResult values are long; let them wrap so the columns stay as narrow as the counts.
+                <Table.HeaderCell
+                  key={key}
+                  style={{ textAlign: "right", whiteSpace: "normal", minWidth: "8rem", maxWidth: "12rem", verticalAlign: "bottom" }}
+                >
                   {resultLabel(key)}
                 </Table.HeaderCell>
               ))}
