@@ -90,3 +90,7 @@ Checked in under `.claude/`:
 - **`security-reviewer`** subagent — audits a diff for missing authorization policies, personal-data exposure through `PoorMansMapper`, and endpoints the audit middleware cannot extract an estate id from.
 - **`sonar-preflight`** subagent — predicts SonarQube findings on a diff before the nightly gate does. Server C# only; the SPA is excluded from the scan.
 - Two `PostToolUse` hooks in `.claude/hooks/`: eslint on edited client sources, and a reminder when a new `Features/**/Endpoint.cs` is not yet registered. Both need Git Bash and Node on `PATH`.
+
+## Azure Key Vault
+
+Never read, list or enumerate Azure Key Vault secrets — no `az keyvault secret show`/`list`, no `SecretClient`, no portal scraping, and not even secret names or value lengths. If a task needs a secret value, ask the user to supply it or to run the command themselves.
