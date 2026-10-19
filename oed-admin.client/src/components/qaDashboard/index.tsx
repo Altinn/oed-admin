@@ -181,6 +181,7 @@ function Overview({ projects, onSelect }: { projects: QaProject[]; onSelect: (na
 }
 
 // Findings/hotspots lists hold up to 50 entries; show this many before the "show all" expander.
+// The run history table uses the same limit.
 const INITIAL_FINDINGS = 10;
 
 function ShowMoreButton({ total, expanded, onToggle }: { total: number; expanded: boolean; onToggle: () => void }) {
@@ -266,6 +267,41 @@ function HotspotsTable({ hotspots }: { hotspots: QaHotspot[] }) {
   );
 }
 
+// The trend arrow compares against the next-older snapshot in the full list, so the last
+// visible row still gets its arrow when the table is collapsed.
+function HistoryTable({ snapshots }: { snapshots: QaSnapshot[] }) {
+  const [expanded, setExpanded] = useState(false);
+  const shown = expanded ? snapshots : snapshots.slice(0, INITIAL_FINDINGS);
+  return (
+    <>
+      <Heading level={3} data-size="xs" style={{ margin: "2rem 0 var(--ds-size-3)" }}>
+        Historikk
+      </Heading>
+      <Table data-size="sm" style={{ width: "100%", marginBottom: "var(--ds-size-2)" }}>
+        <Table.Head>
+          <Table.Row>
+            <Table.HeaderCell>Kjøring (UTC)</Table.HeaderCell>
+            <Table.HeaderCell>Gate</Table.HeaderCell>
+            <MetricHeaders />
+          </Table.Row>
+        </Table.Head>
+        <Table.Body>
+          {shown.map((snapshot, i) => (
+            <Table.Row key={snapshot.timestamp}>
+              <Table.Cell>{formatTimestamp(snapshot.timestamp)}</Table.Cell>
+              <Table.Cell>
+                <GateTag status={snapshot.gateStatus} />
+              </Table.Cell>
+              <MetricCells snapshot={snapshot} prev={snapshots[i + 1]} />
+            </Table.Row>
+          ))}
+        </Table.Body>
+      </Table>
+      <ShowMoreButton total={snapshots.length} expanded={expanded} onToggle={() => setExpanded(!expanded)} />
+    </>
+  );
+}
+
 function ProjectDetail({ project, onBack }: { project: QaProject; onBack: () => void }) {
   const latest = project.snapshots[0];
   return (
@@ -301,29 +337,7 @@ function ProjectDetail({ project, onBack }: { project: QaProject; onBack: () => 
         })}
       </div>
 
-      <Heading level={3} data-size="xs" style={{ margin: "2rem 0 var(--ds-size-3)" }}>
-        Historikk
-      </Heading>
-      <Table data-size="sm" style={{ width: "100%", marginBottom: "var(--ds-size-4)" }}>
-        <Table.Head>
-          <Table.Row>
-            <Table.HeaderCell>Kjøring (UTC)</Table.HeaderCell>
-            <Table.HeaderCell>Gate</Table.HeaderCell>
-            <MetricHeaders />
-          </Table.Row>
-        </Table.Head>
-        <Table.Body>
-          {project.snapshots.map((snapshot, i) => (
-            <Table.Row key={snapshot.timestamp}>
-              <Table.Cell>{formatTimestamp(snapshot.timestamp)}</Table.Cell>
-              <Table.Cell>
-                <GateTag status={snapshot.gateStatus} />
-              </Table.Cell>
-              <MetricCells snapshot={snapshot} prev={project.snapshots[i + 1]} />
-            </Table.Row>
-          ))}
-        </Table.Body>
-      </Table>
+      <HistoryTable snapshots={project.snapshots} />
 
       <FindingsTable heading="Topp bugs" findings={latest.bugs} />
       <FindingsTable heading="Topp code smells" findings={latest.codeSmells} />
