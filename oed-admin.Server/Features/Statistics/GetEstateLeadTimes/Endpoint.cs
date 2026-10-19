@@ -30,6 +30,7 @@ public static class Endpoint
         ("createdToFirstHeir", row => Between(row.Created, row.FirstHeirReceived)),
         ("declarationDuration", row => Between(row.DeclarationCreated, row.DeclarationSubmitted)),
         ("createdToDeclarationSubmitted", row => Between(row.Created, row.DeclarationSubmitted)),
+        ("declarationSubmittedToProbate", row => Between(row.DeclarationSubmitted, row.ProbateIssued)),
         ("createdToProbate", row => Between(row.Created, row.ProbateIssued)),
     ];
 
@@ -67,21 +68,47 @@ public static class Endpoint
             .Select(group => new LeadTimeMonthDto(group.Key, group.Count(), Summarize(group.ToList())))
             .ToList();
 
-        return TypedResults.Ok(new Response(Summarize(rows), months));
+        var overall = Measures
+            .Select(measure => (measure.Measure, Days: DaysOf(rows, measure.Days)))
+            .ToList();
+
+        return TypedResults.Ok(new Response(
+            overall.Select(measure => Summarize(measure.Measure, measure.Days)).ToList(),
+            months,
+            overall.Select(measure => Distribute(measure.Measure, measure.Days)).ToList()));
     }
 
     private static List<LeadTimeDto> Summarize(IReadOnlyCollection<Row> rows) =>
         Measures
-            .Select(measure =>
-            {
-                var days = rows
-                    .Select(measure.Days)
-                    .OfType<double>()
-                    .Where(value => value >= 0)
-                    .ToList();
+            .Select(measure => Summarize(measure.Measure, DaysOf(rows, measure.Days)))
+            .ToList();
 
-                return new LeadTimeDto(measure.Measure, days.Count, Percentile.Of(days, 0.5), Percentile.Of(days, 0.75));
-            })
+    private static LeadTimeDto Summarize(string measure, List<double> days) =>
+        new(
+            measure,
+            days.Count,
+            days.Count == 0 ? null : Math.Round(days.Average(), 1),
+            Percentile.Of(days, 0.5),
+            Percentile.Of(days, 0.75));
+
+    /// <summary>
+    /// Whole days, rounded down, as the histogram in Altinn/oed#1636 counts them. The client picks
+    /// the bin width, so the server returns one entry per distinct day count.
+    /// </summary>
+    private static DistributionDto Distribute(string measure, List<double> days) =>
+        new(
+            measure,
+            days
+                .GroupBy(value => (int)Math.Floor(value))
+                .OrderBy(group => group.Key)
+                .Select(group => new DayCountDto(group.Key, group.Count()))
+                .ToList());
+
+    private static List<double> DaysOf(IEnumerable<Row> rows, Func<Row, double?> days) =>
+        rows
+            .Select(days)
+            .OfType<double>()
+            .Where(value => value >= 0)
             .ToList();
 
     private static double? Between(DateTimeOffset? start, DateTimeOffset? end) =>

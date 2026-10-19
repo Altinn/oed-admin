@@ -30,6 +30,12 @@ export function trendKind(prev: number, cur: number, dir: Direction): TrendKind 
   return dir === "lower" ? (rose ? "bad" : "good") : rose ? "good" : "bad";
 }
 
+// --- Categorical series ---
+
+// The eight series colours defined in series.css, in their fixed order. A ninth series is never a
+// generated colour; fold the tail into "Andre" instead.
+export const SERIES_COLORS = Array.from({ length: 8 }, (_, i) => `var(--stat-series-${i + 1})`);
+
 // --- SVG geometry ---
 
 export interface Point {

@@ -42,6 +42,38 @@ export function isoWeek(day: string): number {
   return Math.ceil(((thursday.getTime() - yearStart) / 86_400_000 + 1) / 7);
 }
 
+/** Today as a yyyy-MM-dd UTC date. */
+export const todayUtc = () => new Date().toISOString().slice(0, 10);
+
+/** A yyyy-MM-dd UTC date moved by `days`. */
+export function addDays(day: string, days: number): string {
+  const date = new Date(`${day}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+/** A period of whole UTC days, both ends inclusive, as yyyy-MM-dd. */
+export interface DayRange {
+  from: string;
+  to: string;
+}
+
+/**
+ * Where the cohort tabs start by default. Before it, the estate table's Created is the time a
+ * backfilled row was written rather than when the estate was opened; see GetEstateCompletion.Request.
+ */
+export const COHORT_FLOOR = "2025-07-01";
+
+/** `from`/`to` query parameters for an endpoint that takes a half-open timestamp range. */
+export const rangeParams = (range: DayRange) =>
+  new URLSearchParams({ from: `${range.from}T00:00:00Z`, to: `${addDays(range.to, 1)}T00:00:00Z` });
+
+/** "1. jul. 2025 – 19. okt. 2026" */
+export const formatRange = (range: DayRange) => `${formatLongDay(range.from)} – ${formatLongDay(range.to)}`;
+
+const LONG_DAY_FORMAT = new Intl.DateTimeFormat("nb-NO", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+const formatLongDay = (day: string) => LONG_DAY_FORMAT.format(new Date(`${day}T00:00:00Z`));
+
 /**
  * Monthly cohorts are counted by the month the estate was opened, so the newest ones have not had
  * time to reach the later steps. The statistics tabs mark this many trailing months as provisional.

@@ -14,15 +14,16 @@ public static class Endpoint
         if (!request.IsValid())
             return TypedResults.BadRequest();
 
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        var firstDay = today.AddDays(-request.DaysOrDefault);
+        var firstDay = request.FromOrDefault;
+        var lastDay = request.ToOrDefault;
         var from = new DateTimeOffset(firstDay.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+        var to = new DateTimeOffset(lastDay.AddDays(1).ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
 
         // Every estate counts, cancelled and misposted ones included: this tab measures how many
         // estates the service opens, not how many go on to be settled.
         var created = await dbContext.Estate
             .AsNoTracking()
-            .Where(estate => estate.Created >= from)
+            .Where(estate => estate.Created >= from && estate.Created < to)
             .Select(estate => estate.Created)
             .ToListAsync(cancellationToken);
 
@@ -32,7 +33,7 @@ public static class Endpoint
             .GroupBy(timestamp => DateOnly.FromDateTime(timestamp.UtcDateTime))
             .ToDictionary(group => group.Key, group => group.Count());
 
-        var days = Enumerable.Range(0, today.DayNumber - firstDay.DayNumber + 1)
+        var days = Enumerable.Range(0, lastDay.DayNumber - firstDay.DayNumber + 1)
             .Select(offset => firstDay.AddDays(offset))
             .Select(day => new DayCountDto(day, perDay.GetValueOrDefault(day)))
             .ToList();

@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
-import { Card, Heading, Paragraph, Skeleton, ValidationMessage } from "@digdir/designsystemet-react";
-import { MUTED, TRACK, gradient } from "./statsFormat";
+import { useState, type ReactNode } from "react";
+import { Card, Heading, Paragraph, Skeleton, Textfield, ToggleGroup, ValidationMessage } from "@digdir/designsystemet-react";
+import { MUTED, TRACK, gradient, todayUtc, type DayRange } from "./statsFormat";
 
 export function Tile({ label, value, note, color }: { label: string; value: string; note?: string; color?: string }) {
   return (
@@ -46,6 +46,69 @@ export function Panel({ title, subtitle, children }: { title: string; subtitle?:
       )}
       {children}
     </Card>
+  );
+}
+
+/**
+ * A panel that shows the same data as a chart or as a table, chart first. The toggle is per
+ * panel, so switching one doesn't change the others.
+ */
+export function ChartPanel({ title, subtitle, chart, table }: { title: string; subtitle?: string; chart: ReactNode; table: ReactNode }) {
+  const [view, setView] = useState<"chart" | "table">("chart");
+
+  return (
+    <Card data-color="neutral">
+      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "var(--ds-size-2)" }}>
+        <div>
+          <Heading level={3} data-size="xs">
+            {title}
+          </Heading>
+          {subtitle && (
+            <Paragraph data-size="sm" style={{ color: MUTED, marginBottom: "var(--ds-size-2)" }}>
+              {subtitle}
+            </Paragraph>
+          )}
+        </div>
+        <ToggleGroup data-size="sm" data-toggle-group={`Visning av ${title}`} value={view} onChange={(value) => setView(value as "chart" | "table")}>
+          <ToggleGroup.Item value="chart">Graf</ToggleGroup.Item>
+          <ToggleGroup.Item value="table">Tabell</ToggleGroup.Item>
+        </ToggleGroup>
+      </div>
+      {view === "chart" ? chart : <div style={{ overflowX: "auto" }}>{table}</div>}
+    </Card>
+  );
+}
+
+/**
+ * From–to picker over whole UTC days. A half-typed or reversed date is ignored rather than sent,
+ * so the query only refires on a complete, valid period.
+ */
+export function DateRangePicker({ value, onChange }: { value: DayRange; onChange: (range: DayRange) => void }) {
+  const today = todayUtc();
+  const update = (range: DayRange) => {
+    if (range.from && range.to && range.from <= range.to && range.to <= today) onChange(range);
+  };
+
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--ds-size-4)", marginBottom: "var(--ds-size-4)" }}>
+      <Textfield
+        data-size="sm"
+        label="Fra (UTC)"
+        type="date"
+        value={value.from}
+        max={value.to}
+        onChange={(event) => update({ ...value, from: event.target.value })}
+      />
+      <Textfield
+        data-size="sm"
+        label="Til (UTC)"
+        type="date"
+        value={value.to}
+        min={value.from}
+        max={today}
+        onChange={(event) => update({ ...value, to: event.target.value })}
+      />
+    </div>
   );
 }
 

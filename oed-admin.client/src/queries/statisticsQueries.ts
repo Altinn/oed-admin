@@ -1,5 +1,6 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { fetchWithMsal } from "../utils/msalUtils";
+import { rangeParams, type DayRange } from "../components/statistics/statsFormat";
 
 // Mirrors CohortDto from GET /api/statistics/estatecompletion. One entry per UTC month the
 // estates were opened in; the rates are cohort rates, so an estate opened in July that reaches
@@ -13,19 +14,31 @@ export interface EstateCompletionCohort {
   pctProbateIssued: number;
 }
 
+// Mirrors MonthEventsDto: what happened in each UTC month, each event counted in its own month
+// whenever the estate was opened.
+export interface EstateCompletionMonth {
+  month: string;
+  opened: number;
+  declarationsSubmitted: number;
+  probatesIssued: number;
+}
+
 export interface EstateCompletionResponse {
   cohorts: EstateCompletionCohort[];
+  months: EstateCompletionMonth[];
 }
 
 export const estateCompletionKeys = {
   all: ["estateCompletion"] as const,
+  list: (range: DayRange) => [...estateCompletionKeys.all, range.from, range.to] as const,
 };
 
-export const useEstateCompletionQuery = () => {
+export const useEstateCompletionQuery = (range: DayRange) => {
   return useQuery<EstateCompletionResponse>({
-    queryKey: estateCompletionKeys.all,
+    queryKey: estateCompletionKeys.list(range),
+    placeholderData: keepPreviousData,
     queryFn: async () => {
-      const response = await fetchWithMsal("/api/statistics/estatecompletion");
+      const response = await fetchWithMsal(`/api/statistics/estatecompletion?${rangeParams(range)}`);
       if (!response.ok) {
         throw new Error("Kunne ikke hente statistikk for dødsbo");
       }
@@ -38,7 +51,7 @@ export const useEstateCompletionQuery = () => {
 // first; `ongoing` is the number of estates with a declaration created and no probate issued at
 // the end of that period (or as of now, for the current period).
 export type BacklogResolution = "Day" | "Week" | "Month";
-export type BacklogRange = "30d" | "90d" | "1y" | "sep27" | "all";
+export type BacklogRange = "30d" | "90d" | "1y" | "sep27" | "all" | "custom";
 
 export interface EstateBacklogPoint {
   periodStart: string; // yyyy-MM-dd, UTC
@@ -51,13 +64,13 @@ export interface EstateBacklogResponse {
 
 export const estateBacklogKeys = {
   all: ["estateBacklog"] as const,
-  list: (resolution: BacklogResolution, range: BacklogRange) =>
-    [...estateBacklogKeys.all, resolution, range] as const,
+  list: (resolution: BacklogResolution, range: BacklogRange, custom: DayRange) =>
+    [...estateBacklogKeys.all, resolution, range, ...(range === "custom" ? [custom.from, custom.to] : [])] as const,
 };
 
 // Start of the selected range at UTC midnight; undefined means "all", which the server starts at
 // the earliest declaration.
-function rangeStart(range: BacklogRange): string | undefined {
+function rangeStart(range: Exclude<BacklogRange, "custom">): string | undefined {
   if (range === "all") return undefined;
   // The day before the "Ett skjema pr arving" release, so the chart shows the backlog either side of it.
   if (range === "sep27") return "2026-09-27T00:00:00.000Z";
@@ -82,14 +95,17 @@ export interface EstateCreatedResponse {
 
 export const estateCreatedKeys = {
   all: ["estateCreated"] as const,
-  list: (days: number) => [...estateCreatedKeys.all, days] as const,
+  list: (range: DayRange) => [...estateCreatedKeys.all, range.from, range.to] as const,
 };
 
-export const useEstateCreatedQuery = (days: number) => {
+// Takes whole UTC days, both ends inclusive, rather than timestamps.
+export const useEstateCreatedQuery = (range: DayRange) => {
   return useQuery<EstateCreatedResponse>({
-    queryKey: estateCreatedKeys.list(days),
+    queryKey: estateCreatedKeys.list(range),
+    placeholderData: keepPreviousData,
     queryFn: async () => {
-      const response = await fetchWithMsal(`/api/statistics/estatecreated?days=${days}`);
+      const params = new URLSearchParams({ from: range.from, to: range.to });
+      const response = await fetchWithMsal(`/api/statistics/estatecreated?${params}`);
       if (!response.ok) {
         throw new Error("Kunne ikke hente statistikk for opprettede dødsbo");
       }
@@ -99,13 +115,17 @@ export const useEstateCreatedQuery = (days: number) => {
   });
 };
 
-export const useEstateBacklogQuery =(resolution: BacklogResolution, range: BacklogRange) => {
+export const useEstateBacklogQuery =(resolution: BacklogResolution, range: BacklogRange, custom: DayRange) => {
   return useQuery<EstateBacklogResponse>({
-    queryKey: estateBacklogKeys.list(resolution, range),
+    queryKey: estateBacklogKeys.list(resolution, range, custom),
     queryFn: async () => {
       const params = new URLSearchParams({ resolution });
-      const from = rangeStart(range);
-      if (from) params.set("from", from);
+      if (range === "custom") {
+        rangeParams(custom).forEach((value, key) => params.set(key, value));
+      } else {
+        const from = rangeStart(range);
+        if (from) params.set("from", from);
+      }
       const response = await fetchWithMsal(`/api/statistics/estatebacklog?${params}`);
       if (!response.ok) {
         throw new Error("Kunne ikke hente statistikk for åpne skifteerklæringer");
@@ -118,10 +138,10 @@ export const useEstateBacklogQuery =(resolution: BacklogResolution, range: Backl
   });
 };
 
-// The remaining statistics endpoints take no client-side parameters and scan every estate since
-// mid-2025, so they share a fetch helper and a five-minute staleTime.
-async function fetchStatistics<T>(path: string, errorMessage: string): Promise<T> {
-  const response = await fetchWithMsal(`/api/statistics/${path}`);
+// The remaining statistics endpoints take an optional period and scan every estate in it, so they
+// share a fetch helper and a five-minute staleTime.
+async function fetchStatistics<T>(path: string, errorMessage: string, range?: DayRange): Promise<T> {
+  const response = await fetchWithMsal(`/api/statistics/${path}${range ? `?${rangeParams(range)}` : ""}`);
   if (!response.ok) {
     throw new Error(errorMessage);
   }
@@ -137,11 +157,13 @@ export type LeadTimeMeasure =
   | "createdToFirstHeir"
   | "declarationDuration"
   | "createdToDeclarationSubmitted"
+  | "declarationSubmittedToProbate"
   | "createdToProbate";
 
 export interface LeadTime {
   measure: LeadTimeMeasure;
   count: number;
+  meanDays: number | null;
   medianDays: number | null;
   p75Days: number | null;
 }
@@ -152,17 +174,28 @@ export interface LeadTimeMonth {
   measures: LeadTime[];
 }
 
+// How many estates took each whole number of days; days with no estates are left out.
+export interface LeadTimeDistribution {
+  measure: LeadTimeMeasure;
+  days: { days: number; count: number }[];
+}
+
 export interface EstateLeadTimesResponse {
   overall: LeadTime[];
   months: LeadTimeMonth[];
+  distributions: LeadTimeDistribution[];
 }
 
-export const estateLeadTimesKeys = { all: ["estateLeadTimes"] as const };
+export const estateLeadTimesKeys = {
+  all: ["estateLeadTimes"] as const,
+  list: (range: DayRange) => [...estateLeadTimesKeys.all, range.from, range.to] as const,
+};
 
-export const useEstateLeadTimesQuery = () =>
+export const useEstateLeadTimesQuery = (range: DayRange) =>
   useQuery<EstateLeadTimesResponse>({
-    queryKey: estateLeadTimesKeys.all,
-    queryFn: () => fetchStatistics("estateleadtimes", "Kunne ikke hente behandlingstider"),
+    queryKey: estateLeadTimesKeys.list(range),
+    placeholderData: keepPreviousData,
+    queryFn: () => fetchStatistics("estateleadtimes", "Kunne ikke hente behandlingstider", range),
     staleTime: STATISTICS_STALE_TIME,
   });
 
@@ -205,11 +238,15 @@ export interface EstateOutcomesResponse {
   months: OutcomeMonth[];
 }
 
-export const estateOutcomesKeys = { all: ["estateOutcomes"] as const };
+export const estateOutcomesKeys = {
+  all: ["estateOutcomes"] as const,
+  list: (range: DayRange) => [...estateOutcomesKeys.all, range.from, range.to] as const,
+};
 
-export const useEstateOutcomesQuery = () =>
+export const useEstateOutcomesQuery = (range: DayRange) =>
   useQuery<EstateOutcomesResponse>({
-    queryKey: estateOutcomesKeys.all,
-    queryFn: () => fetchStatistics("estateoutcomes", "Kunne ikke hente utfall"),
+    queryKey: estateOutcomesKeys.list(range),
+    placeholderData: keepPreviousData,
+    queryFn: () => fetchStatistics("estateoutcomes", "Kunne ikke hente utfall", range),
     staleTime: STATISTICS_STALE_TIME,
   });

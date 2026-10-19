@@ -1,7 +1,29 @@
+import { useState } from "react";
 import { Heading, Paragraph, Table, Tag } from "@digdir/designsystemet-react";
 import { useEstateOutcomesQuery, type OutcomeMonth } from "../../queries/statisticsQueries";
-import { Panel, QueryState } from "../statistics/panels";
-import { MUTED, PROVISIONAL_MONTHS, formatCount, formatMonth, formatPercent, numCellStyle } from "../statistics/statsFormat";
+import { SERIES_COLORS } from "../charts/chartUtils";
+import { StackedColumnChart } from "../charts/statCharts";
+import { ChartPanel, DateRangePicker, QueryState } from "../statistics/panels";
+import {
+  COHORT_FLOOR,
+  MUTED,
+  PROVISIONAL_MONTHS,
+  formatCount,
+  formatMonth,
+  formatPercent,
+  numCellStyle,
+  todayUtc,
+  type DayRange,
+} from "../statistics/statsFormat";
+
+// The chart has eight series colours. The most common results get their own, the rest are
+// folded into "Andre"; cancelled and misposted take the last two, and "no result yet" is neutral
+// grey so it reads as the absence of an outcome rather than one more outcome.
+const CHART_RESULTS = 5;
+const OTHER_COLOR = SERIES_COLORS[5];
+const CANCELLED_COLOR = SERIES_COLORS[6];
+const MISPOSTED_COLOR = SERIES_COLORS[7];
+const NO_RESULT_COLOR = "var(--ds-color-neutral-border-default)";
 
 const RELEASES = [{ month: "2026-09", label: "Ett skjema pr arving 28.9." }];
 
@@ -49,17 +71,48 @@ function CountCell({ count, total }: { count: number; total: number }) {
   );
 }
 
+function OutcomesChart({ months, columns }: { months: OutcomeMonth[]; columns: string[] }) {
+  const results = columns.filter((key) => key !== NO_RESULT);
+  const shown = results.slice(0, CHART_RESULTS);
+  const folded = results.slice(CHART_RESULTS);
+  const countOf = (month: OutcomeMonth, key: string) =>
+    month.results.find((entry) => resultKey(entry.result) === key)?.count ?? 0;
+
+  // Stacked bottom-up in this order: the settled outcomes first, then the estates still waiting,
+  // then the ones that dropped out.
+  const series = [
+    ...shown.map((key, i) => ({ name: resultLabel(key), values: months.map((month) => countOf(month, key)), color: SERIES_COLORS[i] })),
+    ...(folded.length > 0
+      ? [{ name: "Andre", values: months.map((month) => folded.reduce((sum, key) => sum + countOf(month, key), 0)), color: OTHER_COLOR }]
+      : []),
+    ...(columns.includes(NO_RESULT)
+      ? [{ name: resultLabel(NO_RESULT), values: months.map((month) => countOf(month, NO_RESULT)), color: NO_RESULT_COLOR }]
+      : []),
+    { name: "Kansellert", values: months.map((month) => month.cancelled), color: CANCELLED_COLOR },
+    { name: "Feilført", values: months.map((month) => month.misposted), color: MISPOSTED_COLOR },
+  ];
+
+  return (
+    <StackedColumnChart
+      labels={months.map((month) => formatMonth(month.month))}
+      series={series}
+      formatValue={formatCount}
+      ariaLabel="Utfall for bo opprettet hver måned"
+    />
+  );
+}
+
 function Outcomes({ months }: { months: OutcomeMonth[] }) {
   const columns = resultColumns(months);
   const provisional = new Set(months.slice(-PROVISIONAL_MONTHS).map((month) => month.month));
   const rows = [...months].reverse();
 
   return (
-    <Panel
+    <ChartPanel
       title="Utfall per måned"
       subtitle="Antall og andel av alle bo opprettet i måneden. Utfallskolonnene er hentet rett fra ProbateResult."
-    >
-      <div style={{ overflowX: "auto" }}>
+      chart={<OutcomesChart months={months} columns={columns} />}
+      table={
         <Table data-size="sm" style={{ width: "100%" }}>
           <Table.Head>
             <Table.Row>
@@ -108,13 +161,14 @@ function Outcomes({ months }: { months: OutcomeMonth[] }) {
             })}
           </Table.Body>
         </Table>
-      </div>
-    </Panel>
+      }
+    />
   );
 }
 
 export default function EstateOutcomes() {
-  const { data, isLoading, error } = useEstateOutcomesQuery();
+  const [range, setRange] = useState<DayRange>(() => ({ from: COHORT_FLOOR, to: todayUtc() }));
+  const { data, isLoading, error, isPlaceholderData } = useEstateOutcomesQuery(range);
 
   return (
     <>
@@ -122,13 +176,16 @@ export default function EstateOutcomes() {
         Utfall
       </Heading>
       <Paragraph data-size="sm" style={{ marginBottom: "var(--ds-size-3)" }}>
-        Hvordan bo opprettet fra juli 2025 har endt, etter måneden de ble opprettet. Kansellerte og feilførte saker er
+        Hvordan bo opprettet i perioden har endt, etter måneden de ble opprettet. Kansellerte og feilførte saker er
         talt for seg; resten er fordelt på resultatet fra tingretten. De siste {PROVISIONAL_MONTHS} månedene er merket
-        foreløpige, fordi mange av boene ennå ikke har fått et resultat.
+        foreløpige, fordi mange av boene ennå ikke har fått et resultat. Før juli 2025 er opprettet-tidspunktet upålitelig.
       </Paragraph>
-      <QueryState data={data} isLoading={isLoading} error={error} isEmpty={(d) => d.months.length === 0} loadingLabel="Henter utfall">
-        {(d) => <Outcomes months={d.months} />}
-      </QueryState>
+      <DateRangePicker value={range} onChange={setRange} />
+      <div style={{ opacity: isPlaceholderData ? 0.5 : 1, transition: "opacity 150ms" }} aria-busy={isPlaceholderData}>
+        <QueryState data={data} isLoading={isLoading} error={error} isEmpty={(d) => d.months.length === 0} loadingLabel="Henter utfall">
+          {(d) => <Outcomes months={d.months} />}
+        </QueryState>
+      </div>
     </>
   );
 }

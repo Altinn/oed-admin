@@ -1,6 +1,6 @@
-import { Heading, Paragraph } from "@digdir/designsystemet-react";
+import { Heading, Paragraph, Table } from "@digdir/designsystemet-react";
 import { useProbateDeadlinesQuery, type DeadlineBucket, type ProbateDeadlinesResponse } from "../../queries/statisticsQueries";
-import { Bar, Panel, QueryState, Tile, Tiles } from "../statistics/panels";
+import { Bar, ChartPanel, QueryState, Tile, Tiles } from "../statistics/panels";
 import { DANGER, MUTED, WARNING, formatCount, formatDay, isoWeek, numCellStyle } from "../statistics/statsFormat";
 
 const BUCKETS: Record<DeadlineBucket, { label: string; color?: string }> = {
@@ -32,22 +32,46 @@ function Deadlines({ buckets, weeks }: ProbateDeadlinesResponse) {
           />
         ))}
       </Tiles>
-      <Panel title="Frister de neste 12 ukene" subtitle="Åpne bo med frist i hver uke, fra og med denne uken">
-        <ol style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "var(--ds-size-2)" }}>
-          {weeks.map((week) => (
-            <li
-              key={week.weekStart}
-              style={{ display: "grid", gridTemplateColumns: "10rem 1fr 3rem", alignItems: "center", gap: "var(--ds-size-2)" }}
-            >
-              <span>
-                uke {isoWeek(week.weekStart)} <span style={{ color: MUTED }}>fra {formatDay(week.weekStart)}</span>
-              </span>
-              <Bar fraction={max === 0 ? 0 : week.count / max} />
-              <strong style={numCellStyle}>{formatCount(week.count)}</strong>
-            </li>
-          ))}
-        </ol>
-      </Panel>
+      <ChartPanel
+        title="Frister de neste 12 ukene"
+        subtitle="Åpne bo med frist i hver uke, fra og med denne uken"
+        chart={
+          <ol style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "var(--ds-size-2)" }}>
+            {weeks.map((week) => (
+              <li
+                key={week.weekStart}
+                style={{ display: "grid", gridTemplateColumns: "10rem 1fr 3rem", alignItems: "center", gap: "var(--ds-size-2)" }}
+              >
+                <span>
+                  uke {isoWeek(week.weekStart)} <span style={{ color: MUTED }}>fra {formatDay(week.weekStart)}</span>
+                </span>
+                <Bar fraction={max === 0 ? 0 : week.count / max} />
+                <strong style={numCellStyle}>{formatCount(week.count)}</strong>
+              </li>
+            ))}
+          </ol>
+        }
+        table={
+          <Table data-size="sm" style={{ width: "100%" }}>
+            <Table.Head>
+              <Table.Row>
+                <Table.HeaderCell>Uke</Table.HeaderCell>
+                <Table.HeaderCell>Fra</Table.HeaderCell>
+                <Table.HeaderCell style={{ textAlign: "right" }}>Bo med frist</Table.HeaderCell>
+              </Table.Row>
+            </Table.Head>
+            <Table.Body>
+              {weeks.map((week) => (
+                <Table.Row key={week.weekStart}>
+                  <Table.Cell>{isoWeek(week.weekStart)}</Table.Cell>
+                  <Table.Cell>{formatDay(week.weekStart)}</Table.Cell>
+                  <Table.Cell style={numCellStyle}>{formatCount(week.count)}</Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table>
+        }
+      />
     </>
   );
 }
@@ -64,7 +88,8 @@ export default function ProbateDeadlines() {
         Åpne bo fordelt etter hvor langt unna skiftefristen er. Et bo regnes som åpent til skifteerklæringen er sendt
         inn eller skifteattesten er utstedt. Kansellerte og feilførte saker er holdt utenfor. Alle bo i tabellen er med,
         også de fra før juli 2025, så de forfalte kan omfatte eldre bo som er avsluttet utenfor løsningen. Skifteerklæringer
-        i den nye subappen er ikke med, så bo som har sendt inn der kan stå som åpne.
+        i den nye subappen er ikke med, så bo som har sendt inn der kan stå som åpne. Fanen viser situasjonen nå og har
+        derfor ikke valg av periode.
       </Paragraph>
       <QueryState data={data} isLoading={isLoading} error={error} isEmpty={(d) => d.buckets.length === 0} loadingLabel="Henter frister">
         {(d) => <Deadlines buckets={d.buckets} weeks={d.weeks} />}

@@ -1,6 +1,9 @@
-import type { CSSProperties, ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import { Card, Heading, Paragraph, Skeleton, Table, ValidationMessage } from "@digdir/designsystemet-react";
 import { useEstateCreatedQuery, type EstateCreatedDay } from "../../queries/statisticsQueries";
+import { ColumnChart } from "../charts/statCharts";
+import { ChartPanel, DateRangePicker } from "../statistics/panels";
+import { addDays, todayUtc, type DayRange } from "../statistics/statsFormat";
 
 const DAYS = 90;
 const TOP_COUNT = 15;
@@ -146,23 +149,90 @@ function TopDays({ days, average }: { days: RankedDay[]; average: number }) {
   const subtitle = `${mondays} av ${days.length} er mandager – ${weekends === 0 ? "ingen" : weekends} helgedager. Snitt per dag er ${formatDecimal(average)}.`;
 
   return (
-    <Panel title={`Topp ${TOP_COUNT} dager`} subtitle={subtitle}>
-      <ol style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "var(--ds-size-2)" }}>
-        {days.map((day) => (
-          <li
-            key={day.day}
-            style={{ display: "grid", gridTemplateColumns: "1.75rem 10rem 1fr 2.5rem", alignItems: "center", gap: "var(--ds-size-2)" }}
-          >
-            <span style={{ color: MUTED, fontVariantNumeric: "tabular-nums" }}>{day.rank}</span>
-            <span>
-              {WEEKDAY_NAMES[toDate(day.day).getUTCDay()]} <span style={{ color: MUTED }}>{DAY_FORMAT.format(toDate(day.day))}</span>
-            </span>
-            <Bar fraction={max === 0 ? 0 : day.created / max} glow={day.rank === 1} />
-            <strong style={numCellStyle}>{formatCount(day.created)}</strong>
-          </li>
-        ))}
-      </ol>
-    </Panel>
+    <ChartPanel
+      title={`Topp ${TOP_COUNT} dager`}
+      subtitle={subtitle}
+      chart={
+        <ol style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "var(--ds-size-2)" }}>
+          {days.map((day) => (
+            <li
+              key={day.day}
+              style={{ display: "grid", gridTemplateColumns: "1.75rem 10rem 1fr 2.5rem", alignItems: "center", gap: "var(--ds-size-2)" }}
+            >
+              <span style={{ color: MUTED, fontVariantNumeric: "tabular-nums" }}>{day.rank}</span>
+              <span>
+                {WEEKDAY_NAMES[toDate(day.day).getUTCDay()]} <span style={{ color: MUTED }}>{DAY_FORMAT.format(toDate(day.day))}</span>
+              </span>
+              <Bar fraction={max === 0 ? 0 : day.created / max} glow={day.rank === 1} />
+              <strong style={numCellStyle}>{formatCount(day.created)}</strong>
+            </li>
+          ))}
+        </ol>
+      }
+      table={
+        <Table data-size="sm" style={{ width: "100%" }}>
+          <Table.Head>
+            <Table.Row>
+              <Table.HeaderCell style={{ textAlign: "right" }}>Plass</Table.HeaderCell>
+              <Table.HeaderCell>Dag</Table.HeaderCell>
+              <Table.HeaderCell>Ukedag</Table.HeaderCell>
+              <Table.HeaderCell style={{ textAlign: "right" }}>Opprettet</Table.HeaderCell>
+            </Table.Row>
+          </Table.Head>
+          <Table.Body>
+            {days.map((day) => (
+              <Table.Row key={day.day}>
+                <Table.Cell style={numCellStyle}>{day.rank}</Table.Cell>
+                <Table.Cell>{LONG_DATE_FORMAT.format(toDate(day.day))}</Table.Cell>
+                <Table.Cell>{WEEKDAY_NAMES[toDate(day.day).getUTCDay()]}</Table.Cell>
+                <Table.Cell style={numCellStyle}>{formatCount(day.created)}</Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table>
+      }
+    />
+  );
+}
+
+function Daily({ days }: { days: EstateCreatedDay[] }) {
+  return (
+    <ChartPanel
+      title="Per dag"
+      subtitle="Dødsbo opprettet hver dag i perioden"
+      chart={
+        <ColumnChart
+          columns={days.map((day) => ({
+            label: DAY_FORMAT.format(toDate(day.day)),
+            value: day.created,
+            detail: WEEKDAY_NAMES[toDate(day.day).getUTCDay()],
+          }))}
+          formatValue={(value) => `${formatCount(value)} opprettet`}
+          ariaLabel="Dødsbo opprettet per dag"
+        />
+      }
+      table={
+        <Table data-size="sm" style={{ width: "100%" }}>
+          <Table.Head>
+            <Table.Row>
+              <Table.HeaderCell>Dag</Table.HeaderCell>
+              <Table.HeaderCell>Ukedag</Table.HeaderCell>
+              <Table.HeaderCell style={{ textAlign: "right" }}>Opprettet</Table.HeaderCell>
+            </Table.Row>
+          </Table.Head>
+          <Table.Body>
+            {/* Newest first, as in the other statistics tables. */}
+            {[...days].reverse().map((day) => (
+              <Table.Row key={day.day}>
+                <Table.Cell>{LONG_DATE_FORMAT.format(toDate(day.day))}</Table.Cell>
+                <Table.Cell>{WEEKDAY_NAMES[toDate(day.day).getUTCDay()]}</Table.Cell>
+                <Table.Cell style={numCellStyle}>{formatCount(day.created)}</Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table>
+      }
+    />
   );
 }
 
@@ -175,7 +245,28 @@ function Weekdays({ averages }: { averages: WeekdayAverage[] }) {
   const subtitle = `${capitalize(WEEKDAY_NAMES[busiest?.weekday ?? 1])} er travlest; helgene ligger ca. ${weekendDrop} % lavere enn hverdagene`;
 
   return (
-    <Panel title="Snitt per ukedag" subtitle={subtitle}>
+    <ChartPanel
+      title="Snitt per ukedag"
+      subtitle={subtitle}
+      table={
+        <Table data-size="sm" style={{ width: "100%" }}>
+          <Table.Head>
+            <Table.Row>
+              <Table.HeaderCell>Ukedag</Table.HeaderCell>
+              <Table.HeaderCell style={{ textAlign: "right" }}>Snitt per dag</Table.HeaderCell>
+            </Table.Row>
+          </Table.Head>
+          <Table.Body>
+            {averages.map((entry) => (
+              <Table.Row key={entry.weekday}>
+                <Table.Cell>{capitalize(WEEKDAY_NAMES[entry.weekday])}</Table.Cell>
+                <Table.Cell style={numCellStyle}>{formatDecimal(entry.average)}</Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table>
+      }
+      chart={
       <div
         role="img"
         aria-label={averages.map((entry) => `${WEEKDAY_NAMES[entry.weekday]} ${formatDecimal(entry.average)}`).join(", ")}
@@ -203,7 +294,8 @@ function Weekdays({ averages }: { averages: WeekdayAverage[] }) {
           </div>
         ))}
       </div>
-    </Panel>
+      }
+    />
   );
 }
 
@@ -249,8 +341,9 @@ function Months({ months }: { months: MonthSummary[] }) {
 }
 
 function Dashboard({ days }: { days: EstateCreatedDay[] }) {
-  // The last day is today and still running; it counts towards the total only.
-  const fullDays = days.slice(0, -1);
+  // When the period ends today, the last day is still running; it counts towards the total only.
+  const endsToday = days[days.length - 1].day === todayUtc();
+  const fullDays = endsToday ? days.slice(0, -1) : days;
   const counts = fullDays.map((day) => day.created);
   const average = mean(counts);
   const today = days[days.length - 1];
@@ -269,12 +362,18 @@ function Dashboard({ days }: { days: EstateCreatedDay[] }) {
           marginBottom: "var(--ds-size-4)",
         }}
       >
-        <Tile label="Totalt" value={formatCount(sum(days.map((day) => day.created)))} note={`dødsbo opprettet, ${formatCount(today.created)} så langt i dag`} />
         <Tile
-          label="I går / i dag"
-          value={`${formatCount(yesterday.created)} / ${formatCount(today.created)}`}
-          note={`${DAY_FORMAT.format(toDate(yesterday.day))} / så langt ${DAY_FORMAT.format(toDate(today.day))}`}
+          label="Totalt"
+          value={formatCount(sum(days.map((day) => day.created)))}
+          note={endsToday ? `dødsbo opprettet, ${formatCount(today.created)} så langt i dag` : "dødsbo opprettet"}
         />
+        {endsToday && (
+          <Tile
+            label="I går / i dag"
+            value={`${formatCount(yesterday.created)} / ${formatCount(today.created)}`}
+            note={`${DAY_FORMAT.format(toDate(yesterday.day))} / så langt ${DAY_FORMAT.format(toDate(today.day))}`}
+          />
+        )}
         <Tile label="Snitt per dag" value={formatDecimal(average)} note={`${fullDays.length} hele dager`} />
         <Tile label="Median" value={formatDecimal(median(counts)).replace(",0", "")} note="per dag" />
         <Tile label="Laveste – høyeste dag" value={`${Math.min(...counts)} – ${Math.max(...counts)}`} note="hele dager" />
@@ -294,12 +393,16 @@ function Dashboard({ days }: { days: EstateCreatedDay[] }) {
           <Months months={monthSummaries(fullDays)} />
         </div>
       </div>
+      <div style={{ marginTop: "var(--ds-size-4)" }}>
+        <Daily days={days} />
+      </div>
     </>
   );
 }
 
 export default function EstateCreated() {
-  const { data, isLoading, error } = useEstateCreatedQuery(DAYS);
+  const [range, setRange] = useState<DayRange>(() => ({ from: addDays(todayUtc(), -DAYS), to: todayUtc() }));
+  const { data, isLoading, error, isPlaceholderData } = useEstateCreatedQuery(range);
 
   let content: ReactNode;
   if (isLoading) {
@@ -309,18 +412,25 @@ export default function EstateCreated() {
   } else if (!data || data.days.length < 2) {
     content = <Paragraph>Ingen data.</Paragraph>;
   } else {
-    content = <Dashboard days={data.days} />;
+    // Dimmed while a period change is refetching, so the previous numbers don't read as current.
+    content = (
+      <div style={{ opacity: isPlaceholderData ? 0.5 : 1, transition: "opacity 150ms" }} aria-busy={isPlaceholderData}>
+        <Dashboard days={data.days} />
+      </div>
+    );
   }
 
   return (
     <>
       <Heading level={2} data-size="xl">
-        Opprettede dødsbo – siste {DAYS} dager
+        Opprettede dødsbo
       </Heading>
       <Paragraph data-size="sm" style={{ marginBottom: "var(--ds-size-2)" }}>
         Antall rader i estate-tabellen per dag de ble opprettet, inkludert kansellerte og feilførte saker. Dagene er i UTC.
         Dagens tall er med i totalen, men holdt utenfor snitt, median, topp {TOP_COUNT}, ukedager og måneder fordi dagen ikke er over.
+        Standardperioden er de siste {DAYS} dagene; lengste periode er to år.
       </Paragraph>
+      <DateRangePicker value={range} onChange={setRange} />
       {content}
     </>
   );

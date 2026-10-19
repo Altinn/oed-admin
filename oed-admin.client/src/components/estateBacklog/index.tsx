@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { Heading, Paragraph, Skeleton, ToggleGroup, ValidationMessage } from "@digdir/designsystemet-react";
+import { Heading, Paragraph, Skeleton, Table, ToggleGroup, ValidationMessage } from "@digdir/designsystemet-react";
 import {
   useEstateBacklogQuery,
   type BacklogRange,
@@ -8,6 +8,8 @@ import {
 } from "../../queries/statisticsQueries";
 import { LineChart, type LineChartMarker, type LineChartPoint } from "../charts";
 import { trendColor, trendKind } from "../charts/chartUtils";
+import { ChartPanel, DateRangePicker } from "../statistics/panels";
+import { addDays, todayUtc, type DayRange } from "../statistics/statsFormat";
 
 const MONTH_FORMAT = new Intl.DateTimeFormat("nb-NO", { month: "short", year: "2-digit", timeZone: "UTC" });
 
@@ -68,7 +70,7 @@ function toReleaseMarkers(points: EstateBacklogPoint[], resolution: BacklogResol
   });
 }
 
-function Headline({ points, resolution }: { points: EstateBacklogPoint[]; resolution: BacklogResolution }) {
+function Headline({ points, resolution, label }: { points: EstateBacklogPoint[]; resolution: BacklogResolution; label: string }) {
   const last = points[points.length - 1].ongoing;
 
   // With a single point there is no earlier value to compare against, so only the current count
@@ -91,7 +93,7 @@ function Headline({ points, resolution }: { points: EstateBacklogPoint[]; resolu
 
   return (
     <Paragraph data-size="lg" style={{ marginBottom: "var(--ds-size-3)" }}>
-      Åpne nå: <strong>{last.toLocaleString("nb-NO")}</strong>
+      {label}: <strong>{last.toLocaleString("nb-NO")}</strong>
       {change}
     </Paragraph>
   );
@@ -100,7 +102,8 @@ function Headline({ points, resolution }: { points: EstateBacklogPoint[]; resolu
 export default function EstateBacklog() {
   const [resolution, setResolution] = useState<BacklogResolution>("Day");
   const [range, setRange] = useState<BacklogRange>("90d");
-  const { data, isLoading, error, isPlaceholderData } = useEstateBacklogQuery(resolution, range);
+  const [custom, setCustom] = useState<DayRange>(() => ({ from: addDays(todayUtc(), -90), to: todayUtc() }));
+  const { data, isLoading, error, isPlaceholderData } = useEstateBacklogQuery(resolution, range, custom);
 
   let content: ReactNode;
   if (isLoading) {
@@ -114,11 +117,42 @@ export default function EstateBacklog() {
     // read as current.
     content = (
       <div style={{ opacity: isPlaceholderData ? 0.5 : 1, transition: "opacity 150ms" }} aria-busy={isPlaceholderData}>
-        <Headline points={data.points} resolution={resolution} />
-        <LineChart
-          points={toChartPoints(data.points, resolution)}
-          markers={toReleaseMarkers(data.points, resolution)}
-          ariaLabel="Antall åpne skifteerklæringer over tid"
+        <Headline
+          points={data.points}
+          resolution={resolution}
+          // A custom period that ends before today shows the count at its end, not the count now.
+          label={range === "custom" && custom.to < todayUtc() ? "Åpne ved periodens slutt" : "Åpne nå"}
+        />
+        <ChartPanel
+          title="Åpne skifteerklæringer over tid"
+          chart={
+            <LineChart
+              points={toChartPoints(data.points, resolution)}
+              markers={toReleaseMarkers(data.points, resolution)}
+              ariaLabel="Antall åpne skifteerklæringer over tid"
+            />
+          }
+          table={
+            <Table data-size="sm" style={{ width: "100%" }}>
+              <Table.Head>
+                <Table.Row>
+                  <Table.HeaderCell>Periode (UTC)</Table.HeaderCell>
+                  <Table.HeaderCell style={{ textAlign: "right" }}>Åpne ved periodens slutt</Table.HeaderCell>
+                </Table.Row>
+              </Table.Head>
+              <Table.Body>
+                {/* Newest first, as in the other statistics tables. */}
+                {[...data.points].reverse().map((point) => (
+                  <Table.Row key={point.periodStart}>
+                    <Table.Cell>{formatPeriod(point.periodStart, resolution)}</Table.Cell>
+                    <Table.Cell style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+                      {point.ongoing.toLocaleString("nb-NO")}
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table>
+          }
         />
       </div>
     );
@@ -156,8 +190,10 @@ export default function EstateBacklog() {
           <ToggleGroup.Item value="1y">1 år</ToggleGroup.Item>
           <ToggleGroup.Item value="sep27">Fra 27. sep</ToggleGroup.Item>
           <ToggleGroup.Item value="all">Alt</ToggleGroup.Item>
+          <ToggleGroup.Item value="custom">Velg periode</ToggleGroup.Item>
         </ToggleGroup>
       </div>
+      {range === "custom" && <DateRangePicker value={custom} onChange={setCustom} />}
       {content}
     </>
   );
