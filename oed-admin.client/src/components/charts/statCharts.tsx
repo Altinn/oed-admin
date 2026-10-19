@@ -20,8 +20,6 @@ const GRID = "var(--ds-color-neutral-border-subtle, #30363d)";
 const MUTED = "var(--ds-color-neutral-text-subtle, #8b949e)";
 const TEXT = "var(--ds-color-neutral-text-default, #e6edf3)";
 const SURFACE = "var(--ds-color-neutral-background-default, #0d1117)";
-const TOOLTIP_W = 240;
-const TOOLTIP_LINE = 16;
 
 const defaultFormat = (value: number) => value.toLocaleString("nb-NO", { maximumFractionDigits: 1 });
 
@@ -77,27 +75,39 @@ interface TooltipLine {
   color?: string;
 }
 
+// HTML rather than SVG so long labels wrap and the text keeps the page's font size instead of
+// scaling with the chart. Placed over the chart container, to the side of the hovered point that
+// has more room.
 function Tooltip({ anchorX, title, lines }: { anchorX: number; title: string; lines: TooltipLine[] }) {
-  const height = 24 + lines.length * TOOLTIP_LINE;
-  const left = anchorX + 8 + TOOLTIP_W > W ? anchorX - 8 - TOOLTIP_W : anchorX + 8;
+  const fraction = anchorX / W;
+  const side = fraction > 0.5 ? { right: `calc(${(1 - fraction) * 100}% + 8px)` } : { left: `calc(${fraction * 100}% + 8px)` };
   return (
-    <g pointerEvents="none">
-      <rect x={left} y={MARGIN.top} width={TOOLTIP_W} height={height} rx={4} fill={SURFACE} stroke={GRID} />
-      <text x={left + 8} y={MARGIN.top + 16} fontSize={11} fill={MUTED}>
-        {title}
-      </text>
-      {lines.map((line, i) => {
-        const y = MARGIN.top + 16 + (i + 1) * TOOLTIP_LINE;
-        return (
-          <g key={i}>
-            {line.color && <rect x={left + 8} y={y - 8} width={8} height={8} rx={2} fill={line.color} />}
-            <text x={left + (line.color ? 22 : 8)} y={y} fontSize={12} fill={TEXT}>
-              {line.text}
-            </text>
-          </g>
-        );
-      })}
-    </g>
+    <div
+      aria-hidden
+      style={{
+        position: "absolute",
+        top: `${(MARGIN.top / H) * 100}%`,
+        ...side,
+        maxWidth: "min(22rem, 60%)",
+        padding: "var(--ds-size-1) var(--ds-size-2)",
+        background: SURFACE,
+        border: `1px solid ${GRID}`,
+        borderRadius: 4,
+        fontSize: "var(--ds-font-size-2)",
+        lineHeight: 1.35,
+        pointerEvents: "none",
+      }}
+    >
+      <div style={{ color: MUTED }}>{title}</div>
+      {lines.map((line, i) => (
+        <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.4em", color: TEXT }}>
+          {line.color && (
+            <span style={{ flex: "none", width: 8, height: 8, marginTop: "0.4em", borderRadius: 2, background: line.color }} />
+          )}
+          <span>{line.text}</span>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -165,38 +175,40 @@ export function ColumnChart({
   const active = hovered !== null && hovered < columns.length ? hovered : null;
 
   return (
-    <svg role="img" aria-label={ariaLabel} viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block" }}>
-      <YAxis ticks={ticks} y={y} format={defaultFormat} />
-      <XLabels labels={columns.map((column) => column.label)} x={center} />
-      {columns.map((column, i) =>
-        column.value > 0 ? (
-          <path
-            key={i}
-            d={columnPath(center(i) - barWidth / 2, y(column.value), barWidth, baseline - y(column.value))}
-            fill={color}
-            opacity={active === null || active === i ? 1 : 0.6}
-          />
-        ) : null,
-      )}
-      {visibleMarkers.map((marker, i) => {
-        const x = MARGIN.left + band * marker.position;
-        // Labels in the right half hang to the left of the line so they stay inside the chart;
-        // successive markers step down so labels of nearby markers don't overprint.
-        const rightHalf = x > MARGIN.left + PLOT_W / 2;
-        return (
-          <g key={marker.label} pointerEvents="none">
-            <line x1={x} x2={x} y1={MARGIN.top} y2={baseline} stroke={TEXT} strokeWidth={1} strokeDasharray="2 3" />
-            <text x={rightHalf ? x - 4 : x + 4} y={MARGIN.top + 10 + i * 14} textAnchor={rightHalf ? "end" : "start"} fontSize={11} fill={TEXT}>
-              {marker.label}
-            </text>
-          </g>
-        );
-      })}
-      <g onMouseLeave={() => setHovered(null)}>
-        {columns.map((_, i) => (
-          <rect key={i} x={MARGIN.left + band * i} y={MARGIN.top} width={band} height={PLOT_H} fill="transparent" onMouseEnter={() => setHovered(i)} />
-        ))}
-      </g>
+    <div style={{ position: "relative" }}>
+      <svg role="img" aria-label={ariaLabel} viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block" }}>
+        <YAxis ticks={ticks} y={y} format={defaultFormat} />
+        <XLabels labels={columns.map((column) => column.label)} x={center} />
+        {columns.map((column, i) =>
+          column.value > 0 ? (
+            <path
+              key={i}
+              d={columnPath(center(i) - barWidth / 2, y(column.value), barWidth, baseline - y(column.value))}
+              fill={color}
+              opacity={active === null || active === i ? 1 : 0.6}
+            />
+          ) : null,
+        )}
+        {visibleMarkers.map((marker, i) => {
+          const x = MARGIN.left + band * marker.position;
+          // Labels in the right half hang to the left of the line so they stay inside the chart;
+          // successive markers step down so labels of nearby markers don't overprint.
+          const rightHalf = x > MARGIN.left + PLOT_W / 2;
+          return (
+            <g key={marker.label} pointerEvents="none">
+              <line x1={x} x2={x} y1={MARGIN.top} y2={baseline} stroke={TEXT} strokeWidth={1} strokeDasharray="2 3" />
+              <text x={rightHalf ? x - 4 : x + 4} y={MARGIN.top + 10 + i * 14} textAnchor={rightHalf ? "end" : "start"} fontSize={11} fill={TEXT}>
+                {marker.label}
+              </text>
+            </g>
+          );
+        })}
+        <g onMouseLeave={() => setHovered(null)}>
+          {columns.map((_, i) => (
+            <rect key={i} x={MARGIN.left + band * i} y={MARGIN.top} width={band} height={PLOT_H} fill="transparent" onMouseEnter={() => setHovered(i)} />
+          ))}
+        </g>
+      </svg>
       {active !== null && (
         <Tooltip
           anchorX={center(active)}
@@ -207,7 +219,7 @@ export function ColumnChart({
           ]}
         />
       )}
-    </svg>
+    </div>
   );
 }
 
@@ -268,45 +280,47 @@ export function MultiLineChart({
   return (
     <div>
       {series.length >= 2 && <Legend items={series} />}
-      <svg ref={svgRef} role="img" aria-label={ariaLabel} viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block" }}>
-        <YAxis ticks={ticks} y={y} format={defaultFormat} />
-        <XLabels labels={labels} x={x} />
-        {active !== null && (
-          <line x1={x(active)} x2={x(active)} y1={MARGIN.top} y2={baseline} stroke={MUTED} strokeDasharray="3 3" pointerEvents="none" />
-        )}
-        {series.map((s) =>
-          runs(s.values).map((run) =>
-            run.length === 1 ? (
-              <circle key={`${s.name}-${run[0].i}`} cx={x(run[0].i)} cy={y(run[0].value)} r={3} fill={s.color} />
-            ) : (
-              <polyline
-                key={`${s.name}-${run[0].i}`}
-                points={run.map((point) => `${x(point.i).toFixed(2)},${y(point.value).toFixed(2)}`).join(" ")}
-                fill="none"
-                stroke={s.color}
-                strokeWidth={2}
-                strokeLinejoin="round"
-                strokeLinecap="round"
-              />
+      <div style={{ position: "relative" }}>
+        <svg ref={svgRef} role="img" aria-label={ariaLabel} viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block" }}>
+          <YAxis ticks={ticks} y={y} format={defaultFormat} />
+          <XLabels labels={labels} x={x} />
+          {active !== null && (
+            <line x1={x(active)} x2={x(active)} y1={MARGIN.top} y2={baseline} stroke={MUTED} strokeDasharray="3 3" pointerEvents="none" />
+          )}
+          {series.map((s) =>
+            runs(s.values).map((run) =>
+              run.length === 1 ? (
+                <circle key={`${s.name}-${run[0].i}`} cx={x(run[0].i)} cy={y(run[0].value)} r={3} fill={s.color} />
+              ) : (
+                <polyline
+                  key={`${s.name}-${run[0].i}`}
+                  points={run.map((point) => `${x(point.i).toFixed(2)},${y(point.value).toFixed(2)}`).join(" ")}
+                  fill="none"
+                  stroke={s.color}
+                  strokeWidth={2}
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                />
+              ),
             ),
-          ),
-        )}
-        {active !== null &&
-          series.map((s) => {
-            const value = s.values[active];
-            return value === null ? null : (
-              <circle key={s.name} cx={x(active)} cy={y(value)} r={4} fill={s.color} stroke={SURFACE} strokeWidth={2} pointerEvents="none" />
-            );
-          })}
-        <rect
-          x={MARGIN.left}
-          y={MARGIN.top}
-          width={PLOT_W}
-          height={PLOT_H}
-          fill="transparent"
-          onMouseMove={onMouseMove}
-          onMouseLeave={() => setHovered(null)}
-        />
+          )}
+          {active !== null &&
+            series.map((s) => {
+              const value = s.values[active];
+              return value === null ? null : (
+                <circle key={s.name} cx={x(active)} cy={y(value)} r={4} fill={s.color} stroke={SURFACE} strokeWidth={2} pointerEvents="none" />
+              );
+            })}
+          <rect
+            x={MARGIN.left}
+            y={MARGIN.top}
+            width={PLOT_W}
+            height={PLOT_H}
+            fill="transparent"
+            onMouseMove={onMouseMove}
+            onMouseLeave={() => setHovered(null)}
+          />
+        </svg>
         {active !== null && (
           <Tooltip
             anchorX={x(active)}
@@ -317,7 +331,7 @@ export function MultiLineChart({
             })}
           />
         )}
-      </svg>
+      </div>
     </div>
   );
 }
@@ -347,38 +361,40 @@ export function StackedColumnChart({
   return (
     <div>
       <Legend items={series} />
-      <svg role="img" aria-label={ariaLabel} viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block" }}>
-        <YAxis ticks={ticks} y={y} format={defaultFormat} />
-        <XLabels labels={labels} x={center} />
-        {labels.map((_, i) => {
-          const left = center(i) - barWidth / 2;
-          // findLastIndex needs lib ES2023; tsconfig targets ES2022.
-          const topIndex = series.reduce((last, s, index) => ((s.values[i] ?? 0) > 0 ? index : last), -1);
-          let cumulative = 0;
-          return (
-            <g key={i} opacity={active === null || active === i ? 1 : 0.6}>
-              {series.map((s, index) => {
-                const value = s.values[i] ?? 0;
-                if (value <= 0) return null;
-                const bottom = y(cumulative);
-                cumulative += value;
-                const top = y(cumulative);
-                // The gap comes off the bottom of every segment but the lowest, which sits on the baseline.
-                const height = Math.max(0, bottom - top - (bottom < baseline ? GAP : 0));
-                return index === topIndex ? (
-                  <path key={s.name} d={columnPath(left, top, barWidth, height)} fill={s.color} />
-                ) : (
-                  <rect key={s.name} x={left} y={top} width={barWidth} height={height} fill={s.color} />
-                );
-              })}
-            </g>
-          );
-        })}
-        <g onMouseLeave={() => setHovered(null)}>
-          {labels.map((_, i) => (
-            <rect key={i} x={MARGIN.left + band * i} y={MARGIN.top} width={band} height={PLOT_H} fill="transparent" onMouseEnter={() => setHovered(i)} />
-          ))}
-        </g>
+      <div style={{ position: "relative" }}>
+        <svg role="img" aria-label={ariaLabel} viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block" }}>
+          <YAxis ticks={ticks} y={y} format={defaultFormat} />
+          <XLabels labels={labels} x={center} />
+          {labels.map((_, i) => {
+            const left = center(i) - barWidth / 2;
+            // findLastIndex needs lib ES2023; tsconfig targets ES2022.
+            const topIndex = series.reduce((last, s, index) => ((s.values[i] ?? 0) > 0 ? index : last), -1);
+            let cumulative = 0;
+            return (
+              <g key={i} opacity={active === null || active === i ? 1 : 0.6}>
+                {series.map((s, index) => {
+                  const value = s.values[i] ?? 0;
+                  if (value <= 0) return null;
+                  const bottom = y(cumulative);
+                  cumulative += value;
+                  const top = y(cumulative);
+                  // The gap comes off the bottom of every segment but the lowest, which sits on the baseline.
+                  const height = Math.max(0, bottom - top - (bottom < baseline ? GAP : 0));
+                  return index === topIndex ? (
+                    <path key={s.name} d={columnPath(left, top, barWidth, height)} fill={s.color} />
+                  ) : (
+                    <rect key={s.name} x={left} y={top} width={barWidth} height={height} fill={s.color} />
+                  );
+                })}
+              </g>
+            );
+          })}
+          <g onMouseLeave={() => setHovered(null)}>
+            {labels.map((_, i) => (
+              <rect key={i} x={MARGIN.left + band * i} y={MARGIN.top} width={band} height={PLOT_H} fill="transparent" onMouseEnter={() => setHovered(i)} />
+            ))}
+          </g>
+        </svg>
         {active !== null && (
           <Tooltip
             anchorX={center(active)}
@@ -393,7 +409,7 @@ export function StackedColumnChart({
               })}
           />
         )}
-      </svg>
+      </div>
     </div>
   );
 }
