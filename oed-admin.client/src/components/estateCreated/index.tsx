@@ -254,6 +254,7 @@ function Dashboard({ days }: { days: EstateCreatedDay[] }) {
   const counts = fullDays.map((day) => day.created);
   const average = mean(counts);
   const today = days[days.length - 1];
+  const yesterday = days[days.length - 2];
 
   return (
     <>
@@ -269,6 +270,11 @@ function Dashboard({ days }: { days: EstateCreatedDay[] }) {
         }}
       >
         <Tile label="Totalt" value={formatCount(sum(days.map((day) => day.created)))} note={`dødsbo opprettet, ${formatCount(today.created)} så langt i dag`} />
+        <Tile
+          label="I går / i dag"
+          value={`${formatCount(yesterday.created)} / ${formatCount(today.created)}`}
+          note={`${DAY_FORMAT.format(toDate(yesterday.day))} / så langt ${DAY_FORMAT.format(toDate(today.day))}`}
+        />
         <Tile label="Snitt per dag" value={formatDecimal(average)} note={`${fullDays.length} hele dager`} />
         <Tile label="Median" value={formatDecimal(median(counts)).replace(",0", "")} note="per dag" />
         <Tile label="Laveste – høyeste dag" value={`${Math.min(...counts)} – ${Math.max(...counts)}`} note="hele dager" />
