@@ -7,7 +7,7 @@
     {
       "description": "Hold TypeScript below 7 until typescript-eslint supports it (peer range is <6.1.0)",
       "matchPackageNames": ["typescript"],
-      "allowedVersions": "<7"
+      "allowedVersions": "<6.1.0"
     }
   ]
 }
