@@ -2,5 +2,12 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "local>Altinn/renovate-config"
+  ],
+  "packageRules": [
+    {
+      "description": "Hold TypeScript below 7 until typescript-eslint supports it (peer range is <6.1.0)",
+      "matchPackageNames": ["typescript"],
+      "allowedVersions": "<6.1.0"
+    }
   ]
 }
