@@ -122,6 +122,10 @@ public static class Endpoints
             group.MapPost("/declarationpdfmigration", Maintenance.DeclarationPdfMigration.StartMigration.Endpoint.Post);
             group.MapDelete("/declarationpdfmigration", Maintenance.DeclarationPdfMigration.CancelMigration.Endpoint.Delete);
             group.MapGet("/declarationpdfmigration/progress", Maintenance.DeclarationPdfMigration.GetProgress.Endpoint.Get);
+            group.MapGet("/estatecount/options", Maintenance.EstateCount.GetOptions.Endpoint.Get);
+            group.MapPost("/estatecount", Maintenance.EstateCount.StartCount.Endpoint.Post);
+            group.MapDelete("/estatecount", Maintenance.EstateCount.CancelCount.Endpoint.Delete);
+            group.MapGet("/estatecount/progress", Maintenance.EstateCount.GetProgress.Endpoint.Get);
 
             return group;
         }

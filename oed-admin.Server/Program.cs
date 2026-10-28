@@ -10,6 +10,7 @@ using oed_admin.Server.Infrastructure.Authz;
 using oed_admin.Server.Infrastructure.Database.Authz;
 using oed_admin.Server.Infrastructure.Database.Oed;
 using oed_admin.Server.Infrastructure.DeclarationPdfMigration;
+using oed_admin.Server.Infrastructure.EstateCount;
 using oed_admin.Server.Infrastructure.Telemetry;
 using Scalar.AspNetCore;
 
@@ -27,6 +28,7 @@ builder.Services.AddAuthzDatabase(builder.Configuration.GetConnectionString("Oed
 builder.Services.AddAltinnClients(builder.Environment, builder.Configuration);
 builder.Services.AddOedFeedPollerClient(builder.Configuration);
 builder.Services.AddDeclarationPdfMigration();
+builder.Services.AddEstateCount();
 builder.Services.AddQaDashboard(builder.Configuration);
 builder.Services.AddDdCorrespondenceService(options =>
 {

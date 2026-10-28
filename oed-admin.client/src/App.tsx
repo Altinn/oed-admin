@@ -15,6 +15,7 @@ import {
 import { DoorOpenIcon } from "@navikt/aksel-icons";
 import DataMigration from "./components/dataMigration";
 import DeclarationPdfMigration from "./components/declarationPdfMigration";
+import EstateCount from "./components/estateCount";
 import {
   AuthenticatedTemplate,
   MsalAuthenticationTemplate,
@@ -118,6 +119,11 @@ export default function App() {
                         Migrering av skifteerklæring
                       </Dropdown.Button>
                     </Dropdown.Item>
+                    <Dropdown.Item>
+                      <Dropdown.Button onClick={() => navigate("/maintenance/estatecount")}>
+                        Telling av dødsbo
+                      </Dropdown.Button>
+                    </Dropdown.Item>
                   </Dropdown.List>
                 </>
               )}
@@ -146,6 +152,10 @@ export default function App() {
             <Route
               path="/maintenance/declarationpdfmigration"
               element={<DeclarationPdfMigration />}
+            />
+            <Route
+              path="/maintenance/estatecount"
+              element={<EstateCount />}
             />
             <Route path="*" element={<NotFound />} />
           </Route>
