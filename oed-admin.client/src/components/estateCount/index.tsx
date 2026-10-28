@@ -18,6 +18,8 @@ import {
 import { Link } from "react-router-dom";
 import { fetchWithMsal } from "../../utils/msalUtils";
 import CopyToClipboard from "../copyToClipboard";
+import { DownloadIcon } from "@navikt/aksel-icons";
+import { buildCsv, csvFileName, downloadCsv } from "./exportCsv";
 import { useEstateCountOptionsQuery, type OptionValue } from "../../queries/estateCountQueries";
 import {
   useEstateCountProgress,
@@ -465,6 +467,22 @@ export default function EstateCount() {
           <Heading level={2} data-size="lg">
             {snapshot.matchCount} treff
           </Heading>
+
+          {/* Only once the count has ended, so the file is a complete record of the run. */}
+          {!isRunning && (matches.length > 0 || failures.length > 0) && (
+            <Button
+              variant="secondary"
+              onClick={() =>
+                downloadCsv(
+                  csvFileName(snapshot),
+                  buildCsv(snapshot, sortedMatches, failures, optionsQuery.data?.heirRoles),
+                )
+              }
+            >
+              <DownloadIcon aria-hidden />
+              Last ned som CSV
+            </Button>
+          )}
 
           {isGrouped && (
             <HeirRoleGroups
