@@ -45,6 +45,11 @@ function CaseCountBars({ courts }: { courts: DistrictCourtSummaryResponse[] }) {
         <span />
         <strong style={numCellStyle}>{formatCount(total)}</strong>
       </li>
+      <li style={rowStyle}>
+        <strong>Totalt antall tingretter</strong>
+        <span />
+        <strong style={numCellStyle}>{formatCount(courts.length)}</strong>
+      </li>
     </ol>
   );
 }
