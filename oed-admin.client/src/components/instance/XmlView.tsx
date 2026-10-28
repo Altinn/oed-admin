@@ -9,7 +9,7 @@ interface Props {
 // The token shapes we colour. Anything not matching one of these alternatives
 // falls through as a text run between matches.
 const TOKEN_PATTERN =
-  /(<!--[\s\S]*?-->)|(<!\[CDATA\[[\s\S]*?\]\]>)|(<[?!][^>]*>)|(<\/?[A-Za-z_][\w.:-]*(?:[^>"']|"[^"]*"|'[^']*')*>)/g;
+  /(<!--[\s\S]*?--(?:>|!>))|(<!\[CDATA\[[\s\S]*?\]\]>)|(<[?!][^>]*>)|(<\/?[A-Za-z_][\w.:-]*(?:[^>"']|"[^"]*"|'[^']*')*>)/g;
 
 // <  /  name   attributes   />
 const TAG_PATTERN = /^(<\/?)([\w.:-]+)([\s\S]*?)(\/?>)$/;
