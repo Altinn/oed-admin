@@ -32,6 +32,13 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: oed-admin.client/.nvmrc
+          cache: npm
+          cache-dependency-path: oed-admin.client/package-lock.json
+
       - name: Restore dependencies
         run: dotnet restore
 
@@ -78,6 +85,13 @@ jobs:
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: oed-admin.client/.nvmrc
+          cache: npm
+          cache-dependency-path: oed-admin.client/package-lock.json
 
       - name: Restore dependencies
         run: dotnet restore

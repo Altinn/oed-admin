@@ -25,6 +25,13 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
+    - name: Set up Node.js
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version-file: oed-admin.client/.nvmrc
+        cache: npm
+        cache-dependency-path: oed-admin.client/package-lock.json
+
     - name: Restore dependencies
       run: dotnet restore
 
