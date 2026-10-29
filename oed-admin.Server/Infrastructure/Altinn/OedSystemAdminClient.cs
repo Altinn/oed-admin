@@ -78,6 +78,8 @@ public class OedSystemAdminClient(HttpClient httpClient, ILogger<OedSystemAdminC
     }
 
     // Parsed tolerantly: new fields may be added to either shape.
+    // The unread members document the wire shape; System.Text.Json sets them through init.
+#pragma warning disable S1144
     private sealed record MigrateDeclarationPdfSuccessBody
     {
         public string? Outcome { get; init; }
@@ -93,4 +95,5 @@ public class OedSystemAdminClient(HttpClient httpClient, ILogger<OedSystemAdminC
         public string? Detail { get; init; }
         public string? Reason { get; init; }
     }
+#pragma warning restore S1144
 }

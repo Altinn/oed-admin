@@ -58,8 +58,16 @@ public static class Endpoint
         return TypedResults.Ok(new Response(Sweep(events, from, to, resolution)));
     }
 
-    private static DateTimeOffset? Earliest(DateTimeOffset? a, DateTimeOffset? b) =>
-        a is null ? b : b is null ? a : a < b ? a : b;
+    private static DateTimeOffset? Earliest(DateTimeOffset? a, DateTimeOffset? b)
+    {
+        if (a is null)
+            return b;
+
+        if (b is null)
+            return a;
+
+        return a < b ? a : b;
+    }
 
     /// <summary>
     /// Walks the sorted events once, recording the running total at the end of each UTC period.
@@ -76,7 +84,8 @@ public static class Endpoint
         var total = 0;
         var index = 0;
 
-        for (var periodStart = FloorToPeriod(from, resolution); periodStart < to;)
+        var periodStart = FloorToPeriod(from, resolution);
+        while (periodStart < to)
         {
             var nextStart = NextPeriod(periodStart, resolution);
             var evaluatedAt = nextStart < to ? nextStart : to;

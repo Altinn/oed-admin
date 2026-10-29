@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Threading.Channels;
 using Altinn.ApiClients.Maskinporten.Models;
@@ -41,7 +42,7 @@ public class EstateCountService(
         public static CheckResult Failure(string reason, string? detail) => new(null, reason, detail);
     }
 
-    private sealed class StorageAccessDeniedException(Exception inner)
+    public sealed class StorageAccessDeniedException(Exception inner)
         : Exception(AccessDeniedError, inner);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -213,7 +214,7 @@ public class EstateCountService(
         EstateRow row,
         CancellationToken cancellationToken)
     {
-        for (var attempt = 1; ; attempt++)
+        for (var attempt = 1; attempt <= MaxAttempts; attempt++)
         {
             try
             {
@@ -242,6 +243,9 @@ public class EstateCountService(
                 return CheckResult.Failure("StorageError", status is null ? ex.Message : $"HTTP {(int)status}: {ex.Message}");
             }
         }
+
+        // The last attempt always returns or throws above.
+        throw new UnreachableException();
     }
 
     private static async Task<CheckResult> CheckEstate(IAltinnClient client, EstateRow row)
@@ -277,7 +281,7 @@ public class EstateCountService(
             return CheckResult.Failure("InvalidData", ex.InnerException?.Message ?? ex.Message);
         }
 
-        return CheckResult.Match(HeirRoles(data));
+        return CheckResult.Match(ReadHeirRoles(data));
     }
 
     /// <summary>
@@ -285,7 +289,7 @@ public class EstateCountService(
     /// HeirInfo.GetHeir(), which throws when neither Heir nor HeirV2 is set; such an entry, like a
     /// heir without a role, simply contributes nothing.
     /// </summary>
-    private static List<string> HeirRoles(OedInstanceData data) =>
+    private static List<string> ReadHeirRoles(OedInstanceData data) =>
         (data.Heirs ?? [])
             .Select(heirInfo => (heirInfo?.HeirV2 ?? heirInfo?.Heir)?.Role)
             .OfType<string>()

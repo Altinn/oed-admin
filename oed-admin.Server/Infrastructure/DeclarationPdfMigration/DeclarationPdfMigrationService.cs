@@ -148,7 +148,7 @@ public class DeclarationPdfMigrationService(
     {
         var sawStorageError = false;
 
-        for (var attempt = 1; ; attempt++)
+        for (var attempt = 1; attempt <= MaxAttempts; attempt++)
         {
             var result = await client.MigrateDeclarationPdf(estateId, overwrite, cancellationToken);
             var disposition = Classify(result);

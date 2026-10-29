@@ -70,4 +70,4 @@ app.MapFallbackToFile("/index.html");
 
 app.UseExceptionHandler();
 
-app.Run();
+await app.RunAsync();
