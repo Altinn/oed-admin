@@ -122,27 +122,27 @@
       },
       "Microsoft.AspNetCore.Authentication.JwtBearer": {
         "type": "Direct",
-        "requested": "[10.0.13, )",
-        "resolved": "10.0.13",
-        "contentHash": "cEPhQWsaUKymSdQ+NB2rF4GnWtjofAcRrzr2aGPzbjSFyeDtIlBzrbX1Qeh/OAHjvdwBe05SbsukoSbz27AD6g==",
+        "requested": "[10.0.14, )",
+        "resolved": "10.0.14",
+        "contentHash": "DaTs32NtRkTabidrvhLhcXpa+Uguw0rN5FaX8Q1HmzbYtcI72iSauYlN4WmqbrXp6QQoB8fmZlHk5/bjiMTY7A==",
         "dependencies": {
           "Microsoft.IdentityModel.Protocols.OpenIdConnect": "8.19.2"
         }
       },
       "Microsoft.AspNetCore.OpenApi": {
         "type": "Direct",
-        "requested": "[10.0.13, )",
-        "resolved": "10.0.13",
-        "contentHash": "XVuqUBGjVUVyb4DXR5BrSkrW0Br7sYKq39f723ILhQLlFHCyhAgWe1PkJBc42R/5mKBIgHiKVSY+PN5/4XtcQw==",
+        "requested": "[10.0.14, )",
+        "resolved": "10.0.14",
+        "contentHash": "3M6yO4nv8fmvM/1X7DqQcMxw/ptNLBcUzZt19SBEyfZF32gqZuwoPNnYd1xlDnFvQOGOkZDncf7p9E24blcTkQ==",
         "dependencies": {
           "Microsoft.OpenApi": "[2.12.2, 3.0.0)"
         }
       },
       "Microsoft.AspNetCore.SpaProxy": {
         "type": "Direct",
-        "requested": "[10.0.13, )",
-        "resolved": "10.0.13",
-        "contentHash": "vOFtIwb6Uv6pat86eP1XV5bf22YU8PlWVcP0jmRbFgHrYUK87SKmugGk/Udk7XP40MLsLk+9cpyoODzHaOt8eg=="
+        "requested": "[10.0.14, )",
+        "resolved": "10.0.14",
+        "contentHash": "EyZU2tOikAZmEDX/RX9mWwk7rYtPfL2jlttuMTmGJlxV3F3oedu/y7OxZoicAvwLn7VrfxtAeajGGdQ+V/G26w=="
       },
       "Microsoft.Extensions.Azure": {
         "type": "Direct",
@@ -177,20 +177,20 @@
       },
       "OpenTelemetry.Extensions.Hosting": {
         "type": "Direct",
-        "requested": "[1.20.0, )",
-        "resolved": "1.20.0",
-        "contentHash": "UJXCmt0jSUKQWIyMCzDY9fqNymvFgnMWrl0m8Z/M7ez1wpEy6bshXLTZxXGIoA/JjuhwPU71PyhIBWYDXI9+cw==",
+        "requested": "[1.20.1, )",
+        "resolved": "1.20.1",
+        "contentHash": "wnoK07COxyQBR47QwP80SIO4cpD2xeF4PrBDYFXDMnhDLmOP4nN0Szy1wCBLo5UABU1I4xwWRGzZM0bFdCbRog==",
         "dependencies": {
-          "OpenTelemetry": "1.20.0"
+          "OpenTelemetry": "1.20.1"
         }
       },
       "OpenTelemetry.Instrumentation.AspNetCore": {
         "type": "Direct",
-        "requested": "[1.20.0, )",
-        "resolved": "1.20.0",
-        "contentHash": "sJF0pjXDlROVcOz/zOihIlbC8mtb5/zm2q3zs0z+qWUtoZnlFJlHHZ1pHNUJ7VVZu3FmD8EwYGGglw5sbVr8jQ==",
+        "requested": "[1.20.1, )",
+        "resolved": "1.20.1",
+        "contentHash": "pDO+Ed5iblMTvSVGcXzoLp8q20XHhXmK0wD/H3PGNHwDFlwZpV+bDWd/Euo6hNB4E0ruqzTFD76Btm+m0uCYNw==",
         "dependencies": {
-          "OpenTelemetry.Api.ProviderBuilderExtensions": "[1.20.0, 2.0.0)"
+          "OpenTelemetry.Api.ProviderBuilderExtensions": "[1.20.1, 2.0.0)"
         }
       },
       "OpenTelemetry.Instrumentation.EntityFrameworkCore": {
@@ -204,27 +204,27 @@
       },
       "OpenTelemetry.Instrumentation.Http": {
         "type": "Direct",
-        "requested": "[1.20.0, )",
-        "resolved": "1.20.0",
-        "contentHash": "803Ryeh5gWtGPdy7knumXKzMmMIG6tbX18Y5Din0z9V5IOiWjfbK1qvgw45b6ffyR6+CATw9yOa/6LOU2gvS1A==",
+        "requested": "[1.20.1, )",
+        "resolved": "1.20.1",
+        "contentHash": "XJTM6imVztxLraOrzsdlZf5shdH9TVeEWNBxpyepB5e3Gy+KNeQf2hyic398210UxqlPtt4iOkBELtjfIFTzug==",
         "dependencies": {
-          "OpenTelemetry.Api.ProviderBuilderExtensions": "[1.20.0, 2.0.0)"
+          "OpenTelemetry.Api.ProviderBuilderExtensions": "[1.20.1, 2.0.0)"
         }
       },
       "OpenTelemetry.Instrumentation.Runtime": {
         "type": "Direct",
-        "requested": "[1.20.0, )",
-        "resolved": "1.20.0",
-        "contentHash": "v2L35EMF9O6S6w+wHEjsfDmL7JRGdH7eOGfaBuFqWAteKzeCqKKyAHtzpURDdoilauHd77hbmNHHV+hGuVUPxw==",
+        "requested": "[1.20.1, )",
+        "resolved": "1.20.1",
+        "contentHash": "1ngVOV2ZYqFy38g2g+vZ50poeF66GJtinITBDB7TNRP4fmrDxYYyPfs1uGrPHkhJJRV5I7mElPFOctvlatu41w==",
         "dependencies": {
-          "OpenTelemetry.Api": "[1.20.0, 2.0.0)"
+          "OpenTelemetry.Api": "[1.20.1, 2.0.0)"
         }
       },
       "Scalar.AspNetCore": {
         "type": "Direct",
-        "requested": "[2.18.0, )",
-        "resolved": "2.18.0",
-        "contentHash": "wwI3khcYNM7oL6axr4a41G29fJYOS3ckusgYZ4NiIccL8Amh2LOeu4HSK1SrQWiMJNrgoFqyWfDkOkunQCiRDw=="
+        "requested": "[2.18.3, )",
+        "resolved": "2.18.3",
+        "contentHash": "6KXPOkCNnoZTXBl8GVNxq/zpS9UdGnz1a23EWy3CEiwYbZKQ5gi2APZ5mBruXcdXIr+ZXSZYiwX81UagjKFxeg=="
       },
       "Apache.Arrow": {
         "type": "Transitive",
@@ -402,23 +402,23 @@
       },
       "OpenTelemetry": {
         "type": "Transitive",
-        "resolved": "1.20.0",
-        "contentHash": "aV9S8ovlBpR+g3PaSlkTjN7jOfJly4+bmfRImn3G+moflKjZV2bDw41U+/pMkHUjn7vcZ06yvwKMbHASMUeR/Q==",
+        "resolved": "1.20.1",
+        "contentHash": "+XDw3fYbiv1a40aFnDJSQleeuUJciXuhoIA19XmcGhT47Hy/xZRqk8NCjHUDKrg72Ixjthicecp8ygBDNeH/Jw==",
         "dependencies": {
-          "OpenTelemetry.Api.ProviderBuilderExtensions": "1.20.0"
+          "OpenTelemetry.Api.ProviderBuilderExtensions": "1.20.1"
         }
       },
       "OpenTelemetry.Api": {
         "type": "Transitive",
-        "resolved": "1.20.0",
-        "contentHash": "kLqqAdAF6q+mbS5Rp6YJ+hbGwbt+vQC8spJh3TpRGvZPGZK+DbEB0B/Fq4YqiMKkqsdShehJZfxfVjlzGb2B3Q=="
+        "resolved": "1.20.1",
+        "contentHash": "QO9hlwadOdJGR4vDpJyDnl9B62v7epIBSTIHUA4C+bCtrRaB4TWmYSnu3QVOIe7caH8dt7NaHRei6zebESJJyw=="
       },
       "OpenTelemetry.Api.ProviderBuilderExtensions": {
         "type": "Transitive",
-        "resolved": "1.20.0",
-        "contentHash": "689zUHtj7zXYzMAO/TkI5S5/mqOS8n55DLrYZ2KAhQrCDKJDDmFHB9w8dKY7gmL6fihMdkt+k3mTqcqL3nInng==",
+        "resolved": "1.20.1",
+        "contentHash": "eDzDY/jTBqRytkYECmVKF7ZP5sKmCIqv1SSnA5BSWltIIvc3931TOMRyCW1qCGNIgmtldtJhISnsmFNxOCfauQ==",
         "dependencies": {
-          "OpenTelemetry.Api": "1.20.0"
+          "OpenTelemetry.Api": "1.20.1"
         }
       },
       "OpenTelemetry.PersistentStorage.Abstractions": {
