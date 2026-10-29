@@ -106,7 +106,6 @@ public static class ServiceCollectionExtensions
                 })
             .ConfigureHttpClient((provider, client) =>
             {
-                var settings = provider.GetRequiredService<IOptionsMonitor<AltinnSettings>>();
                 client.BaseAddress = new Uri(configuration.GetRequiredSection("OedAuthz").GetRequiredSection("BaseUrl").Value!);
             });
 

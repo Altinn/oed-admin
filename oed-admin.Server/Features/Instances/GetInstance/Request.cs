@@ -2,9 +2,7 @@
 
 public record Request(int InstanceOwnerPartyId, Guid InstanceGuid)
 {
-    public bool IsValid()
-    {
-        
-        return true;
-    }
+    public bool IsValid() =>
+        InstanceOwnerPartyId > 0 &&
+        InstanceGuid != Guid.Empty;
 }

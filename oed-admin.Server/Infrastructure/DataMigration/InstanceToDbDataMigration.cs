@@ -75,7 +75,7 @@ public class InstanceToDbDataMigration(
             foreach (var instance in batch)
             {
                 instanceCount++;
-                logger.LogInformation("{batchCount}:{count} - Handling instance {instanceId}",
+                logger.LogInformation("{BatchCount}:{Count} - Handling instance {InstanceId}",
                     batchCount, instanceCount, instance.Id);
 
                 var outcome = await ProcessInstance(dbContext, instance, updateExisting, stoppingToken);
@@ -96,7 +96,7 @@ public class InstanceToDbDataMigration(
             await transaction.CommitAsync(stoppingToken);
         }
 
-        logger.LogInformation("Datamigration completed: Batches {batchCount}, Instances: {instanceCount}, Skipped: {skipped}, Created: {created}, Updated: {updated}",
+        logger.LogInformation("Datamigration completed: Batches {BatchCount}, Instances: {InstanceCount}, Skipped: {Skipped}, Created: {Created}, Updated: {Updated}",
             batchCount, instanceCount, skipped, created, updated);
     }
 
@@ -112,7 +112,7 @@ public class InstanceToDbDataMigration(
 
         if (instanceData.DeceasedInfo is null)
         {
-            logger.LogWarning("Instance {instanceId} has no DeceasedInfo => skipping", instance.Id);
+            logger.LogWarning("Instance {InstanceId} has no DeceasedInfo => skipping", instance.Id);
             return MigrationOutcome.Skipped;
         }
 
@@ -122,21 +122,21 @@ public class InstanceToDbDataMigration(
 
         if (dbItem is not null && !updateExisting)
         {
-            logger.LogInformation("Instance {instanceId} was found in database => skipping", instance.Id);
+            logger.LogInformation("Instance {InstanceId} was found in database => skipping", instance.Id);
             return MigrationOutcome.Skipped;
         }
 
         MigrationOutcome outcome;
         if (dbItem is null)
         {
-            logger.LogInformation("Instance {instanceId} was NOT found in the database => creating new row", instance.Id);
+            logger.LogInformation("Instance {InstanceId} was NOT found in the database => creating new row", instance.Id);
             dbItem = new Estate { Id = Guid.NewGuid() };
             await dbContext.Estate.AddAsync(dbItem, stoppingToken);
             outcome = MigrationOutcome.Created;
         }
         else
         {
-            logger.LogInformation("Instance {instanceId} was found in database => updating row", instance.Id);
+            logger.LogInformation("Instance {InstanceId} was found in database => updating row", instance.Id);
             outcome = MigrationOutcome.Updated;
         }
 

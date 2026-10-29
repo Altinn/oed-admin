@@ -11,7 +11,6 @@ public record Request(int BatchSize, bool UpdateExisting)
         return BatchSize > 0;
     }
 }
-public record Response;
 
 public static class Endpoint
 {
