@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  Alert,
   Badge,
   Checkbox,
   Chip,
@@ -20,6 +21,8 @@ import RescheduleDialog from "../rescheduleTaskDialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskKeys } from "../../queries/taskQueries";
 import RescheduleMultipleDialog from "../rescheduleTaskDialog/multiple";
+import DeleteTaskDialog from "../deleteTaskDialog";
+import DeleteMultipleDialog from "../deleteTaskDialog/multiple";
 import { fetchWithMsal } from "../../utils/msalUtils";
 import { ExclamationmarkTriangleIcon } from "@navikt/aksel-icons";
 import JSONPretty from 'react-json-pretty';
@@ -39,9 +42,19 @@ interface PatchTasksResponse {
   updatedCount: number;
 }
 
+interface DeleteTasksResponse {
+  deletedCount: number;
+}
+
+interface DeleteResult {
+  color: "success" | "warning" | "danger";
+  message: string;
+}
+
 export default function TaskList({ data, isLoading, error }: Props) {
   const queryClient = useQueryClient();
   const [filter, setFilter] = React.useState<TaskStatus | "All">("All");
+  const [deleteResult, setDeleteResult] = React.useState<DeleteResult | null>(null);
 
   const {
     getCheckboxProps,
@@ -105,6 +118,7 @@ export default function TaskList({ data, isLoading, error }: Props) {
       scheduled: string;
       attempts: number;
     }) => rescheduleMutationFn(data),
+    onMutate: () => setDeleteResult(null),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: taskKeys.all,
@@ -121,6 +135,7 @@ export default function TaskList({ data, isLoading, error }: Props) {
       scheduled: string;
       attempts: number;
     }) => rescheduleMultipleMutationFn(data),
+    onMutate: () => setDeleteResult(null),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: taskKeys.all,
@@ -128,6 +143,75 @@ export default function TaskList({ data, isLoading, error }: Props) {
     },
     onError: (error) => {
       console.error("Error reschdeduling tasks:", error);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (taskId: string): Promise<DeleteResult> => {
+      const response = await fetchWithMsal(`/api/tasks/${taskId}`, {
+        method: "DELETE",
+      });
+
+      if (response.status === 409) {
+        return { color: "warning", message: "Oppgaven ble utført før den kunne slettes." };
+      }
+      if (response.status === 404) {
+        return { color: "warning", message: "Oppgaven finnes ikke lenger." };
+      }
+      if (!response.ok) {
+        throw new Error("Failed to delete task");
+      }
+      return { color: "success", message: "1 oppgave slettet." };
+    },
+    onMutate: () => setDeleteResult(null),
+    onSuccess: (result, taskId) => {
+      setSelectedTasks((prev) => prev.filter((id) => id !== taskId));
+      setDeleteResult(result);
+      queryClient.invalidateQueries({
+        queryKey: taskKeys.all,
+      });
+    },
+    onError: (error) => {
+      console.error("Error deleting task:", error);
+      setDeleteResult({ color: "danger", message: "Det oppstod en feil under sletting av oppgaven." });
+    },
+  });
+
+  const deleteMultipleMutation = useMutation({
+    mutationFn: async (taskIds: Array<string>): Promise<DeleteResult> => {
+      const response = await fetchWithMsal(`/api/tasks`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ taskIds }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete tasks");
+      }
+
+      const { deletedCount }: DeleteTasksResponse = await response.json();
+      const requested = taskIds.length;
+      if (deletedCount === requested) {
+        return { color: "success", message: `${deletedCount} oppgave(r) slettet.` };
+      }
+      return {
+        color: "warning",
+        message: `${deletedCount} av ${requested} oppgave(r) slettet. ${requested - deletedCount} var allerede utført eller finnes ikke lenger.`,
+      };
+    },
+    onMutate: () => setDeleteResult(null),
+    onSuccess: (result) => {
+      setSelectedTasks([]);
+      setDeleteResult(result);
+      queryClient.invalidateQueries({
+        queryKey: taskKeys.all,
+      });
+    },
+    onError: (error) => {
+      console.error("Error deleting tasks:", error);
+      setDeleteResult({ color: "danger", message: "Det oppstod en feil under sletting av oppgavene." });
     },
   });
 
@@ -152,10 +236,28 @@ export default function TaskList({ data, isLoading, error }: Props) {
 
   const handleChangeChip = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFilter(event.target.value as TaskStatus | "All");
+    setDeleteResult(null);
   };
 
+  // Deleting can remove every task with the chosen status. Fall back to "All" rather than
+  // leaving an empty table whose filter chips may no longer be rendered.
+  const effectiveFilter: TaskStatus | "All" =
+    filter === "All" || uniqueStatuses.includes(filter) ? filter : "All";
+
   const filteredTasks = data?.tasks.filter(
-    (task) => filter === "All" || task.status === filter,
+    (task) => effectiveFilter === "All" || task.status === effectiveFilter,
+  );
+
+  // The checkbox group keeps ids that are no longer rendered (another page, another status
+  // filter, or deleted since). Batch actions must only act on what the user can see.
+  const visibleSelectedTasks = selectedTasks.filter((id) =>
+    filteredTasks?.some((task) => task.id === id && !task.executed),
+  );
+
+  const resultAlert = deleteResult && (
+    <Alert data-color={deleteResult.color} data-size="sm" style={{ marginBottom: "var(--ds-size-4)" }}>
+      <Paragraph>{deleteResult.message}</Paragraph>
+    </Alert>
   );
 
   if (isLoading) {
@@ -172,9 +274,12 @@ export default function TaskList({ data, isLoading, error }: Props) {
 
   if (!data || data.tasks.length === 0) {
     return (
-      <ValidationMessage data-color="info">
-        Ingen oppgaver funnet.
-      </ValidationMessage>
+      <>
+        {resultAlert}
+        <ValidationMessage data-color="info">
+          Ingen oppgaver funnet.
+        </ValidationMessage>
+      </>
     );
   }
 
@@ -193,7 +298,7 @@ export default function TaskList({ data, isLoading, error }: Props) {
             <div className="flex-row">
               <Chip.Radio
                 name="task-status"
-                defaultChecked
+                checked={effectiveFilter === "All"}
                 value="All"
                 onChange={(e) => {
                   handleChangeChip(e);
@@ -205,6 +310,7 @@ export default function TaskList({ data, isLoading, error }: Props) {
                 <Chip.Radio
                   key={status}
                   name="task-status"
+                  checked={effectiveFilter === status}
                   value={status}
                   onChange={(e) => {
                     handleChangeChip(e);
@@ -216,7 +322,7 @@ export default function TaskList({ data, isLoading, error }: Props) {
             </div>
           </div>
         )}
-        {selectedTasks.length > 0 && (
+        {visibleSelectedTasks.length > 0 && (
           <div>
             <Label
               style={{ marginRight: "var(--ds-size-2)" }}
@@ -226,21 +332,26 @@ export default function TaskList({ data, isLoading, error }: Props) {
             </Label>
 
             <div className="flex-row">
-              <Paragraph>{`${selectedTasks.length} oppgave(r) valgt`}</Paragraph>
+              <Paragraph>{`${visibleSelectedTasks.length} oppgave(r) valgt`}</Paragraph>
               <RescheduleMultipleDialog
-                taskIds={selectedTasks}
+                taskIds={visibleSelectedTasks}
                 onChange={(val) =>
                   rescheduleMultipleMutation.mutate({
-                    taskIds: selectedTasks,
+                    taskIds: visibleSelectedTasks,
                     scheduled: val,
                     attempts: 0,
                   })
                 }
               />
+              <DeleteMultipleDialog
+                taskIds={visibleSelectedTasks}
+                onConfirm={() => deleteMultipleMutation.mutate(visibleSelectedTasks)}
+              />
             </div>
           </div>
         )}
       </div>
+      {resultAlert}
       <Table>
         <Table.Head>
           <Table.Row>
@@ -358,16 +469,22 @@ export default function TaskList({ data, isLoading, error }: Props) {
                 </Dialog.TriggerContext>
               </Table.Cell>
               <Table.Cell>
-                <RescheduleDialog
-                  task={task}
-                  onChange={(val) =>
-                    rescheduleMutation.mutate({
-                      taskId: task.id,
-                      scheduled: val,
-                      attempts: 0,
-                    })
-                  }
-                />
+                <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-size-1)" }}>
+                  <RescheduleDialog
+                    task={task}
+                    onChange={(val) =>
+                      rescheduleMutation.mutate({
+                        taskId: task.id,
+                        scheduled: val,
+                        attempts: 0,
+                      })
+                    }
+                  />
+                  <DeleteTaskDialog
+                    task={task}
+                    onConfirm={() => deleteMutation.mutate(task.id)}
+                  />
+                </div>
               </Table.Cell>
             </Table.Row>
           ))}

@@ -34,7 +34,8 @@ public class AuditingLoggingMiddleware(
             context.TraceIdentifier,
             endpoint.DisplayName,
             context.Request.QueryString.ToString(),
-            requestBody);
+            requestBody,
+            context.Request.Path.ToString());
 
         if (estateDetails is not { Length: > 0 } 
             && context.Request is { Method: "POST", Body.Length: > 0 })

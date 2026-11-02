@@ -100,6 +100,8 @@ public static class Endpoints
             group.MapGet("/", Tasks.GetTasks.Endpoint.Get);
             group.MapPatch("/", Tasks.PatchTasks.Endpoint.Patch);
             group.MapPatch("/{taskId:guid}", Tasks.PatchTask.Endpoint.Patch);
+            group.MapDelete("/", Tasks.DeleteTasks.Endpoint.Delete);
+            group.MapDelete("/{taskId:guid}", Tasks.DeleteTask.Endpoint.Delete);
 
             return group;
         }

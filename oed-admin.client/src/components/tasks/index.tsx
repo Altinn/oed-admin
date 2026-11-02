@@ -12,14 +12,18 @@ export default function Tasks({ status }: Props) {
   const pageSize = 10;
   const [currentPage, setCurrentPage] = useState(1);
   const { data, isLoading, error } = useTaskQueryByStatus(status, 500, 1);
+  const totalPages = Math.ceil((data?.tasks?.length || 0) / pageSize);
+  // Deleting the last task(s) on the last page shrinks totalPages; fall back to the last
+  // page that still exists instead of showing an empty one.
+  const page = Math.min(currentPage, Math.max(totalPages, 1));
   const { pages, nextButtonProps, prevButtonProps } = usePagination({
-    currentPage,
+    currentPage: page,
     setCurrentPage,
-    totalPages: Math.ceil((data?.tasks?.length || 0) / pageSize),
-    showPages: Math.min(Math.ceil((data?.tasks?.length || 0) / pageSize), 10),
+    totalPages,
+    showPages: Math.min(totalPages, 10),
   });
 
-  const startIndex = (currentPage - 1) * pageSize;
+  const startIndex = (page - 1) * pageSize;
   const endIndex = Math.min(data?.tasks.length || 0, startIndex + pageSize);
   const tasksToDisplay = { tasks: data?.tasks?.slice(startIndex, endIndex) || [] } as TaskResponse;
 

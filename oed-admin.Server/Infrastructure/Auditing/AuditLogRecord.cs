@@ -4,7 +4,7 @@
 public record UserDetails(string Id, string Name, string[] Roles);
 public record EstateDetails(string Id);
 
-public record RequestDetails(string TraceId, string Path, string QueryString, string Body);
+public record RequestDetails(string TraceId, string Path, string QueryString, string Body, string RequestPath);
 
 public record ResponseDetails(int StatusCode);
 
