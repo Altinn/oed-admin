@@ -48,10 +48,11 @@ function CaseCountBars({ courts }: { courts: DistrictCourtSummaryResponse[] }) {
         <span />
         <strong style={numCellStyle}>{formatCount(total)}</strong>
       </li>
-      <li style={rowStyle}>
+      {/* "x av 28" is wider than the count column, so this row sizes its last column to the content. */}
+      <li style={{ ...rowStyle, gridTemplateColumns: "minmax(10rem, 16rem) 1fr auto" }}>
         <strong>Totalt antall tingretter</strong>
         <span />
-        <strong style={numCellStyle}>{`${formatCount(courts.length)} av ${totalDistrictCourts}`}</strong>
+        <strong style={{ ...numCellStyle, whiteSpace: "nowrap" }}>{`${formatCount(courts.length)} av ${totalDistrictCourts}`}</strong>
       </li>
     </ol>
   );
