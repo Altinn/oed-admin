@@ -14,6 +14,9 @@ import { GavelSoundBlockIcon } from "@navikt/aksel-icons";
 import { Bar } from "../statistics/panels";
 import { formatCount, numCellStyle } from "../statistics/statsFormat";
 
+// Number of district courts (tingretter) in Norway.
+const totalDistrictCourts = 28;
+
 interface DistrictCourtSummaryResponse {
   districtCourtName: string;
   numberOfCases?: number;
@@ -48,7 +51,7 @@ function CaseCountBars({ courts }: { courts: DistrictCourtSummaryResponse[] }) {
       <li style={rowStyle}>
         <strong>Totalt antall tingretter</strong>
         <span />
-        <strong style={numCellStyle}>{formatCount(courts.length)}</strong>
+        <strong style={numCellStyle}>{`${formatCount(courts.length)} av ${totalDistrictCourts}`}</strong>
       </li>
     </ol>
   );
