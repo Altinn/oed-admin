@@ -4,9 +4,9 @@
     "net10.0": {
       "Altinn.ApiClients.Maskinporten": {
         "type": "Direct",
-        "requested": "[10.2.0, )",
-        "resolved": "10.2.0",
-        "contentHash": "EbH7WY0f3jSU1vmm1awzFcv7Jfohlxk4KOqxnnXd9fcZoFuuGdLIH4VeBmfPcXGlpj96+UQhErC2NbVSYo7Svg==",
+        "requested": "[10.2.1, )",
+        "resolved": "10.2.1",
+        "contentHash": "Qm4DboTlQsrBlBP4800qQ4u7FlyssRo/zI3z1v8K8Sj3uGPacv+KF6YVQzEgysfdNML/PSnQ62E4b/7ZyG1xFA==",
         "dependencies": {
           "Microsoft.IdentityModel.Tokens": "8.23.0",
           "System.IdentityModel.Tokens.Jwt": "8.23.0"
@@ -222,9 +222,9 @@
       },
       "Scalar.AspNetCore": {
         "type": "Direct",
-        "requested": "[2.18.5, )",
-        "resolved": "2.18.5",
-        "contentHash": "m7sb2hqbdUXPBa4MvFy7GZ8SU4YGDYhaFkaiATXCMRhIDMA6kJrRQnBO4Z5PRz175sRfYfSXBlyrxckbhhrQ3A=="
+        "requested": "[2.18.7, )",
+        "resolved": "2.18.7",
+        "contentHash": "JrNu0Sm4TVeJ//ptvAS3yRbT0oobfR8qp0ecf3HIS9zX4V7uSABr+VYEyWT7uyXjhN2ZTrZ/cpwKv7zHjlK8Gg=="
       },
       "Apache.Arrow": {
         "type": "Transitive",
