@@ -2,6 +2,10 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { fetchWithMsal } from "../utils/msalUtils";
 import { rangeParams, type DayRange } from "../components/statistics/statsFormat";
 
+// Statistics are aggregates over the whole estate table; a few minutes of staleness is fine and
+// keeps hidden-but-mounted tabs from refetching on every window focus.
+const STATISTICS_STALE_TIME = 5 * 60 * 1000;
+
 // Mirrors CohortDto from GET /api/statistics/estatecompletion. One entry per UTC month the
 // estates were opened in; the rates are cohort rates, so an estate opened in July that reaches
 // probate in October counts towards July.
@@ -38,6 +42,7 @@ export const estateCompletionKeys = {
 export const useEstateCompletionQuery = (range: DayRange) => {
   return useQuery<EstateCompletionResponse>({
     queryKey: estateCompletionKeys.list(range),
+    staleTime: STATISTICS_STALE_TIME,
     placeholderData: keepPreviousData,
     queryFn: async () => {
       const response = await fetchWithMsal(`/api/statistics/estatecompletion?${rangeParams(range)}`);
@@ -113,7 +118,7 @@ export const useEstateCreatedQuery = (range: DayRange) => {
       }
       return response.json();
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: STATISTICS_STALE_TIME,
   });
 };
 
@@ -136,7 +141,7 @@ export const useEstateBacklogQuery =(resolution: BacklogResolution, range: Backl
     },
     placeholderData: keepPreviousData,
     // The query scans every eligible estate, so avoid re-running it on every toggle/focus.
-    staleTime: 5 * 60 * 1000,
+    staleTime: STATISTICS_STALE_TIME,
   });
 };
 
@@ -150,7 +155,6 @@ async function fetchStatistics<T>(path: string, errorMessage: string, range?: Da
   return response.json();
 }
 
-const STATISTICS_STALE_TIME = 5 * 60 * 1000;
 
 // Mirrors GET /api/statistics/estateleadtimes. Durations in days; null when no estate has reached
 // both ends of the measure.

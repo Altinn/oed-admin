@@ -61,6 +61,7 @@ function CaseCountBars({ courts }: { courts: DistrictCourtSummaryResponse[] }) {
 export default function DistrictCourts() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["districtCourts"],
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const response = await fetchWithMsal("/api/districtcourts");
       if (!response.ok) {

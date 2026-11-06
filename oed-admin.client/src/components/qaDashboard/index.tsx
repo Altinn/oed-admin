@@ -350,6 +350,9 @@ export default function QaDashboard() {
   const [selected, setSelected] = useState<string | null>(null);
   const { data, isLoading, error } = useQuery<QaDashboardDto>({
     queryKey: ["qaDashboard"],
+    // The report is rewritten once a night by the QA run and the payload is large (~140 kB, 3-4 s),
+    // so don't refetch it on every window focus while the tab sits mounted in the background.
+    staleTime: 60 * 60 * 1000,
     queryFn: async () => {
       const response = await fetchWithMsal("/api/qa");
       if (!response.ok) {
