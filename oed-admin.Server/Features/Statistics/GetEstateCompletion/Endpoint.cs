@@ -9,6 +9,9 @@ public static class Endpoint
     /// <summary>CaseStatus of a case the district court registered in error ("feilført").</summary>
     private const string MispostedCaseStatus = "FEILFORT";
 
+    /// <summary>Prefix shared by every ProbateResult that means the heirs settle the estate privately.</summary>
+    private const string PrivateProbateResultPrefix = "PRIVAT_";
+
     public static async Task<IResult> Get(
         [AsParameters] Request request,
         [FromServices] OedDbContext dbContext,
@@ -44,6 +47,7 @@ public static class Endpoint
                 estate.Created,
                 estate.DeclarationSubmitted,
                 estate.ProbateIssued,
+                IsPrivateProbate = estate.ProbateResult != null && estate.ProbateResult.StartsWith(PrivateProbateResultPrefix),
                 HasDeclarationSubmitted = estate.DeclarationSubmitted != null,
                 HasProbateIssued = estate.ProbateIssued != null
             })
@@ -53,12 +57,21 @@ public static class Endpoint
         var submitted = CountPerMonth(estates.Select(estate => estate.DeclarationSubmitted), from, to);
         var issued = CountPerMonth(estates.Select(estate => estate.ProbateIssued), from, to);
 
+        // Private probates are counted in the month the probate was issued. "Via DD" means the heirs
+        // submitted the declaration (skifteerklæring) through Digitalt dødsbo before or after that.
+        var privateProbates = estates.Where(estate => estate.IsPrivateProbate).ToList();
+        var privateIssued = CountPerMonth(privateProbates.Select(estate => estate.ProbateIssued), from, to);
+        var privateWithDeclaration = CountPerMonth(
+            privateProbates.Where(estate => estate.HasDeclarationSubmitted).Select(estate => estate.ProbateIssued), from, to);
+
         var monthlyEvents = MonthsBetween(from, to)
             .Select(month => new MonthEventsDto(
                 month,
                 opened.GetValueOrDefault(month),
                 submitted.GetValueOrDefault(month),
-                issued.GetValueOrDefault(month)))
+                issued.GetValueOrDefault(month),
+                privateIssued.GetValueOrDefault(month),
+                privateWithDeclaration.GetValueOrDefault(month)))
             .ToList();
 
         // Bucketing happens here rather than in a GROUP BY because Created is a timestamptz, and

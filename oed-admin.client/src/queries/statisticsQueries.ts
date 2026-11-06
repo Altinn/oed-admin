@@ -21,6 +21,8 @@ export interface EstateCompletionMonth {
   opened: number;
   declarationsSubmitted: number;
   probatesIssued: number;
+  privateProbatesIssued: number;
+  privateProbatesWithDeclaration: number;
 }
 
 export interface EstateCompletionResponse {

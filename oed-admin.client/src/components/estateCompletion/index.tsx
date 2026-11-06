@@ -155,11 +155,83 @@ function MonthlyEvents({ months }: { months: EstateCompletionMonth[] }) {
   );
 }
 
+function viaDdShare(issued: number, withDeclaration: number): string {
+  return issued === 0 ? "–" : formatPercent((100 * withDeclaration) / issued);
+}
+
+function PrivateProbates({ months }: { months: EstateCompletionMonth[] }) {
+  const rows = [...months].reverse();
+  const totalIssued = months.reduce((sum, month) => sum + month.privateProbatesIssued, 0);
+  const totalWithDeclaration = months.reduce((sum, month) => sum + month.privateProbatesWithDeclaration, 0);
+
+  const chart = (
+    <MultiLineChart
+      labels={months.map((month) => formatMonth(month.month))}
+      series={[
+        { name: "Privat skifte besluttet", values: months.map((month) => month.privateProbatesIssued), color: SERIES_COLORS[0] },
+        {
+          name: "Skifteerklæring sendt inn via DD",
+          values: months.map((month) => month.privateProbatesWithDeclaration),
+          color: SERIES_COLORS[1],
+        },
+      ]}
+      formatValue={formatCount}
+      ariaLabel="Besluttede private skifter per måned, og hvor mange av dem som sendte inn skifteerklæring via DD"
+    />
+  );
+
+  const table = (
+    <Table data-size="sm" style={{ width: "100%" }}>
+      <Table.Head>
+        <Table.Row>
+          <Table.HeaderCell>Måned (UTC)</Table.HeaderCell>
+          <Table.HeaderCell style={{ textAlign: "right" }}>Privat skifte besluttet</Table.HeaderCell>
+          <Table.HeaderCell style={{ textAlign: "right" }}>Skifteerklæring via DD</Table.HeaderCell>
+          <Table.HeaderCell style={{ textAlign: "right" }}>Ikke via DD</Table.HeaderCell>
+          <Table.HeaderCell style={{ textAlign: "right" }}>Andel via DD</Table.HeaderCell>
+        </Table.Row>
+      </Table.Head>
+      <Table.Body>
+        {rows.map((month) => (
+          <Table.Row key={month.month}>
+            <Table.Cell>{month.month}</Table.Cell>
+            <Table.Cell style={numCellStyle}>{formatCount(month.privateProbatesIssued)}</Table.Cell>
+            <Table.Cell style={numCellStyle}>{formatCount(month.privateProbatesWithDeclaration)}</Table.Cell>
+            <Table.Cell style={numCellStyle}>
+              {formatCount(month.privateProbatesIssued - month.privateProbatesWithDeclaration)}
+            </Table.Cell>
+            <Table.Cell style={numCellStyle}>
+              {viaDdShare(month.privateProbatesIssued, month.privateProbatesWithDeclaration)}
+            </Table.Cell>
+          </Table.Row>
+        ))}
+        <Table.Row>
+          <Table.HeaderCell>Totalt</Table.HeaderCell>
+          <Table.HeaderCell style={numCellStyle}>{formatCount(totalIssued)}</Table.HeaderCell>
+          <Table.HeaderCell style={numCellStyle}>{formatCount(totalWithDeclaration)}</Table.HeaderCell>
+          <Table.HeaderCell style={numCellStyle}>{formatCount(totalIssued - totalWithDeclaration)}</Table.HeaderCell>
+          <Table.HeaderCell style={numCellStyle}>{viaDdShare(totalIssued, totalWithDeclaration)}</Table.HeaderCell>
+        </Table.Row>
+      </Table.Body>
+    </Table>
+  );
+
+  return (
+    <ChartPanel
+      title="Private skifter"
+      subtitle={`Besluttede private skifter (skifteattest utstedt med resultat PRIVAT_*), talt i måneden skifteattesten ble utstedt, og hvor mange av dem som sendte inn skifteerklæring via DD. I perioden: ${formatCount(totalWithDeclaration)} av ${formatCount(totalIssued)} (${viaDdShare(totalIssued, totalWithDeclaration)}).`}
+      chart={chart}
+      table={table}
+    />
+  );
+}
+
 function Completion({ data }: { data: EstateCompletionResponse }) {
   return (
     <div style={{ display: "grid", gap: "var(--ds-size-4)" }}>
       <Cohorts cohorts={data.cohorts} />
       <MonthlyEvents months={data.months} />
+      <PrivateProbates months={data.months} />
     </div>
   );
 }
