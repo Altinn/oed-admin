@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Badge,
@@ -5,6 +6,7 @@ import {
   List,
   Paragraph,
   Skeleton,
+  ToggleGroup,
   ValidationMessage,
 } from "@digdir/designsystemet-react";
 import { fetchWithMsal, hasRole } from "../../utils/msalUtils";
@@ -22,8 +24,27 @@ interface DistrictCourtSummaryResponse {
   numberOfCases?: number;
 }
 
+type CourtSortOrder = "count" | "name";
+
+// Drops the "tingrett" suffix, and for the bilingual Sámi court keeps only the Norwegian part after " - ".
+// The full name stays available as a tooltip.
+const shortCourtName = (name: string) =>
+  (name.split(" - ").at(-1) ?? name).replace(/ tingrett$/i, "");
+
+const byName = (a: DistrictCourtSummaryResponse, b: DistrictCourtSummaryResponse) =>
+  shortCourtName(a.districtCourtName).localeCompare(shortCourtName(b.districtCourtName), "nb");
+
+const byCountThenName = (a: DistrictCourtSummaryResponse, b: DistrictCourtSummaryResponse) =>
+  (b.numberOfCases ?? 0) - (a.numberOfCases ?? 0) || byName(a, b);
+
+// Copies before sorting so the query cache's array is left untouched.
+const sortCourts = (courts: DistrictCourtSummaryResponse[], order: CourtSortOrder) =>
+  [...courts].sort(order === "count" ? byCountThenName : byName);
+
 // Same layout as the week list on Statistikk → Frister: name, bar scaled to the busiest court, count.
 function CaseCountBars({ courts }: { courts: DistrictCourtSummaryResponse[] }) {
+  const [sortOrder, setSortOrder] = useState<CourtSortOrder>("count");
+  const sortedCourts = sortCourts(courts, sortOrder);
   const counts = courts.map((court) => court.numberOfCases ?? 0);
   const max = Math.max(0, ...counts);
   const total = counts.reduce((sum, count) => sum + count, 0);
@@ -35,26 +56,38 @@ function CaseCountBars({ courts }: { courts: DistrictCourtSummaryResponse[] }) {
   } as const;
 
   return (
-    <ol style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "var(--ds-size-2)" }}>
-      {courts.map((court) => (
-        <li key={court.districtCourtName} style={rowStyle}>
-          <span>{court.districtCourtName}</span>
-          <Bar fraction={max === 0 ? 0 : (court.numberOfCases ?? 0) / max} />
-          <strong style={numCellStyle}>{formatCount(court.numberOfCases ?? 0)}</strong>
+    <>
+      <ToggleGroup
+        data-size="sm"
+        data-toggle-group="Sortering"
+        value={sortOrder}
+        onChange={(value) => setSortOrder(value as CourtSortOrder)}
+        style={{ marginBottom: "var(--ds-size-3)" }}
+      >
+        <ToggleGroup.Item value="count">Antall</ToggleGroup.Item>
+        <ToggleGroup.Item value="name">Navn</ToggleGroup.Item>
+      </ToggleGroup>
+      <ol style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "var(--ds-size-2)" }}>
+        {sortedCourts.map((court) => (
+          <li key={court.districtCourtName} style={rowStyle}>
+            <span title={court.districtCourtName}>{shortCourtName(court.districtCourtName)}</span>
+            <Bar fraction={max === 0 ? 0 : (court.numberOfCases ?? 0) / max} />
+            <strong style={numCellStyle}>{formatCount(court.numberOfCases ?? 0)}</strong>
+          </li>
+        ))}
+        <li style={{ ...rowStyle, marginTop: "var(--ds-size-4)" }}>
+          <strong>Totalt antall saker</strong>
+          <span />
+          <strong style={numCellStyle}>{formatCount(total)}</strong>
         </li>
-      ))}
-      <li style={{ ...rowStyle, marginTop: "var(--ds-size-4)" }}>
-        <strong>Totalt antall saker</strong>
-        <span />
-        <strong style={numCellStyle}>{formatCount(total)}</strong>
-      </li>
-      {/* "x av 28" is wider than the count column, so this row sizes its last column to the content. */}
-      <li style={{ ...rowStyle, gridTemplateColumns: "minmax(10rem, 16rem) 1fr auto" }}>
-        <strong>Totalt antall tingretter</strong>
-        <span />
-        <strong style={{ ...numCellStyle, whiteSpace: "nowrap" }}>{`${formatCount(courts.length)} av ${totalDistrictCourts}`}</strong>
-      </li>
-    </ol>
+        {/* "x av 28" is wider than the count column, so this row sizes its last column to the content. */}
+        <li style={{ ...rowStyle, gridTemplateColumns: "minmax(10rem, 16rem) 1fr auto" }}>
+          <strong>Totalt antall tingretter</strong>
+          <span />
+          <strong style={{ ...numCellStyle, whiteSpace: "nowrap" }}>{`${formatCount(courts.length)} av ${totalDistrictCourts}`}</strong>
+        </li>
+      </ol>
+    </>
   );
 }
 
