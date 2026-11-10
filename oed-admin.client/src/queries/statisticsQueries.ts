@@ -1,6 +1,7 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useInfiniteQuery, useQuery, type InfiniteData } from "@tanstack/react-query";
 import { fetchWithMsal } from "../utils/msalUtils";
 import { rangeParams, type DayRange } from "../components/statistics/statsFormat";
+import type { ResponseBody } from "../types/IEstate";
 
 // Statistics are aggregates over the whole estate table; a few minutes of staleness is fine and
 // keeps hidden-but-mounted tabs from refetching on every window focus.
@@ -256,3 +257,39 @@ export const useEstateOutcomesQuery = (range: DayRange) =>
     queryFn: () => fetchStatistics("estateoutcomes", "Kunne ikke hente utfall", range),
     staleTime: STATISTICS_STALE_TIME,
   });
+
+// Mirrors POST /api/estate/opendeclarations: the estates behind the backlog count, longest open
+// first. `to` is the moment they must have been open at; undefined means now. A POST with a body
+// (even an empty one) is what lets the server's audit log record which estates were shown.
+export const OPEN_DECLARATION_PAGE_SIZE = 8;
+
+export const openDeclarationEstateKeys = {
+  all: ["openDeclarationEstates"] as const,
+  list: (to: string | undefined) => [...openDeclarationEstateKeys.all, to ?? "now"] as const,
+};
+
+export const useOpenDeclarationEstatesQuery = (to: string | undefined) => {
+  return useInfiniteQuery<ResponseBody, Error, InfiniteData<ResponseBody, number>, readonly string[], number>({
+    queryKey: openDeclarationEstateKeys.list(to),
+    queryFn: async ({ pageParam }) => {
+      const response = await fetchWithMsal(
+        `/api/estate/opendeclarations?pageSize=${OPEN_DECLARATION_PAGE_SIZE}&page=${pageParam}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ to }),
+        },
+      );
+      if (!response.ok) {
+        throw new Error("Kunne ikke hente dødsbo med åpen skifteerklæring");
+      }
+      return response.json();
+    },
+    initialPageParam: 1,
+    // A short page is the last one.
+    getNextPageParam: (lastPage) =>
+      lastPage.estates.length < OPEN_DECLARATION_PAGE_SIZE ? undefined : lastPage.page + 1,
+    // A refetch re-reads every loaded page, and each one is an audited lookup.
+    staleTime: STATISTICS_STALE_TIME,
+  });
+};

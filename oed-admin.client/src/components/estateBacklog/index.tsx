@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { Heading, Paragraph, Skeleton, Table, ToggleGroup, ValidationMessage } from "@digdir/designsystemet-react";
+import { Button, Heading, Paragraph, Skeleton, Table, ToggleGroup, ValidationMessage } from "@digdir/designsystemet-react";
 import {
   useEstateBacklogQuery,
   type BacklogRange,
@@ -10,6 +10,7 @@ import { LineChart, type LineChartMarker, type LineChartPoint } from "../charts"
 import { trendColor, trendKind } from "../charts/chartUtils";
 import { ChartPanel, DateRangePicker } from "../statistics/panels";
 import { addDays, todayUtc, type DayRange } from "../statistics/statsFormat";
+import OpenEstates from "./OpenEstates";
 
 const MONTH_FORMAT = new Intl.DateTimeFormat("nb-NO", { month: "short", year: "2-digit", timeZone: "UTC" });
 
@@ -104,6 +105,10 @@ export default function EstateBacklog() {
   const [range, setRange] = useState<BacklogRange>("90d");
   const [custom, setCustom] = useState<DayRange>(() => ({ from: addDays(todayUtc(), -90), to: todayUtc() }));
   const { data, isLoading, error, isPlaceholderData } = useEstateBacklogQuery(resolution, range, custom);
+  const showsPeriodEnd = range === "custom" && custom.to < todayUtc();
+  // The estates are personal data and every page of them is an audited lookup, so they are only
+  // fetched on request.
+  const [showEstates, setShowEstates] = useState(false);
 
   let content: ReactNode;
   if (isLoading) {
@@ -121,7 +126,7 @@ export default function EstateBacklog() {
           points={data.points}
           resolution={resolution}
           // A custom period that ends before today shows the count at its end, not the count now.
-          label={range === "custom" && custom.to < todayUtc() ? "Åpne ved periodens slutt" : "Åpne nå"}
+          label={showsPeriodEnd ? "Åpne ved periodens slutt" : "Åpne nå"}
         />
         <ChartPanel
           title="Åpne skifteerklæringer over tid"
@@ -195,6 +200,14 @@ export default function EstateBacklog() {
       </div>
       {range === "custom" && <DateRangePicker value={custom} onChange={setCustom} />}
       {content}
+      {/* Follows the headline: open at the end of a custom period that ends before today, else open now. */}
+      {showEstates ? (
+        <OpenEstates to={showsPeriodEnd ? `${addDays(custom.to, 1)}T00:00:00Z` : undefined} />
+      ) : (
+        <Button variant="secondary" onClick={() => setShowEstates(true)} style={{ marginTop: "var(--ds-size-6)" }}>
+          Vis åpne bo
+        </Button>
+      )}
     </>
   );
 }

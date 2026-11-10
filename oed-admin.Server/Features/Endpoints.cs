@@ -76,6 +76,7 @@ public static class Endpoints
 
             group.MapGet("/{estateId:guid}", Estate.GetEstate.Endpoint.Get);
             group.MapPost("/search", Estate.Search.Endpoint.Post);
+            group.MapPost("/opendeclarations", Estate.SearchOpenDeclarations.Endpoint.Post);
             group.MapGet("/{estateId:guid}/roleassignments", Estate.GetRoleAssignments.Endpoint.Get);
             group.MapGet("/{estateId:guid}/roleassignmentlog", Estate.GetRoleAssignmentLog.Endpoint.Get);
             group.MapGet("/{estateId:guid}/tasks", Estate.GetTasks.Endpoint.Get);
