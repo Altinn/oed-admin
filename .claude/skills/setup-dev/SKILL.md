@@ -16,7 +16,7 @@ Work through whatever it flags, then re-run it. Details for each item below.
 
 ## Toolchain
 
-.NET 10 SDK (CI pins `10.0.102`) and Node with npm. The client's dependencies are not installed by
+.NET 11 SDK (CI uses `11.0.x`) and Node with npm. The client's dependencies are not installed by
 `dotnet build`:
 
 ```powershell

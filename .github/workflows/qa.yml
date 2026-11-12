@@ -6,7 +6,7 @@ on:
     - cron: '30 2 * * *' # Runs every day at 02:30 UTC
 
 env:
-  DOTNET_VERSION: "10.0.x"
+  DOTNET_VERSION: "11.0.x"
   QATESTS: "1"
   # DependencyGate runs `dotnet list package`, whose reused MSBuild node outlives it and keeps the
   # output pipe open, so the gate waited until its 10-minute timeout and then skipped.

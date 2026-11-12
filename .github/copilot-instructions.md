@@ -2,7 +2,7 @@
 
 ## Repository overview
 
-This repo contains a .NET 10 minimal API backend in `oed-admin.Server` and a React 19 + Vite SPA in `oed-admin.client`.
+This repo contains a .NET 11 minimal API backend in `oed-admin.Server` and a React 19 + Vite SPA in `oed-admin.client`.
 
 The app is a read-mostly admin UI for Digitalt Dødsbo: it reads from the existing `oed` and `oedauthz` PostgreSQL databases, calls Altinn/OED HTTP APIs, and exposes role-gated estate/task/instance operations to staff.
 

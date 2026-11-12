@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Internal admin application for **Digitalt Dødsbo** (Norwegian digital estate settlement). An ASP.NET Core 10 minimal-API backend (`oed-admin.Server`) serving a React 19 + Vite SPA (`oed-admin.client`). Staff use it to look up estates, inspect Altinn instances/events, manage the task queue, and grant/revoke superadmin role assignments.
+Internal admin application for **Digitalt Dødsbo** (Norwegian digital estate settlement). An ASP.NET Core 11 minimal-API backend (`oed-admin.Server`) serving a React 19 + Vite SPA (`oed-admin.client`). Staff use it to look up estates, inspect Altinn instances/events, manage the task queue, and grant/revoke superadmin role assignments.
 
 The app is a **read-mostly window onto other systems' data**. It attaches to the existing `oed` and `oedauthz` PostgreSQL databases owned by other services, and calls Altinn/OED HTTP APIs. There are no EF Core migrations here — never add one; schema changes belong in the owning repository.
 

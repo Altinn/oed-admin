@@ -22,7 +22,7 @@ Write-Host "Toolchain" -ForegroundColor Cyan
 
 $dotnet = (Get-Command dotnet -ErrorAction SilentlyContinue)
 $dotnetVer = if ($dotnet) { (& dotnet --version 2>$null) } else { $null }
-Report ($dotnetVer -like '10.*') '.NET 10 SDK' "found: $dotnetVer" 'install .NET 10 SDK (CI pins 10.0.102)'
+Report ($dotnetVer -like '11.*') '.NET 11 SDK' "found: $dotnetVer" 'install .NET 11 SDK (CI uses 11.0.x)'
 
 $node = (Get-Command node -ErrorAction SilentlyContinue)
 $nodeVer = if ($node) { (& node --version 2>$null) } else { $null }
