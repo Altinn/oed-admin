@@ -42,8 +42,7 @@ const sortCourts = (courts: DistrictCourtSummaryResponse[], order: CourtSortOrde
   [...courts].sort(order === "count" ? byCountThenName : byName);
 
 // Same layout as the week list on Statistikk → Frister: name, bar scaled to the busiest court, count.
-function CaseCountBars({ courts }: { courts: DistrictCourtSummaryResponse[] }) {
-  const [sortOrder, setSortOrder] = useState<CourtSortOrder>("count");
+function CaseCountBars({ courts, sortOrder }: { courts: DistrictCourtSummaryResponse[]; sortOrder: CourtSortOrder }) {
   const sortedCourts = sortCourts(courts, sortOrder);
   const counts = courts.map((court) => court.numberOfCases ?? 0);
   const max = Math.max(0, ...counts);
@@ -57,21 +56,11 @@ function CaseCountBars({ courts }: { courts: DistrictCourtSummaryResponse[] }) {
 
   return (
     <>
-      <ToggleGroup
-        data-size="sm"
-        data-toggle-group="Sortering"
-        value={sortOrder}
-        onChange={(value) => setSortOrder(value as CourtSortOrder)}
-        style={{ marginBottom: "var(--ds-size-3)" }}
-      >
-        <ToggleGroup.Item value="count">Antall</ToggleGroup.Item>
-        <ToggleGroup.Item value="name">Navn</ToggleGroup.Item>
-      </ToggleGroup>
       <ol style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "var(--ds-size-2)" }}>
         {sortedCourts.map((court) => (
           <li key={court.districtCourtName} style={rowStyle}>
             <span title={court.districtCourtName}>{shortCourtName(court.districtCourtName)}</span>
-            <Bar fraction={max === 0 ? 0 : (court.numberOfCases ?? 0) / max} />
+            <Bar fraction={max === 0 ? 0 : (court.numberOfCases ?? 0) / max} solid />
             <strong style={numCellStyle}>{formatCount(court.numberOfCases ?? 0)}</strong>
           </li>
         ))}
@@ -106,16 +95,35 @@ export default function DistrictCourts() {
   const { instance } = useMsal();
   const account = instance.getActiveAccount() as AccountInfo;
   const isAdmin = hasRole(account, "Admin");
+  const [sortOrder, setSortOrder] = useState<CourtSortOrder>("count");
 
   return (
     <>
-      <Heading
-        level={2}
-        data-size="sm"
-        style={{ marginBottom: "var(--ds-size-2)" }}
+      {/* The sort toggle sits beside the heading to save a row; only admins have counts to sort by. */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: "var(--ds-size-2)",
+          marginBottom: "var(--ds-size-2)",
+        }}
       >
-        Tingretter
-      </Heading>
+        <Heading level={2} data-size="sm">
+          Tingretter
+        </Heading>
+        {isAdmin && data?.connectedDistrictCourts && (
+          <ToggleGroup
+            data-size="sm"
+            data-toggle-group="Sortering"
+            value={sortOrder}
+            onChange={(value) => setSortOrder(value as CourtSortOrder)}
+          >
+            <ToggleGroup.Item value="count">Antall</ToggleGroup.Item>
+            <ToggleGroup.Item value="name">Navn</ToggleGroup.Item>
+          </ToggleGroup>
+        )}
+      </div>
       {isLoading && (
         <Skeleton variant="rectangle" aria-label="Henter tingretter" />
       )}
@@ -137,7 +145,7 @@ export default function DistrictCourts() {
 
       {/* Admins get case counts and see them as bars; Read users get the names only. */}
       {data?.connectedDistrictCourts && isAdmin && (
-        <CaseCountBars courts={data.connectedDistrictCourts} />
+        <CaseCountBars courts={data.connectedDistrictCourts} sortOrder={sortOrder} />
       )}
 
       {data?.connectedDistrictCourts && !isAdmin && (

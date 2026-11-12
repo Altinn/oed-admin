@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Card, Heading, Paragraph, Skeleton, Textfield, ToggleGroup, ValidationMessage } from "@digdir/designsystemet-react";
-import { MUTED, TRACK, gradient, todayUtc, type DayRange } from "./statsFormat";
+import { ACCENT, MUTED, TRACK, gradient, todayUtc, type DayRange } from "./statsFormat";
 
 export function Tile({ label, value, note, color }: { label: string; value: string; note?: string; color?: string }) {
   return (
@@ -113,7 +113,18 @@ export function DateRangePicker({ value, onChange }: { value: DayRange; onChange
 }
 
 /** Horizontal bar on a track; `fraction` is the filled share, 0–1. */
-export function Bar({ fraction, color, height = "0.9rem" }: { fraction: number; color?: string; height?: string }) {
+export function Bar({
+  fraction,
+  color,
+  height = "0.9rem",
+  solid = false,
+}: {
+  fraction: number;
+  color?: string;
+  height?: string;
+  /** Fills with the flat colour instead of the gradient. */
+  solid?: boolean;
+}) {
   return (
     <div style={{ background: TRACK, borderRadius: 4, height, flex: 1 }}>
       <div
@@ -121,7 +132,7 @@ export function Bar({ fraction, color, height = "0.9rem" }: { fraction: number; 
           width: `${Math.max(0, Math.min(100, fraction * 100))}%`,
           height: "100%",
           borderRadius: 4,
-          background: gradient("to right", color),
+          background: solid ? (color ?? ACCENT) : gradient("to right", color),
         }}
       />
     </div>
