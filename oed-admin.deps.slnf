@@ -1,0 +1,9 @@
+{
+  "solution": {
+    "path": "oed-admin.sln",
+    "projects": [
+      "oed-admin.Server\\oed-admin.Server.csproj",
+      "QaTests\\QaTests.csproj"
+    ]
+  }
+}

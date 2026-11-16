@@ -8,6 +8,9 @@ on:
 env:
   DOTNET_VERSION: "10.0.x"
   QATESTS: "1"
+  # DependencyGate runs `dotnet list package`, whose reused MSBuild node outlives it and keeps the
+  # output pipe open, so the gate waited until its 10-minute timeout and then skipped.
+  MSBUILDDISABLENODEREUSE: "1"
 
 jobs:
   projecttests:
