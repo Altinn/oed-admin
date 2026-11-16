@@ -85,7 +85,10 @@ public static class Endpoints
             group.MapGet("/{estateId:guid}/probateinformation", Estate.GetProbateInformation.Endpoint.Get);
             group.MapGet("/{estateId:guid}/signeestatus", Estate.GetSigneeStatus.Endpoint.Get);
             group.MapGet("/{estateId:guid}/heirdeclaration/{heirPartyId:int}/{subApp}/{heirInstanceId:guid}", Estate.GetHeirDeclaration.Endpoint.Get);
+            // estateId is not bound by the handler; it is in the route so AuditingLoggingMiddleware can log the estate.
+#pragma warning disable ASP0018
             group.MapPost("/{estateId:guid}/daobject", Estate.GetDaObject.Endpoint.Post);
+#pragma warning restore ASP0018
             group.MapPost("/{estateId:guid}/daobject/sync", Estate.SyncDaCase.Endpoint.Post);
             group.MapPost("/{estateId:guid}/superadmin", Estate.GrantSuperadmin.Endpoint.Post);
             group.MapDelete("/{estateId:guid}/superadmin", Estate.RevokeSuperadmin.Endpoint.Delete);

@@ -147,7 +147,7 @@ public sealed class QaReportsReader
         }
     }
 
-    private static IReadOnlyList<QaFinding> ReadFindings(JsonElement root, string property)
+    private static List<QaFinding> ReadFindings(JsonElement root, string property)
     {
         if (!root.TryGetProperty("top", out var top) || !top.TryGetProperty(property, out var arr))
         {
@@ -167,7 +167,7 @@ public sealed class QaReportsReader
         return list;
     }
 
-    private static IReadOnlyList<QaHotspot> ReadHotspots(JsonElement root)
+    private static List<QaHotspot> ReadHotspots(JsonElement root)
     {
         if (!root.TryGetProperty("top", out var top) || !top.TryGetProperty("hotspots", out var arr))
         {

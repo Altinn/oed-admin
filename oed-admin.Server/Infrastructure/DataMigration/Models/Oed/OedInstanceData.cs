@@ -1,4 +1,6 @@
 ﻿#nullable disable
+// The attribute strings are wire names for the XML/JSON contract and must not follow C# renames.
+#pragma warning disable CA1507
 
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
