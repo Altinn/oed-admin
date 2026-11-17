@@ -97,8 +97,16 @@ export interface EstateCreatedDay {
   created: number;
 }
 
+// Exactly 24 entries, hour 0 first, in Norwegian time. Summed over the whole UTC days in the
+// period; today is left out because it is not over.
+export interface EstateCreatedHour {
+  hour: number; // 0–23, Europe/Oslo
+  created: number;
+}
+
 export interface EstateCreatedResponse {
   days: EstateCreatedDay[];
+  hours: EstateCreatedHour[];
 }
 
 export const estateCreatedKeys = {

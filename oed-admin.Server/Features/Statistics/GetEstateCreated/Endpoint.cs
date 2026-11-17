@@ -38,6 +38,27 @@ public static class Endpoint
             .Select(day => new DayCountDto(day, perDay.GetValueOrDefault(day)))
             .ToList();
 
-        return TypedResults.Ok(new Response(days));
+        // Hours are read in Norwegian time so office-hour peaks line up with the clock. Today is
+        // left out: its later hours have not happened yet and would drag their averages down.
+        // On the two DST switch days one hour is missing or doubled; over a period that is noise.
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var perHour = created
+            .Where(timestamp => DateOnly.FromDateTime(timestamp.UtcDateTime) < today)
+            .GroupBy(timestamp => TimeZoneInfo.ConvertTime(timestamp, Oslo).Hour)
+            .ToDictionary(group => group.Key, group => group.Count());
+
+        var hours = Enumerable.Range(0, HoursPerDay)
+            .Select(hour => new HourCountDto(hour, perHour.GetValueOrDefault(hour)))
+            .ToList();
+
+        return TypedResults.Ok(new Response(days, hours));
     }
+
+    private const int HoursPerDay = 24;
+
+    // Windows hosts without ICU only know the Windows id.
+    private static readonly TimeZoneInfo Oslo =
+        TimeZoneInfo.TryFindSystemTimeZoneById("Europe/Oslo", out var timeZone)
+            ? timeZone
+            : TimeZoneInfo.FindSystemTimeZoneById("W. Europe Standard Time");
 }

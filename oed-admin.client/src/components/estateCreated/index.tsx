@@ -1,6 +1,6 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
 import { Card, Heading, Paragraph, Skeleton, Table, ValidationMessage } from "@digdir/designsystemet-react";
-import { useEstateCreatedQuery, type EstateCreatedDay } from "../../queries/statisticsQueries";
+import { useEstateCreatedQuery, type EstateCreatedDay, type EstateCreatedHour } from "../../queries/statisticsQueries";
 import { ColumnChart } from "../charts/statCharts";
 import { ChartPanel, DateRangePicker } from "../statistics/panels";
 import { addDays, todayUtc, type DayRange } from "../statistics/statsFormat";
@@ -35,6 +35,9 @@ const toDate = (day: string) => new Date(`${day}T00:00:00Z`);
 const formatCount = (value: number) => value.toLocaleString("nb-NO");
 const formatDecimal = (value: number) =>
   value.toLocaleString("nb-NO", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const formatPercent = (fraction: number) => `${formatDecimal(fraction * 100)} %`;
+const formatHour = (hour: number) => String(hour).padStart(2, "0");
+const formatHourSpan = (hour: number) => `${formatHour(hour)}–${formatHour(hour + 1)}`;
 const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
 const sum = (values: number[]) => values.reduce((total, value) => total + value, 0);
@@ -86,6 +89,24 @@ function monthSummaries(days: EstateCreatedDay[]): MonthSummary[] {
     byMonth.set(month, [...(byMonth.get(month) ?? []), day.created]);
   }
   return [...byMonth].map(([month, counts]) => ({ month, total: sum(counts), days: counts.length, average: mean(counts) }));
+}
+
+interface HourAverage {
+  hour: number;
+  average: number;
+  share: number;
+  cumulativeShare: number;
+}
+
+function hourAverages(hours: EstateCreatedHour[], dayCount: number): HourAverage[] {
+  const total = sum(hours.map((entry) => entry.created));
+  const fraction = (value: number) => (total === 0 ? 0 : value / total);
+  return hours.map((entry, index) => ({
+    hour: entry.hour,
+    average: dayCount === 0 ? 0 : entry.created / dayCount,
+    share: fraction(entry.created),
+    cumulativeShare: fraction(sum(hours.slice(0, index + 1).map((other) => other.created))),
+  }));
 }
 
 function Tile({ label, value, note }: { label: string; value: string; note: string }) {
@@ -236,6 +257,55 @@ function Daily({ days }: { days: EstateCreatedDay[] }) {
   );
 }
 
+function Hourly({ hours }: { hours: HourAverage[] }) {
+  const busiest = hours.reduce((best, entry) => (entry.average > best.average ? entry : best), hours[0]);
+  const half = hours.find((entry) => entry.cumulativeShare >= 0.5);
+  const subtitle =
+    busiest.average === 0 || !half
+      ? "Ingen dødsbo opprettet i hele dager i perioden"
+      : `Travlest kl. ${formatHourSpan(busiest.hour)} med ${formatDecimal(busiest.average)} i snitt; halvparten av dagens dødsbo er opprettet innen kl. ${formatHour(half.hour + 1)}`;
+
+  return (
+    <ChartPanel
+      title="Snitt per time (norsk tid)"
+      subtitle={subtitle}
+      chart={
+        <ColumnChart
+          columns={hours.map((entry) => ({
+            label: formatHour(entry.hour),
+            value: entry.average,
+            detail: `kl. ${formatHourSpan(entry.hour)}, ${formatPercent(entry.share)} av dagen`,
+          }))}
+          formatValue={(value) => `${formatDecimal(value)} i snitt`}
+          ariaLabel="Snitt dødsbo opprettet per time i norsk tid"
+        />
+      }
+      table={
+        <Table data-size="sm" style={{ width: "100%" }}>
+          <Table.Head>
+            <Table.Row>
+              <Table.HeaderCell>Time</Table.HeaderCell>
+              <Table.HeaderCell style={{ textAlign: "right" }}>Snitt per dag</Table.HeaderCell>
+              <Table.HeaderCell style={{ textAlign: "right" }}>Andel</Table.HeaderCell>
+              <Table.HeaderCell style={{ textAlign: "right" }}>Andel så langt</Table.HeaderCell>
+            </Table.Row>
+          </Table.Head>
+          <Table.Body>
+            {hours.map((entry) => (
+              <Table.Row key={entry.hour}>
+                <Table.Cell>{formatHourSpan(entry.hour)}</Table.Cell>
+                <Table.Cell style={numCellStyle}>{formatDecimal(entry.average)}</Table.Cell>
+                <Table.Cell style={numCellStyle}>{formatPercent(entry.share)}</Table.Cell>
+                <Table.Cell style={numCellStyle}>{formatPercent(entry.cumulativeShare)}</Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table>
+      }
+    />
+  );
+}
+
 function Weekdays({ averages }: { averages: WeekdayAverage[] }) {
   const max = Math.max(...averages.map((entry) => entry.average));
   const busiest = averages.find((entry) => entry.average === max);
@@ -340,7 +410,7 @@ function Months({ months }: { months: MonthSummary[] }) {
   );
 }
 
-function Dashboard({ days }: { days: EstateCreatedDay[] }) {
+function Dashboard({ days, hours }: { days: EstateCreatedDay[]; hours: EstateCreatedHour[] }) {
   // When the period ends today, the last day is still running; it counts towards the total only.
   const endsToday = days[days.length - 1].day === todayUtc();
   const fullDays = endsToday ? days.slice(0, -1) : days;
@@ -396,6 +466,9 @@ function Dashboard({ days }: { days: EstateCreatedDay[] }) {
       <div style={{ marginTop: "var(--ds-size-4)" }}>
         <Daily days={days} />
       </div>
+      <div style={{ marginTop: "var(--ds-size-4)" }}>
+        <Hourly hours={hourAverages(hours, fullDays.length)} />
+      </div>
     </>
   );
 }
@@ -415,7 +488,7 @@ export default function EstateCreated() {
     // Dimmed while a period change is refetching, so the previous numbers don't read as current.
     content = (
       <div style={{ opacity: isPlaceholderData ? 0.5 : 1, transition: "opacity 150ms" }} aria-busy={isPlaceholderData}>
-        <Dashboard days={data.days} />
+        <Dashboard days={data.days} hours={data.hours} />
       </div>
     );
   }
@@ -427,7 +500,8 @@ export default function EstateCreated() {
       </Heading>
       <Paragraph data-size="sm" style={{ marginBottom: "var(--ds-size-2)" }}>
         Antall rader i estate-tabellen per dag de ble opprettet, inkludert kansellerte og feilførte saker. Dagene er i UTC.
-        Dagens tall er med i totalen, men holdt utenfor snitt, median, topp {TOP_COUNT}, ukedager og måneder fordi dagen ikke er over.
+        Dagens tall er med i totalen, men holdt utenfor snitt, median, topp {TOP_COUNT}, ukedager, måneder og timer fordi dagen ikke er over.
+        Timene er i norsk tid.
         Standardperioden er de siste {DAYS} dagene; lengste periode er to år.
       </Paragraph>
       <DateRangePicker value={range} onChange={setRange} />
