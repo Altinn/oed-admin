@@ -35,13 +35,19 @@ The client needs `VITE_CLIENT_ID` (Entra ID app registration) and `VITE_ENVIRONM
 
 ### Tests
 
-There is **no unit test project**. `QaTests` is a single opt-in SonarQube quality-gate runner, skipped unless `QATESTS=1`:
+`oed-admin.Server.Tests` is the xUnit project. It runs against a real Postgres through Testcontainers, so **it needs Docker**. Its schema comes from `OedDbContext` via `EnsureCreated` (never a migration). Plain `dotnet test` runs it, in CI/CD too.
+
+```powershell
+dotnet test oed-admin.Server.Tests
+```
+
+`QaTests` is a single opt-in SonarQube quality-gate runner, skipped unless `QATESTS=1`:
 
 ```powershell
 $env:QATESTS = "1"; dotnet test ./QaTests/QaTests.csproj
 ```
 
-It runs nightly via `.github/workflows/qa.yml` and needs `AZURE_STORAGE_SAS_TOKEN`. Plain `dotnet test` (as CI/CD runs it) skips everything. If you add a real .NET test project, wire a `CoverageOptions` into `QaTests/SonarGateTests.cs` so the gate starts evaluating coverage.
+It runs nightly via `.github/workflows/qa.yml` and needs `AZURE_STORAGE_SAS_TOKEN`. Its `CoverageOptions` collects coverage from `oed-admin.Server.Tests`.
 
 ## Architecture
 
@@ -69,9 +75,13 @@ Auth is Entra ID JWT bearer end to end: MSAL in the browser (`src/msal.ts`), val
 
 `Infrastructure/Altinn/ServiceCollectionExtensions.cs` registers four typed HTTP clients, each with its own Maskinporten scope: `IAltinnClient` (Platform), `IOedClient` (apps), `IOedAuthzClient`, `IOedEventsClient`. In Development against `http://localhost` the Altinn client swaps Maskinporten for `LocalTestTokenHandler`. Adding an outbound call generally means picking the right existing client rather than a new `HttpClient`.
 
+### Reading OED_M
+
+An estate's OED_M is moving out of Storage into `oed.estate_model` (Altinn/oed#1884). Read it only through `IOedModelSource` (`Infrastructure/OedModel/`): the row when the estate has one, Storage only when it has none. Once a row exists, the Storage `oed` element is a frozen copy, so never read it directly. `EstateModel` is read-only (`OedDbContext.SaveChanges` throws on any change to it; `ExecuteUpdate`/raw SQL bypass that, so don't), and nothing here writes the `oed` element.
+
 ### Data migration
 
-`InstanceToDbDataMigration` is a `BackgroundService` fed by an unbounded `Channel<DataMigrationTrigger>`; `POST /api/maintenance/datamigration` writes a trigger to the channel. Note that `AddDataMigrationService()` is **not** currently called from `Program.cs`, so the channel is unregistered and that endpoint fails at request time until it is.
+The Storage → `estate` backfill (`InstanceToDbDataMigration`) was removed in Altinn/oed#1903: it was never registered, and the oed app's copier backfills missing `Estate` rows. `Infrastructure/DataMigration/Models/` remains because search and count read `OedInstanceData` from it.
 
 ### Client
 

@@ -7,7 +7,10 @@ import 'react-json-pretty/themes/monikai.css';
 interface Props {
   data: {
     instance: unknown,
-    instanceData?: string | null
+    instanceData?: string | null,
+    // The estate's oed.estate_model row as JSON. Once an estate has one, its oed element in
+    // Storage is a frozen copy and is not sent.
+    model?: string | null
   };
 }
 
@@ -29,7 +32,12 @@ export default function Instance({ data }: Props) {
           Data
         </Details.Summary>
         <Details.Content data-size="sm">
-          {data?.instanceData ? (
+          {data?.model ? (
+            <>
+              <Paragraph data-size="sm">Fra databasen (oed.estate_model).</Paragraph>
+              <JSONPretty data={data.model}></JSONPretty>
+            </>
+          ) : data?.instanceData ? (
             <XmlView xml={data.instanceData} />
           ) : (
             <Paragraph>Ingen data.</Paragraph>

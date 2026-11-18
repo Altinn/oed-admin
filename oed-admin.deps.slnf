@@ -3,7 +3,8 @@
     "path": "oed-admin.sln",
     "projects": [
       "oed-admin.Server\\oed-admin.Server.csproj",
-      "QaTests\\QaTests.csproj"
+      "QaTests\\QaTests.csproj",
+      "oed-admin.Server.Tests\\oed-admin.Server.Tests.csproj"
     ]
   }
 }

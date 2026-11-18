@@ -1,0 +1,190 @@
+{
+  "caseId": "case-fully-populated",
+  "caseNumber": "26-000123TVA-OSLO",
+  "deceasedInfo": {
+    "deceased": {
+      "firstName": "Kjølstad",
+      "middleName": "Ærlig",
+      "lastName": "Åse",
+      "address": {
+        "streetAddress": "Bjørnstjerne Bjørnsons gate 1",
+        "postalCode": "0150",
+        "city": "Oslo"
+      },
+      "partyId": 50012345,
+      "birthday": "1950-01-01",
+      "nin": "01015012345"
+    },
+    "dateOfDeath": "2026-01-02",
+    "maritalStatus": 2,
+    "contactPerson": {
+      "firstName": "Kari",
+      "lastName": "Nordmann"
+    }
+  },
+  "heirs": [
+    {
+      "heirV2": {
+        "type": "PersonV2",
+        "courtRole": "urn:domstolene:digitaltdodsbo:formuesfullmakt",
+        "firstName": "Kjølstad Ærlig Åse",
+        "lastName": "Nordmann",
+        "address": {
+          "streetAddress": "Bjørnstjerne Bjørnsons gate 1",
+          "postalCode": "0150",
+          "city": "Oslo"
+        },
+        "userid": 1337,
+        "partyId": 50011111,
+        "birthday": "1980-02-03",
+        "role": "barn"
+      },
+      "correspondenceReceived": true,
+      "estateReadyCorrespondenceTaskId": "task-1",
+      "signedDate": "2026-01-10T09:30:00+02:00",
+      "preferredSettlementProcedure": "privat",
+      "probateIssuedCorrespondenceSent": true,
+      "probateCertificateRecipient": true
+    },
+    {
+      "heirV2": {
+        "type": "Person",
+        "firstName": "Ola",
+        "lastName": "Nordmann",
+        "partyId": 50022222,
+        "role": "gjenlevEktefelle"
+      },
+      "correspondenceReceived": false,
+      "probateIssuedCorrespondenceSent": false,
+      "probateCertificateRecipient": false
+    },
+    {
+      "heirV2": {
+        "type": "Organization",
+        "name": "Stiftelsen Æ",
+        "orgNr": "991825827",
+        "role": "testamentsarving"
+      },
+      "correspondenceReceived": false,
+      "probateIssuedCorrespondenceSent": false,
+      "probateCertificateRecipient": false
+    },
+    {
+      "heirV2": {
+        "type": "PappPerson",
+        "firstName": "Åsmund",
+        "lastName": "Utland",
+        "dateOfBirth": "1975-05-06T00:00:00+02:00",
+        "role": "barn"
+      },
+      "correspondenceReceived": false,
+      "probateIssuedCorrespondenceSent": false,
+      "probateCertificateRecipient": false
+    },
+    {
+      "heirV2": {
+        "type": "PappOrganization",
+        "name": "Foreign Ltd",
+        "registrationNumber": "SE-123",
+        "countryCode": "SE",
+        "role": "testamentsarving"
+      },
+      "correspondenceReceived": false,
+      "probateIssuedCorrespondenceSent": false,
+      "probateCertificateRecipient": false
+    },
+    {
+      "heir": {
+        "firstName": "Legacy",
+        "lastName": "Heir",
+        "partyId": 50033333,
+        "role": "barn"
+      },
+      "correspondenceReceived": false,
+      "probateIssuedCorrespondenceSent": false,
+      "probateCertificateRecipient": false
+    }
+  ],
+  "statusNotifications": [
+    {
+      "partyID": 50011111,
+      "timestamp": "2026-01-11T08:00:00Z",
+      "statusNotificationType": "OpenApp"
+    }
+  ],
+  "marriagePactsFromRegister": "none",
+  "propertyRights": "none",
+  "probateDeadline": "2026-07-02T00:00:00.0000000+02:00",
+  "districtCourtName": "Oslo tingrett",
+  "probateResult": {
+    "result": "privat",
+    "heirs": [
+      "50011111"
+    ],
+    "acceptsDebtHeirs": [
+      "50011111"
+    ],
+    "received": "2026-03-01"
+  },
+  "probateResultV2": {
+    "result": "privat",
+    "heirs": [
+      {
+        "type": "Person",
+        "partyId": 50011111,
+        "firstName": "Kjølstad Ærlig Åse",
+        "lastName": "Nordmann",
+        "willingToAssumeDebt": true
+      },
+      {
+        "type": "Organization",
+        "orgNr": "991825827",
+        "name": "Stiftelsen Æ",
+        "willingToAssumeDebt": false
+      },
+      {
+        "type": "PappPerson",
+        "firstName": "Åsmund",
+        "lastName": "Utland",
+        "dateOfBirth": "1975-05-06T00:00:00+02:00",
+        "willingToAssumeDebt": false
+      },
+      {
+        "type": "PappOrganization",
+        "name": "Foreign Ltd",
+        "registrationNumber": "SE-123",
+        "countryCode": "SE",
+        "willingToAssumeDebt": false
+      }
+    ],
+    "received": "2026-03-01"
+  },
+  "caseStatus": "Opprettet",
+  "version": "2",
+  "estateRevoked": false,
+  "myTaxUri": "https://skatteetaten.example/mytax?a=1&b=2",
+  "firstHeirReceivedDate": "2026-01-05T12:00:00+02:00",
+  "accessDate": "2026-01-06T12:00:00+02:00",
+  "isCancelled": false,
+  "chosenProbateTypes": [
+    {
+      "partyId": 50011111,
+      "probateType": "Private",
+      "instanceId": "50011111/00000000-0000-0000-0000-000000000099",
+      "subAppId": "digdir/dd-private-probate",
+      "submitted": "2026-02-01T10:00:00+02:00",
+      "extraInfo": [
+        {
+          "key": "acceptDebt",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "partyId": 50022222,
+      "probateType": "Private",
+      "subAppId": "digdir/migrated-oed-declaration",
+      "extraInfo": []
+    }
+  ]
+}

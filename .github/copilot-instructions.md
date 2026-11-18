@@ -76,7 +76,7 @@ $env:QATESTS = "1"; dotnet test ./QaTests/QaTests.csproj --filter "FullyQualifie
 - The backend connects to existing PostgreSQL databases owned by other services (`oed`, `oedauthz`) rather than managing its own schema.
 - There are no EF Core migrations in this repo; schema changes belong in the owning service repository.
 - Existing typed HTTP clients for Altinn/OED should be used instead of creating ad hoc `HttpClient` instances.
-- `InstanceToDbDataMigration` is a background service fed by a channel; it is not active unless the corresponding service is registered.
+- OED_M is read through `IOedModelSource` (row in `oed.estate_model` first, Storage only without a row). Never read the `oed` data element from Storage directly, and never write `oed.estate_model`.
 
 ## Key conventions
 

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using oed_admin.Server.Infrastructure.Altinn;
 using oed_admin.Server.Infrastructure.Database.Oed;
+using oed_admin.Server.Infrastructure.OedModel;
 
 namespace oed_admin.Server.Features.Estate.GetInstance;
 
@@ -15,9 +16,6 @@ public static class Endpoint
         if (!request.IsValid())
             return TypedResults.BadRequest();
 
-        if (!request.IsValid())
-            return TypedResults.BadRequest();
-
         var estate = await dbContext.Estate
             .AsNoTracking()
             .SingleOrDefaultAsync(e => e.Id == request.EstateId);
@@ -26,39 +24,50 @@ public static class Endpoint
             return TypedResults.BadRequest();
 
         if (estate.InstanceId is null or {Length: 0})
-            return TypedResults.Ok(new Response(null, null));
+            return TypedResults.Ok(new Response(null, null, null));
 
         var parts = estate.InstanceId.Split("/");
 
         if (parts is null or {Length: not 2})
-            return TypedResults.Ok(new Response(null, null));
+            return TypedResults.Ok(new Response(null, null, null));
 
         if (!int.TryParse(parts[0], out var instanceOwnerPartyId))
-            return TypedResults.Ok(new Response(null, null));
+            return TypedResults.Ok(new Response(null, null, null));
 
         if (!Guid.TryParse(parts[1], out var instanceGuid))
-            return TypedResults.Ok(new Response(null, null));
+            return TypedResults.Ok(new Response(null, null, null));
 
         var instance = await storageClient.GetInstance(
             instanceOwnerPartyId,
             instanceGuid);
 
+        // Row first (Altinn/oed#1903): once the estate has an oed.estate_model row, its oed element in
+        // Storage is a frozen copy and is never shown. A row of another party is shown as no data.
+        var row = await dbContext.EstateModel
+            .AsNoTracking()
+            .Where(m => m.InstanceGuid == instanceGuid)
+            .Select(m => new { m.InstanceOwnerPartyId, m.Model })
+            .SingleOrDefaultAsync();
+
+        if (row is not null)
+        {
+            var model = row.InstanceOwnerPartyId == instanceOwnerPartyId ? row.Model : null;
+            return TypedResults.Ok(new Response(instance, null, model));
+        }
+
         if (instance is null)
-            return TypedResults.Ok(new Response(instance, null));
+            return TypedResults.Ok(new Response(instance, null, null));
 
-        var dataId = instance.Data.FirstOrDefault()?.Id;
-        
-        if (dataId is null)
-            return TypedResults.Ok(new Response(instance, null));
+        var dataElement = OedDataElement.Find(instance);
 
-        if (!Guid.TryParse(dataId, out var dataGuid))
-            return TypedResults.Ok(new Response(instance, null));
+        if (dataElement is null || !Guid.TryParse(dataElement.Id, out var dataGuid))
+            return TypedResults.Ok(new Response(instance, null, null));
 
         var instanceData = await storageClient.GetInstanceDataAsString(
             instanceOwnerPartyId,
             instanceGuid,
             dataGuid);
 
-        return TypedResults.Ok(new Response(instance, instanceData));
+        return TypedResults.Ok(new Response(instance, instanceData, null));
     }
 }

@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using oed_admin.Server.Infrastructure.Altinn;
 using oed_admin.Server.Infrastructure.Database.Oed;
 using oed_admin.Server.Infrastructure.DataMigration.Models.Oed;
 using oed_admin.Server.Infrastructure.Mapping;
+using oed_admin.Server.Infrastructure.OedModel;
 
 namespace oed_admin.Server.Features.Estate.MinimalSearch;
 
@@ -14,7 +14,7 @@ public static class Endpoint
     public static async Task<IResult> Post(
         [FromBody] Request request,
         [FromServices] OedDbContext dbContext,
-        [FromServices] IAltinnClient storageClient)
+        [FromServices] IOedModelSource oedModelSource)
     {
         if (!request.IsValid())
             return TypedResults.BadRequest();
@@ -38,22 +38,11 @@ public static class Endpoint
         if (!Guid.TryParse(parts[1], out var instanceGuid))
             return TypedResults.Ok(new Response());
 
-        var instance = await storageClient.GetInstance(
-            instanceOwnerPartyId,
-            instanceGuid);
+        // Row first, Storage only for an estate without one (Altinn/oed#1903).
+        var oedModel = await oedModelSource.Get(instanceOwnerPartyId, instanceGuid);
 
-        if (instance is null)
+        if (oedModel.Model is not { } instanceData)
             return TypedResults.Ok(new Response());
-
-        var dataId = instance.Data.FirstOrDefault()?.Id;
-
-        if (dataId is null)
-            return TypedResults.Ok(new Response());
-
-        if (!Guid.TryParse(dataId, out var dataGuid))
-            return TypedResults.Ok(new Response());
-
-        
 
         var dto = PoorMansMapper.Map<Infrastructure.Database.Oed.Model.Estate, MinimalEstateDto>(estate);
         var scheduled = (await dbContext.TaskQueue
@@ -68,15 +57,6 @@ public static class Endpoint
             .Scheduled;
 
         dto!.Scheduled = scheduled;
-
-        var instanceData = await storageClient
-            .GetInstanceData<Infrastructure.DataMigration.Models.Oed.OedInstanceData>(
-            instanceOwnerPartyId,
-            instanceGuid,
-            dataGuid);
-
-        if (instanceData is null)
-            return TypedResults.Ok(new Response(dto!));
 
         dto!.Heirs = instanceData.Heirs?.PeopleWithPowerOfAttorney()?
             .Select(x => new MinimalPerson(Birthdate: x.OfType<PersonHeir>().Birthday))

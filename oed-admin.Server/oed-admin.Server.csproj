@@ -38,6 +38,9 @@
     <PackageReference Include="Scalar.AspNetCore" Version="2.21.0" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="oed-admin.Server.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\oed-admin.client\oed-admin.client.esproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>

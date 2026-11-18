@@ -13,7 +13,6 @@ import {
 // import type { WhoAmIResponse } from "./types/IEstate";
 // import { useQuery } from "@tanstack/react-query";
 import { DoorOpenIcon } from "@navikt/aksel-icons";
-import DataMigration from "./components/dataMigration";
 import DeclarationPdfMigration from "./components/declarationPdfMigration";
 import EstateCount from "./components/estateCount";
 import {
@@ -145,10 +144,6 @@ export default function App() {
             <Route path="/restrictedSearch" element={<RestrictedHome />} />
             <Route index element={<Home />} />
             <Route path="/estate/:id" element={<EstateDetails />} />
-            <Route
-              path="/maintenance/datamigration"
-              element={<DataMigration />}
-            />
             <Route
               path="/maintenance/declarationpdfmigration"
               element={<DeclarationPdfMigration />}

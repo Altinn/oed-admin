@@ -38,5 +38,9 @@ public class EstateConfiguration : IEntityTypeConfiguration<Estate>
     {
         builder.ToTable("estate");
         builder.HasKey(estate => estate.Id);
+
+        // As the oed app's EstateConfiguration: one estate row per instance. oed-admin has no migrations, so this
+        // only shapes EnsureCreated in tests.
+        builder.HasIndex(estate => estate.InstanceId, "estate_instance_id_idx").IsUnique();
     }
 }

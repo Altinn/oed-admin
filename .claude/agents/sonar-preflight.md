@@ -23,7 +23,8 @@ Recent commits fixing exactly these: `Refactor ExecuteDataMigration to reduce co
 validation`.
 
 - **Cognitive complexity** (S3776, default threshold 15). The usual offenders are the background
-  service loop in `Infrastructure/DataMigration/InstanceToDbDataMigration.cs` and the branching in
+  service loops (`Infrastructure/EstateCount/EstateCountService.cs`,
+  `Infrastructure/DeclarationPdfMigration/`) and the branching in
   `Infrastructure/Auditing/AuditingLoggingMiddleware.cs`. Nested `try`/`if`/`await` inside a `while`
   adds up fast. Suggest extracting a named private method, not a comment.
 - **Nullable warnings.** The project has `<Nullable>enable</Nullable>`. Flag new `!` null-forgiving
