@@ -27,6 +27,7 @@ npm ci             # install from the lockfile
 npm run dev        # Vite on https://localhost:60475, proxies ^/api to the backend
 npm run build      # tsc -b && vite build
 npm run lint       # eslint .
+npm test           # vitest run (jsdom + Testing Library); CI runs it before publish
 ```
 
 The client needs `VITE_CLIENT_ID` (Entra ID app registration) and `VITE_ENVIRONMENT` at build/dev time; CI supplies both at `dotnet publish`.
@@ -78,6 +79,8 @@ Auth is Entra ID JWT bearer end to end: MSAL in the browser (`src/msal.ts`), val
 ### Reading OED_M
 
 An estate's OED_M is moving out of Storage into `oed.estate_model` (Altinn/oed#1884). Read it only through `IOedModelSource` (`Infrastructure/OedModel/`): the row when the estate has one, Storage only when it has none. Once a row exists, the Storage `oed` element is a frozen copy, so never read it directly. `EstateModel` is read-only (`OedDbContext.SaveChanges` throws on any change to it; `ExecuteUpdate`/raw SQL bypass that, so don't), and nothing here writes the `oed` element.
+
+The migration itself is driven only through oed's admin endpoints (Altinn/oed#1923): `IOedSystemAdminClient` phase and copy methods, exposed under `/api/maintenance/oedmodel` (admin only) and the «OED_M-migrering» page. These endpoints answer 200 with oed's own status in the body, never retry, and append the signed-in user (name and Entra oid) to the phase reason, because oed records only oed-admin's `client_id`. The contract tests use copies of oed's snapshots in `oed-admin.Server.Tests/TestData/OedModelAdmin/`.
 
 ### Data migration
 

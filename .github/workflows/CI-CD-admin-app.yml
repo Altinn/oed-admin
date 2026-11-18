@@ -48,6 +48,12 @@ jobs:
       - name: Run Tests
         run: dotnet test -c Release --no-build --verbosity normal
 
+      - name: Run client tests
+        working-directory: oed-admin.client
+        run: |
+          npm ci
+          npm test
+
       - name: Publish
         run: dotnet publish ./oed-admin.Server/oed-admin.Server.csproj --no-build -c Release -o ./publish
         env:

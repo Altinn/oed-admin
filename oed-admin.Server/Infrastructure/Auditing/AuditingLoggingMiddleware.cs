@@ -37,8 +37,10 @@ public class AuditingLoggingMiddleware(
             requestBody,
             context.Request.Path.ToString());
 
-        if (estateDetails is not { Length: > 0 } 
-            && context.Request is { Method: "POST", Body.Length: > 0 })
+        // Body.CanSeek first: only a JSON body was buffered by GetRequestBody. Kestrel's own request stream throws
+        // NotSupportedException on Length, which made a POST without a JSON body (the OED_M copy) a 500.
+        if (estateDetails is not { Length: > 0 }
+            && context.Request is { Method: "POST", Body.CanSeek: true, Body.Length: > 0 })
         {
             estateDetails = await CallNextAndTryGetEstatesFromResponse(context);
         }

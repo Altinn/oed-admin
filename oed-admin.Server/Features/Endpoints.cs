@@ -21,6 +21,12 @@ public static class Endpoints
         app.MapSuperadminEndpoints()
             .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
 
+        // The OED_M migration, driven through oed's admin endpoints (Altinn/oed#1923). Admin only, reads included:
+        // only admins get the page. The copy route carries an instance id, not an estateId, so the audit middleware
+        // records no estate for it; the instance id is in the logged path, and the endpoint logs it with the user.
+        app.MapOedModelEndpoints()
+            .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
+
         app.MapGet("/api/secrets", SecretExpiry.GetSecrets.Endpoint.Get)
             .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
 
@@ -131,6 +137,17 @@ public static class Endpoints
             group.MapPost("/estatecount", Maintenance.EstateCount.StartCount.Endpoint.Post);
             group.MapDelete("/estatecount", Maintenance.EstateCount.CancelCount.Endpoint.Delete);
             group.MapGet("/estatecount/progress", Maintenance.EstateCount.GetProgress.Endpoint.Get);
+
+            return group;
+        }
+
+        public RouteGroupBuilder MapOedModelEndpoints()
+        {
+            var group = app.MapGroup("/api/maintenance/oedmodel");
+
+            group.MapGet("/phase", Maintenance.OedModel.GetPhase.Endpoint.Get);
+            group.MapPut("/phase", Maintenance.OedModel.SetPhase.Endpoint.Put);
+            group.MapPost("/estates/{partyId:int}/{instanceGuid:guid}/copy", Maintenance.OedModel.CopyEstate.Endpoint.Post);
 
             return group;
         }

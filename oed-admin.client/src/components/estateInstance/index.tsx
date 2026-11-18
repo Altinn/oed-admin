@@ -1,13 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import Instance from "../instance";
-import { Heading, Skeleton, ValidationMessage } from "@digdir/designsystemet-react";
+import { Heading, Link as DsLink, Paragraph, Skeleton, ValidationMessage } from "@digdir/designsystemet-react";
+import { Link } from "react-router-dom";
 import { fetchWithMsal } from "../../utils/msalUtils";
 
 interface Props {
   estateId: string;
+  instanceId?: string | null;
 }
 
-export default function EstateInstance({ estateId }: Props) {
+export default function EstateInstance({ estateId, instanceId }: Props) {
     const { data, isLoading, error } = useQuery({
     queryKey: ["instance", estateId],
     queryFn: async () => {
@@ -28,6 +30,15 @@ export default function EstateInstance({ estateId }: Props) {
       >
         Oed instans
       </Heading>
+      {instanceId && (
+        <Paragraph data-size="sm">
+          <DsLink asChild>
+            <Link to={`/maintenance/oedmodel?instanceId=${encodeURIComponent(instanceId)}`}>
+              Kopier OED_M for denne instansen til databasen …
+            </Link>
+          </DsLink>
+        </Paragraph>
+      )}
       {isLoading && 
         <Skeleton variant="rectangle" aria-label="Henter instans" />
       }

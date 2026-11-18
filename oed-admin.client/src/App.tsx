@@ -15,6 +15,7 @@ import {
 import { DoorOpenIcon } from "@navikt/aksel-icons";
 import DeclarationPdfMigration from "./components/declarationPdfMigration";
 import EstateCount from "./components/estateCount";
+import OedModelMigration from "./components/oedModelMigration";
 import {
   AuthenticatedTemplate,
   MsalAuthenticationTemplate,
@@ -123,6 +124,11 @@ export default function App() {
                         Telling av dødsbo
                       </Dropdown.Button>
                     </Dropdown.Item>
+                    <Dropdown.Item>
+                      <Dropdown.Button onClick={() => navigate("/maintenance/oedmodel")}>
+                        OED_M-migrering
+                      </Dropdown.Button>
+                    </Dropdown.Item>
                   </Dropdown.List>
                 </>
               )}
@@ -151,6 +157,10 @@ export default function App() {
             <Route
               path="/maintenance/estatecount"
               element={<EstateCount />}
+            />
+            <Route
+              path="/maintenance/oedmodel"
+              element={<OedModelMigration />}
             />
             <Route path="*" element={<NotFound />} />
           </Route>

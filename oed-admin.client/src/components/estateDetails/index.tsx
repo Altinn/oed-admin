@@ -190,7 +190,7 @@ export default function EstateDetails() {
           {tabs.isVisited("authzroles") && <EstateSearchRoles estateId={id} />}
         </Tabs.Panel>
         <Tabs.Panel value="instance">
-          {tabs.isVisited("instance") && <EstateInstance estateId={id} />}
+          {tabs.isVisited("instance") && <EstateInstance estateId={id} instanceId={data?.estate.instanceId} />}
         </Tabs.Panel>
         <Tabs.Panel value="signeestatus">
           {tabs.isVisited("signeestatus") && <EstateSigneeStatus estateId={id} />}

@@ -7,7 +7,7 @@ namespace oed_admin.Server.Infrastructure.Altinn;
 /// Client for the oed app's admin API (Maskinporten scope digdir:dd:systemadmin).
 /// See the consumer guide in the oed repo: docs/migrate-declaration-consumer-guide.md
 /// </summary>
-public interface IOedSystemAdminClient
+public partial interface IOedSystemAdminClient
 {
     Task<MigrateDeclarationPdfResult> MigrateDeclarationPdf(
         Guid estateId,
@@ -20,7 +20,7 @@ public interface IOedSystemAdminClient
 /// <param name="Reason">The ProblemDetails "reason" extension member, or "StorageError" for a transport failure.</param>
 public record MigrateDeclarationPdfResult(int HttpStatus, string? Outcome, string? Reason, string? Detail);
 
-public class OedSystemAdminClient(HttpClient httpClient, ILogger<OedSystemAdminClient> logger) : IOedSystemAdminClient
+public partial class OedSystemAdminClient(HttpClient httpClient, ILogger<OedSystemAdminClient> logger) : IOedSystemAdminClient
 {
     private const string MigrateDeclarationPdfPath = $"/{AppIds.Oed}/api/admin/migrate-declaration";
 
