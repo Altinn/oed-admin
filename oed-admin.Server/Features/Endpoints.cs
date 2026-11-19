@@ -70,8 +70,10 @@ public static class Endpoints
             .RequireAuthorization(AuthorizationPolicies.RequireAdminRole);
 
         // Aggregated QA dashboard data (read from the oedqa "reports" blob container), rendered
-        // natively by the React client. Auth intentionally not enforced.
-        app.MapGet("/api/qa", QaDashboard.Endpoint.Get);
+        // natively by the React client. Requires sign-in: the data includes SonarQube security
+        // hotspots with file and line, and App Service authentication no longer gates the app.
+        app.MapGet("/api/qa", QaDashboard.Endpoint.Get)
+            .RequireAuthorization(AuthorizationPolicies.AtLeastReadRole);
     }
 
     extension(WebApplication app)
