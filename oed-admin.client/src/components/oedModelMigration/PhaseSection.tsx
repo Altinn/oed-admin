@@ -22,6 +22,8 @@ import {
   type PhaseResult,
 } from "./api";
 import { describePhaseRefusal, phaseConsequences } from "./texts";
+import LatestVerify from "./LatestVerify";
+import { useFocusOnMount } from "./useFocusOnMount";
 
 const maxReasonLength = 500;
 
@@ -42,11 +44,12 @@ function PhaseProblem({ result }: { result: PhaseResult }) {
   );
 }
 
-export default function PhaseSection() {
+export default function PhaseSection({ onShowRun }: { onShowRun?: (runId: string) => void }) {
   const queryClient = useQueryClient();
   const [target, setTarget] = React.useState<Phase | "">("");
   const [reason, setReason] = React.useState("");
   const [confirming, setConfirming] = React.useState(false);
+  const focusOnMount = useFocusOnMount();
 
   const { data, isLoading, error } = useQuery({
     queryKey: phaseQueryKey,
@@ -117,6 +120,7 @@ export default function PhaseSection() {
             Den lagrede fasen gjelder. Hver oed-pod leser den på nytt hvert femte sekund, så andre
             pods følger etter innen omtrent 5 sekunder.
           </Paragraph>
+          <LatestVerify onShowRun={onShowRun} />
         </>
       )}
 
@@ -167,7 +171,7 @@ export default function PhaseSection() {
           <Paragraph data-testid="phase-consequence">{phaseConsequences[target]}</Paragraph>
           <Paragraph>Begrunnelse: {trimmedReason}</Paragraph>
           <div style={{ display: "flex", gap: "var(--ds-size-2)" }}>
-            <Button data-color="danger" onClick={confirm}>
+            <Button ref={focusOnMount} data-color="danger" onClick={confirm}>
               Ja, sett fasen til {target}
             </Button>
             <Button variant="secondary" onClick={() => setConfirming(false)}>

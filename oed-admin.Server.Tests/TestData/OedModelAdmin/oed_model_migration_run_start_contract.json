@@ -1,0 +1,26 @@
+{
+  "id": "11111111-1111-1111-1111-111111111111",
+  "mode": "Sweep",
+  "status": "Queued",
+  "requestedBy": "oed-admin-client",
+  "cancelRequestedBy": null,
+  "continuesRunId": null,
+  "created": "2026-11-17T10:00:00\u002B02:00",
+  "started": null,
+  "finished": null,
+  "heartbeat": null,
+  "parameters": {
+    "limit": 500,
+    "ratePerSecond": 2,
+    "maxParallelism": 2,
+    "sampleSize": null
+  },
+  "progress": {
+    "listed": 0,
+    "processed": 0,
+    "toProcess": 0
+  },
+  "failureReason": null,
+  "ready": null,
+  "report": null
+}

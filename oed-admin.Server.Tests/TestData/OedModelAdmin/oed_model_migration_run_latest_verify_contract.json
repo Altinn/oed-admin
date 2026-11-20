@@ -1,0 +1,49 @@
+{
+  "id": "11111111-1111-1111-1111-111111111111",
+  "mode": "Verify",
+  "status": "Completed",
+  "requestedBy": "oed-admin-client",
+  "cancelRequestedBy": null,
+  "continuesRunId": null,
+  "created": "2026-11-17T10:00:00\u002B02:00",
+  "started": "2026-11-17T10:00:05\u002B02:00",
+  "finished": "2026-11-17T10:30:00\u002B02:00",
+  "heartbeat": "2026-11-17T10:29:55\u002B02:00",
+  "parameters": {
+    "limit": null,
+    "ratePerSecond": 2,
+    "maxParallelism": 2,
+    "sampleSize": 200
+  },
+  "progress": {
+    "listed": 1200,
+    "processed": 1200,
+    "toProcess": 1200
+  },
+  "failureReason": null,
+  "ready": false,
+  "report": {
+    "outcomes": {
+      "Ok": 1180,
+      "Missing": 15,
+      "Broken": 0,
+      "Mismatch": 0,
+      "SampleMismatch": 1,
+      "NotLive": 4
+    },
+    "failuresByReason": {
+      "RoundTrip": 3,
+      "NoDeceasedInfo": 0,
+      "NulCharacter": 0,
+      "NoCreated": 0,
+      "StorageError": 0
+    },
+    "duplicateOwnerCount": 1,
+    "duplicateOwnerPartyIds": [
+      512345
+    ],
+    "databaseCreatedRows": 2,
+    "sampled": 200,
+    "ready": false
+  }
+}

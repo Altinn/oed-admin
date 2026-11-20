@@ -11,8 +11,9 @@ import {
   ValidationMessage,
 } from "@digdir/designsystemet-react";
 import { formatDateTime } from "../../utils/formatters";
-import { copyEstate, parseInstanceId, type CopyResult } from "./api";
+import { copyEstate, copyMutationKey, parseInstanceId, type CopyResult } from "./api";
 import { describeCopy } from "./texts";
+import { useFocusOnMount } from "./useFocusOnMount";
 
 interface Props {
   initialInstanceId?: string;
@@ -120,10 +121,12 @@ function CopyAnswer({ instanceId, result }: { instanceId: string; result: CopyRe
 export default function CopySection({ initialInstanceId = "" }: Props) {
   const [instanceId, setInstanceId] = React.useState(initialInstanceId);
   const [confirming, setConfirming] = React.useState(false);
+  const focusOnMount = useFocusOnMount();
   const [retryWindow, setRetryWindow] = React.useState<RetryWindow | null>(null);
   const parsed = parseInstanceId(instanceId);
 
   const mutation = useMutation({
+    mutationKey: copyMutationKey,
     mutationFn: ({ partyId, instanceGuid }: { partyId: number; instanceGuid: string; label: string }) =>
       copyEstate(partyId, instanceGuid),
     // No automatic retry. After a 503 the person may ask again (below), once Retry-After has passed.
@@ -197,7 +200,7 @@ export default function CopySection({ initialInstanceId = "" }: Props) {
             i et miljø gjelder regel 5: deploy aldri et oed-bygg eldre enn #1904 dit.
           </Paragraph>
           <div style={{ display: "flex", gap: "var(--ds-size-2)" }}>
-            <Button data-color="danger" onClick={send}>
+            <Button ref={focusOnMount} data-color="danger" onClick={send}>
               Ja, kopier
             </Button>
             <Button variant="secondary" onClick={() => setConfirming(false)}>

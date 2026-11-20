@@ -16,18 +16,22 @@ using oed_admin.Server.Infrastructure.Altinn;
 using oed_admin.Server.Infrastructure.Auditing;
 using oed_admin.Server.Infrastructure.Auditing.Loggers;
 using oed_admin.Server.Infrastructure.Authz;
+using oed_admin.Server.Infrastructure.Database.Oed;
 
 namespace oed_admin.Server.Tests.OedModelAdmin;
 
 /// <summary>
 /// The OED_M admin endpoints through the real pipeline on Kestrel (<c>UseAuditLogging</c>, <c>MapFeatureEndpoints</c>, the policies
-/// from <c>AddAuth</c>), with a test sign-in instead of Entra ID and a fake oed (Altinn/oed#1923 §6).
+/// from <c>AddAuth</c>), with a test sign-in instead of Entra ID, a fake oed, and a real Postgres for the run items'
+/// estate lookup (Altinn/oed#1923 §6).
 /// </summary>
-public sealed class OedModelEndpointTests : IAsyncLifetime
+[Collection(PostgresCollection.Name)]
+public sealed class OedModelEndpointTests(PostgresFixture fixture) : IAsyncLifetime
 {
     private const string UserName = "Ola Nordmann";
     private const string UserObjectId = "0b5e2b8c-1111-2222-3333-444455556666";
     private const string InstanceGuid = "55555555-5555-5555-5555-555555555555";
+    private const string RunId = "11111111-1111-1111-1111-111111111111";
 
     private readonly FakeOedSystemAdminClient _oed = new();
     private readonly CapturingLoggerProvider _logs = new();
@@ -53,6 +57,7 @@ public sealed class OedModelEndpointTests : IAsyncLifetime
             .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, _ => { });
         builder.Services.AddSingleton<IOedSystemAdminClient>(_oed);
         builder.Services.AddSingleton<IAuditLogger>(_audit);
+        builder.Services.AddOedDatabase(fixture.ConnectionString);
 
         // As Program.cs: the audit middleware wraps every endpoint.
         _app = builder.Build();
@@ -76,10 +81,20 @@ public sealed class OedModelEndpointTests : IAsyncLifetime
         "GET phase" => client.GetAsync("/api/maintenance/oedmodel/phase"),
         "PUT phase" => client.PutAsJsonAsync("/api/maintenance/oedmodel/phase", new { phase = "Storage", reason = "pause" }),
         "POST copy" => client.PostAsync($"/api/maintenance/oedmodel/estates/512345/{InstanceGuid}/copy", null),
+        "POST run" => client.PostAsJsonAsync("/api/maintenance/oedmodel/runs", new { mode = "verify" }),
+        "GET active run" => client.GetAsync("/api/maintenance/oedmodel/runs/active"),
+        "GET latest verify" => client.GetAsync("/api/maintenance/oedmodel/runs/latest-verify"),
+        "GET run" => client.GetAsync($"/api/maintenance/oedmodel/runs/{RunId}"),
+        "GET run items" => client.GetAsync($"/api/maintenance/oedmodel/runs/{RunId}/items?outcome=Failed"),
+        "POST run cancel" => client.PostAsync($"/api/maintenance/oedmodel/runs/{RunId}/cancel", null),
         _ => throw new ArgumentOutOfRangeException(nameof(route)),
     };
 
-    public static TheoryData<string> Routes => ["GET phase", "PUT phase", "POST copy"];
+    public static TheoryData<string> Routes =>
+    [
+        "GET phase", "PUT phase", "POST copy",
+        "POST run", "GET active run", "GET latest verify", "GET run", "GET run items", "POST run cancel",
+    ];
 
     [Theory]
     [MemberData(nameof(Routes))]
@@ -227,6 +242,123 @@ public sealed class OedModelEndpointTests : IAsyncLifetime
         Assert.Equal(1, _oed.Calls);
     }
 
+
+    [Fact]
+    public async Task StartRun_PutsTheUserInTheLog_AndSendsTheParameters()
+    {
+        var response = await Client("Admin").PostAsJsonAsync(
+            "/api/maintenance/oedmodel/runs", new { mode = "sweep", limit = 20, ratePerSecond = 1.5 });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(new OedModelMigrationRunStart("sweep", 20, 1.5, null, null), _oed.LastStart);
+        var log = Assert.Single(_logs.Messages, m => m.Contains("OED_M sweep run requested"));
+        Assert.Contains(UserName, log);
+        Assert.Contains(UserObjectId, log);
+        Assert.Contains("limit 20", log);
+        Assert.Contains(RunId, log);
+        var record = Assert.Single(_audit.Records);
+        Assert.Contains("\"sweep\"", record.Request.Body);
+    }
+
+    [Fact]
+    public async Task CancelRun_PutsTheUserAndTheRunInTheLog()
+    {
+        var response = await Client("Admin").PostAsync($"/api/maintenance/oedmodel/runs/{RunId}/cancel", null);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(Guid.Parse(RunId), _oed.LastCancel);
+        var log = Assert.Single(_logs.Messages, m => m.Contains("cancel requested"));
+        Assert.Contains(UserName, log);
+        Assert.Contains(UserObjectId, log);
+        Assert.Contains(RunId, log);
+    }
+
+    [Theory]
+    [InlineData("POST run")]
+    [InlineData("POST run cancel")]
+    public async Task RunStateChanges_AreNotCancelledWithTheRequest(string route)
+    {
+        await Send(Client("Admin"), route);
+
+        Assert.False(_oed.LastToken.CanBeCanceled);
+    }
+
+    public static TheoryData<string> InvalidStarts =>
+    [
+        """{"mode":"Sweep"}""",
+        """{"mode":"nope"}""",
+        """{"mode":"verify","limit":5}""",
+        """{"mode":"sweep","limit":0}""",
+        """{"mode":"sweep","sampleSize":10}""",
+        """{"mode":"verify","sampleSize":10001}""",
+        """{"mode":"sweep","ratePerSecond":0}""",
+        """{"mode":"sweep","ratePerSecond":10.5}""",
+        """{"mode":"sweep","maxParallelism":11}""",
+    ];
+
+    [Theory]
+    [MemberData(nameof(InvalidStarts))]
+    public async Task StartRun_InvalidRequest_IsRefusedBeforeOed(string body)
+    {
+        var response = await Client("Admin").PostAsync(
+            "/api/maintenance/oedmodel/runs", new StringContent(body, System.Text.Encoding.UTF8, "application/json"));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(0, _oed.Calls);
+    }
+
+    [Theory]
+    [InlineData("outcome=Nope")]
+    [InlineData("page=0")]
+    [InlineData("pageSize=501")]
+    public async Task RunItems_InvalidQuery_IsRefusedBeforeOed(string query)
+    {
+        var response = await Client("Admin").GetAsync($"/api/maintenance/oedmodel/runs/{RunId}/items?{query}");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(0, _oed.Calls);
+    }
+
+    [Fact]
+    public async Task StartRun_409_HandsBackTheActiveRun()
+    {
+        var active = Guid.NewGuid();
+        _oed.RunAnswer = new OedModelMigrationRunResult(
+            409, null, new OedAdminProblem("A run is already active", "Wait for it, or cancel it.", null), active);
+
+        var response = await Client("Admin").PostAsJsonAsync("/api/maintenance/oedmodel/runs", new { mode = "verify" });
+
+        var body = JsonNode.Parse(await response.Content.ReadAsStringAsync())!;
+        Assert.Equal(409, body["status"]!.GetValue<int>());
+        Assert.Equal(active, body["activeRunId"]!.GetValue<Guid>());
+        Assert.Equal("Wait for it, or cancel it.", body["problem"]!["detail"]!.GetValue<string>());
+        Assert.Equal(1, _oed.Calls);
+    }
+
+    [Fact]
+    public async Task RunItems_LinkEachItemToItsEstate_WhenOneExists()
+    {
+        var known = Guid.NewGuid();
+        var unknown = Guid.NewGuid();
+        var estateId = await fixture.InsertEstate(known, 512346);
+        _oed.ItemsAnswer = new OedModelMigrationRunItemsResult(200, new OedModelMigrationRunItems(
+            [Item(known, 512346), Item(unknown, 512347)], 1, 100, 2), null);
+
+        var response = await Client("Admin").GetAsync($"/api/maintenance/oedmodel/runs/{RunId}/items?outcome=Failed&page=1");
+
+        var body = JsonNode.Parse(await response.Content.ReadAsStringAsync())!;
+        Assert.Equal(200, body["status"]!.GetValue<int>());
+        Assert.Equal(2, body["total"]!.GetValue<int>());
+        var items = body["items"]!.AsArray();
+        Assert.Equal(estateId, items[0]!["estateId"]!.GetValue<Guid>());
+        Assert.Equal(known, items[0]!["run"]!["instanceGuid"]!.GetValue<Guid>());
+        Assert.Null(items[1]!["estateId"]);
+        Assert.Equal(("Failed", 1, 100), _oed.LastItemsQuery);
+    }
+
+    private static OedModelMigrationRunItem Item(Guid instanceGuid, int partyId) =>
+        new(instanceGuid, partyId, "Failed", "RoundTrip", "oed/Heirs", [], null, 1, DateTimeOffset.UnixEpoch);
+
     private sealed class FakeOedSystemAdminClient : IOedSystemAdminClient
     {
         private int _calls;
@@ -266,6 +398,62 @@ public sealed class OedModelEndpointTests : IAsyncLifetime
             LastCopy = (partyId, instanceGuid);
             LastToken = cancellationToken;
             return Task.FromResult(CopyAnswer);
+        }
+
+        public OedModelMigrationRunStart? LastStart { get; private set; }
+        public Guid? LastCancel { get; private set; }
+        public (string? Outcome, int Page, int PageSize)? LastItemsQuery { get; private set; }
+
+        public OedModelMigrationRunResult RunAnswer { get; set; } = new(
+            200,
+            new OedModelMigrationRun(
+                Guid.Parse(RunId), "Verify", "Running", "oed-admin-client", null, null, DateTimeOffset.UnixEpoch, null, null, null,
+                new OedModelMigrationRunParameters(null, 2, 2, 200), new OedModelMigrationRunProgress(0, 0, 0), null, null, null),
+            null,
+            null);
+
+        public OedModelMigrationRunItemsResult ItemsAnswer { get; set; } = new(200, new OedModelMigrationRunItems([], 1, 100, 0), null);
+
+        public Task<OedModelMigrationRunResult> StartMigrationRun(OedModelMigrationRunStart start, CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref _calls);
+            LastStart = start;
+            LastToken = cancellationToken;
+            return Task.FromResult(RunAnswer);
+        }
+
+        public Task<OedModelMigrationRunResult> GetMigrationRun(Guid runId, CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref _calls);
+            return Task.FromResult(RunAnswer);
+        }
+
+        public Task<OedModelMigrationRunResult> GetActiveMigrationRun(CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref _calls);
+            return Task.FromResult(RunAnswer);
+        }
+
+        public Task<OedModelMigrationRunResult> GetLatestVerifyRun(CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref _calls);
+            return Task.FromResult(RunAnswer);
+        }
+
+        public Task<OedModelMigrationRunResult> CancelMigrationRun(Guid runId, CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref _calls);
+            LastCancel = runId;
+            LastToken = cancellationToken;
+            return Task.FromResult(RunAnswer);
+        }
+
+        public Task<OedModelMigrationRunItemsResult> GetMigrationRunItems(
+            Guid runId, string? outcome, int page, int pageSize, CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref _calls);
+            LastItemsQuery = (outcome, page, pageSize);
+            return Task.FromResult(ItemsAnswer);
         }
     }
 

@@ -1,4 +1,4 @@
-import type { CopyResult, Phase } from "./api";
+import type { CopyResult, Phase, RunStart } from "./api";
 
 /** What setting each phase does, shown before the person confirms (Altinn/oed#1923 §4.1). */
 export const phaseConsequences: Record<Phase, string> = {
@@ -99,6 +99,52 @@ export const describePhaseRefusal = (status: number): string => {
     case 200:
       // 200 without a phase oed-admin could read: oed changed its answer, or sent something else.
       return "Uventet svar fra oed: svaret manglet fasen.";
+    default:
+      return `Uventet svar fra oed (${status}).`;
+  }
+};
+
+/** What starting a run does, shown before the person confirms (Altinn/oed#1923 §4.3). */
+export const runConsequence = (start: RunStart): string => {
+  const rate = start.ratePerSecond ?? 2;
+  if (start.mode === "verify") {
+    return `En verify leser alle oed-instansene i Storage og sammenligner dem med radene i databasen. Den skriver ingen dødsbo-rader. ${start.sampleSize ?? 200} rader sammenlignes byte for byte, med to Storage-kall hver, ${rate} per sekund.`;
+  }
+  const limit = start.limit ? `, høyst ${start.limit} dødsbo` : ", uten øvre grense";
+  return `En sweep kopierer hvert levende dødsbo uten rad til databasen, ${rate} per sekund${limit}. Fra og med første kopi gjelder regel 5: deploy aldri et oed-bygg eldre enn #1904 til dette miljøet, heller ikke med redeploy i Studio. Start den bare når oed-testdata-app har #1924 ute i miljøet.`;
+};
+
+export const runStatusColor = (status: string): Severity | "neutral" => {
+  switch (status) {
+    case "Completed":
+      return "success";
+    case "Queued":
+    case "Running":
+      return "info";
+    case "Failed":
+      return "danger";
+    case "Abandoned":
+    case "Cancelled":
+      return "warning";
+    default:
+      return "neutral";
+  }
+};
+
+/** What a run answer that isn't a success means. A 409's detail is oed's reason and is shown as is. */
+export const describeRunProblem = (status: number): string => {
+  switch (status) {
+    case 0:
+      return "Fikk ikke svar fra oed.";
+    case 400:
+      return "oed avviste forespørselen (400).";
+    case 401:
+    case 403:
+      return forbiddenMessage;
+    case 404:
+      return "oed fant ikke kjøringen.";
+    case 409:
+      return "oed nektet:";
     default:
       return `Uventet svar fra oed (${status}).`;
   }

@@ -46,14 +46,27 @@ const json = (body: unknown) => new Response(JSON.stringify(body), { status: 200
 /** oed-admin itself failing, as opposed to a body carrying oed's status. */
 const failure = (status: number) => ({ failWith: status });
 
+const noRun = { status: 404, run: null, problem: { title: "No run is active", detail: null, errors: null }, activeRunId: null };
+
+/** Fixed answers to GETs, by URL fragment: the runs the page reads on its own. Reset before each test. */
+let gets: Record<string, unknown> = {};
+
 /**
- * Answers GET phase with `phase`, and every other call from `answers` in order. A `failure(...)` answers with that HTTP
- * status from oed-admin; when the answers run out, the call is a network error.
+ * Answers GET phase with `phase`, the GETs in `gets` from there, and every other call from `answers` in order. A
+ * `failure(...)` answers with that HTTP status from oed-admin; when the answers run out, the call is a network error.
  */
 const serve = (phase: PhaseResult, ...answers: unknown[]) => {
   const queue = [...answers];
   fetchMock.mockImplementation(async (input, init) => {
-    if (String(input).endsWith("/phase") && (init?.method ?? "GET") === "GET") return json(phase);
+    const url = String(input);
+    const method = init?.method ?? "GET";
+    if (url.endsWith("/phase") && method === "GET") return json(phase);
+    if (method === "GET") {
+      const key = Object.keys(gets)
+        .sort((a, b) => b.length - a.length)
+        .find((fragment) => url.includes(fragment));
+      if (key) return json(gets[key]);
+    }
     const next = queue.shift();
     if (next === undefined) throw new TypeError("Failed to fetch");
     if (typeof next === "object" && next !== null && "failWith" in next) {
@@ -80,6 +93,7 @@ const renderPage = (path = "/maintenance/oedmodel") =>
 
 beforeEach(() => {
   fetchMock.mockReset();
+  gets = { "/runs/active": noRun, "/runs/latest-verify": { ...noRun, problem: { title: "No verify run has finished", detail: null, errors: null } } };
 });
 
 describe("phase", () => {
@@ -110,6 +124,8 @@ describe("phase", () => {
     const dialog = screen.getByRole("alertdialog");
     expect(within(dialog).getByTestId("phase-consequence")).toHaveTextContent(consequence);
     expect(calls("PUT")).toHaveLength(0);
+    // Keyboard and screen-reader users are taken to the confirmation.
+    expect(within(dialog).getByRole("button", { name: `Ja, sett fasen til ${phase}` })).toHaveFocus();
 
     await user.click(within(dialog).getByRole("button", { name: `Ja, sett fasen til ${phase}` }));
 
@@ -212,6 +228,8 @@ describe("copy one estate", () => {
     expect(screen.getByRole("textbox", { name: /Instans-id/ })).toHaveValue(`512345/${instanceGuid}`);
     await user.click(screen.getByRole("button", { name: /Kopier/ }));
     expect(calls("POST")).toHaveLength(0);
+    // Keyboard and screen-reader users are taken to the confirmation.
+    expect(within(screen.getByRole("alertdialog")).getByRole("button", { name: "Ja, kopier" })).toHaveFocus();
 
     await user.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: "Ja, kopier" }));
     await screen.findByTestId("copy-verdict");

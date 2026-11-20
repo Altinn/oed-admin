@@ -151,6 +151,15 @@ public static class Endpoints
             group.MapPut("/phase", Maintenance.OedModel.SetPhase.Endpoint.Put);
             group.MapPost("/estates/{partyId:int}/{instanceGuid:guid}/copy", Maintenance.OedModel.CopyEstate.Endpoint.Post);
 
+            // Sweep and verify runs (Altinn/oed#1902). No route carries an estateId: a run spans every estate, and the
+            // items endpoint returns estate ids only as links. The audit log records the path and the user.
+            group.MapPost("/runs", Maintenance.OedModel.Runs.StartRun.Endpoint.Post);
+            group.MapGet("/runs/active", Maintenance.OedModel.Runs.GetActiveRun.Endpoint.Get);
+            group.MapGet("/runs/latest-verify", Maintenance.OedModel.Runs.GetLatestVerifyRun.Endpoint.Get);
+            group.MapGet("/runs/{runId:guid}", Maintenance.OedModel.Runs.GetRun.Endpoint.Get);
+            group.MapGet("/runs/{runId:guid}/items", Maintenance.OedModel.Runs.GetRunItems.Endpoint.Get);
+            group.MapPost("/runs/{runId:guid}/cancel", Maintenance.OedModel.Runs.CancelRun.Endpoint.Post);
+
             return group;
         }
 

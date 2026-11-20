@@ -41,6 +41,9 @@ public sealed class PostgresFixture : IAsyncLifetime
 
     public OedDbContext CreateDbContext() => new(Options());
 
+    /// <summary>For a test host that registers <c>OedDbContext</c> itself, as <c>Program.cs</c> does.</summary>
+    public string ConnectionString => _container.GetConnectionString();
+
     private DbContextOptions<OedDbContext> Options() =>
         new DbContextOptionsBuilder<OedDbContext>()
             .UseNpgsql(_container.GetConnectionString())

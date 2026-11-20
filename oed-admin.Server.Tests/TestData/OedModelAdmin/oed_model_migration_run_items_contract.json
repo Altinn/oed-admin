@@ -1,0 +1,31 @@
+{
+  "items": [
+    {
+      "instanceGuid": "22222222-2222-2222-2222-222222222222",
+      "instanceOwnerPartyId": 512345,
+      "outcome": "Copied",
+      "failure": null,
+      "reason": null,
+      "droppedElements": [
+        "oed/Heirs/HeirInfo/Obsolete"
+      ],
+      "storageLastChanged": "2026-06-07T08:09:10\u002B02:00",
+      "attempts": 1,
+      "updated": "2026-11-17T10:05:00\u002B02:00"
+    },
+    {
+      "instanceGuid": "33333333-3333-3333-3333-333333333333",
+      "instanceOwnerPartyId": 501337,
+      "outcome": "Failed",
+      "failure": "RoundTrip",
+      "reason": "oed/Heirs/HeirInfo[1]/Name",
+      "droppedElements": [],
+      "storageLastChanged": null,
+      "attempts": 2,
+      "updated": "2026-11-17T10:06:00\u002B02:00"
+    }
+  ],
+  "page": 1,
+  "pageSize": 100,
+  "total": 2
+}

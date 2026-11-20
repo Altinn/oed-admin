@@ -86,3 +86,150 @@ export const parseInstanceId = (
   const partyId = Number(match[1]);
   return partyId > 0 ? { partyId, instanceGuid: match[2].toLowerCase() } : null;
 };
+
+// --- Sweep and verify runs (Altinn/oed#1902, #1923 §4.3) ---
+
+export type RunMode = "sweep" | "verify";
+
+export interface RunParameters {
+  limit: number | null;
+  ratePerSecond: number;
+  maxParallelism: number;
+  sampleSize: number | null;
+}
+
+export interface RunReport {
+  outcomes: Record<string, number>;
+  failuresByReason: Record<string, number>;
+  duplicateOwnerCount: number;
+  duplicateOwnerPartyIds: number[];
+  databaseCreatedRows: number;
+  sampled: number;
+  ready: boolean | null;
+}
+
+export interface MigrationRun {
+  id: string;
+  /** "Sweep" or "Verify". */
+  mode: string;
+  /** Queued, Running, Completed, Cancelled, Failed or Abandoned. */
+  status: string;
+  requestedBy: string;
+  cancelRequestedBy: string | null;
+  continuesRunId: string | null;
+  created: string;
+  started: string | null;
+  finished: string | null;
+  heartbeat: string | null;
+  parameters: RunParameters;
+  progress: { listed: number; processed: number; toProcess: number };
+  failureReason: string | null;
+  ready: boolean | null;
+  report: RunReport | null;
+}
+
+export interface RunResult {
+  status: number;
+  run: MigrationRun | null;
+  problem: OedAdminProblem | null;
+  activeRunId: string | null;
+}
+
+export interface RunItem {
+  run: {
+    instanceGuid: string;
+    instanceOwnerPartyId: number;
+    outcome: string | null;
+    failure: string | null;
+    reason: string | null;
+    droppedElements: string[];
+    storageLastChanged: string | null;
+    attempts: number;
+    updated: string;
+  };
+  estateId: string | null;
+}
+
+export interface RunItemsResult {
+  status: number;
+  items: RunItem[] | null;
+  page: number | null;
+  pageSize: number | null;
+  total: number | null;
+  problem: OedAdminProblem | null;
+}
+
+export interface RunStart {
+  mode: RunMode;
+  limit: number | null;
+  ratePerSecond: number | null;
+  maxParallelism: number | null;
+  sampleSize: number | null;
+}
+
+/** How often an active run is read again. oed's worker writes progress every 15 s. */
+export const runPollMs = 15_000;
+
+export const isActiveStatus = (status: string | undefined) => status === "Queued" || status === "Running";
+
+export const runQueryKeys = {
+  active: ["oedmodel", "runs", "active"] as const,
+  latestVerify: ["oedmodel", "runs", "latest-verify"] as const,
+  run: (runId: string) => ["oedmodel", "runs", runId] as const,
+  allItems: (runId: string) => ["oedmodel", "runs", runId, "items"] as const,
+  items: (runId: string, outcome: string, page: number) => ["oedmodel", "runs", runId, "items", outcome, page] as const,
+};
+
+/** The copy mutation's key, so a run's items can tell when a copy is in flight. */
+export const copyMutationKey = ["oedmodel", "copy"] as const;
+
+/** oed took the start or cancel: any 2xx that carries the run (oed answers 202 today). */
+export const isAccepted = (result: RunResult) => result.status >= 200 && result.status < 300 && result.run !== null;
+
+/** oed was unreachable or failed (0 or 5xx), as opposed to answering. */
+export const isOedUnavailable = (status: number) => status === 0 || status >= 500;
+
+/**
+ * For a polled GET: throws when oed was unavailable, so TanStack keeps the last good answer and polls again, instead
+ * of replacing a running run with an empty result and stopping. Never used for a start or cancel.
+ */
+export const throwIfUnavailable = (result: RunResult, describe: (status: number) => string): RunResult => {
+  if (isOedUnavailable(result.status)) throw new Error(describe(result.status));
+  return result;
+};
+
+export const getActiveRun = async (): Promise<RunResult> =>
+  readJson<RunResult>(await fetchWithMsal(`${baseUrl}/runs/active`));
+
+export const getLatestVerifyRun = async (): Promise<RunResult> =>
+  readJson<RunResult>(await fetchWithMsal(`${baseUrl}/runs/latest-verify`));
+
+export const getRun = async (runId: string): Promise<RunResult> =>
+  readJson<RunResult>(await fetchWithMsal(`${baseUrl}/runs/${runId}`));
+
+export const startRun = async (start: RunStart): Promise<RunResult> =>
+  readJson<RunResult>(
+    await fetchWithMsal(`${baseUrl}/runs`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(start),
+    }),
+  );
+
+export const cancelRun = async (runId: string): Promise<RunResult> =>
+  readJson<RunResult>(await fetchWithMsal(`${baseUrl}/runs/${runId}/cancel`, { method: "POST" }));
+
+export const runItemsPageSize = 100;
+
+export const getRunItems = async (runId: string, outcome: string, page: number): Promise<RunItemsResult> => {
+  // Leave outcome out rather than send it empty: oed refuses `outcome=`.
+  const query = new URLSearchParams({ page: String(page), pageSize: String(runItemsPageSize) });
+  if (outcome) query.set("outcome", outcome);
+  return readJson<RunItemsResult>(await fetchWithMsal(`${baseUrl}/runs/${runId}/items?${query}`));
+};
+
+/** The outcome names of each mode, as oed's report lists them (docs/oed-model-migration.md §5.4–5.5). */
+export const runOutcomes: Record<string, string[]> = {
+  Sweep: ["Copied", "AlreadyMigrated", "SkippedSoftDeleted", "NoOedElement", "InstanceNotFound", "NotAllowed", "Failed", "Busy"],
+  Verify: ["Ok", "Missing", "Broken", "Mismatch", "SampleMismatch", "NotLive"],
+};
