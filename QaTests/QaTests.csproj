@@ -3,6 +3,10 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!-- Opt-in QA gate runner, not product code: exempt from the analyser rules and
+         warnings-as-errors set in Directory.Build.props. -->
+    <EnableNETAnalyzers>false</EnableNETAnalyzers>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Altinn.Dd.Tests.DependencyGate" Version="1.0.4" />

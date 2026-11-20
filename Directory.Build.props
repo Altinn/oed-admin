@@ -20,6 +20,15 @@
     <NuGetAudit>true</NuGetAudit>
     <NuGetAuditMode>all</NuGetAuditMode>
     <WarningsAsErrors>NU1903;NU1904</WarningsAsErrors>
+
+    <!-- Run the recommended .NET analyser rules and fail the build on any warning.
+         TreatWarningsAsErrors would also promote the low and moderate NuGet
+         advisories (NU1901, NU1902), which the audit above keeps as warnings,
+         so they are exempted here. -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisMode>Recommended</AnalysisMode>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsNotAsErrors>NU1901;NU1902</WarningsNotAsErrors>
   </PropertyGroup>
 
 </Project>

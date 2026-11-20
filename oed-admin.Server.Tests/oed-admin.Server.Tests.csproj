@@ -5,6 +5,10 @@
     <Nullable>enable</Nullable>
     <RootNamespace>oed_admin.Server.Tests</RootNamespace>
     <IsPackable>false</IsPackable>
+    <!-- Test code: exempt from the analyser rules and warnings-as-errors set in
+         Directory.Build.props. -->
+    <EnableNETAnalyzers>false</EnableNETAnalyzers>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="10.1.0">

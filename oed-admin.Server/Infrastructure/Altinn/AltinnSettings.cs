@@ -1,4 +1,4 @@
-﻿namespace oed_testdata.Server.Infrastructure.Altinn;
+﻿namespace oed_admin.Server.Infrastructure.Altinn;
 
 public class AltinnSettings
 {

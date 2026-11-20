@@ -3,7 +3,6 @@ using Altinn.ApiClients.Maskinporten.Services;
 using Microsoft.Extensions.Options;
 using oed_admin.Server.Infrastructure.DevAuth;
 using oed_admin.Server.Infrastructure.FeedPoller;
-using oed_testdata.Server.Infrastructure.Altinn;
 
 namespace oed_admin.Server.Infrastructure.Altinn;
 

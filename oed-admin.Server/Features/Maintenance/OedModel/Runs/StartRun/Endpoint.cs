@@ -43,10 +43,10 @@ public static class Endpoint
             "OED_M {Mode} run requested by {User} (limit {Limit}, rate {RatePerSecond}, parallelism {MaxParallelism}, sample {SampleSize}): oed answered {OedStatus}, run {RunId}, {ProblemDetail}",
             request.Mode,
             SignedInUser.Of(httpContext),
-            request.Limit?.ToString() ?? "(none)",
+            request.Limit?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "(none)",
             request.RatePerSecond?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "(default)",
-            request.MaxParallelism?.ToString() ?? "(default)",
-            request.SampleSize?.ToString() ?? "(default)",
+            request.MaxParallelism?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "(default)",
+            request.SampleSize?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "(default)",
             result.HttpStatus,
             result.Run?.Id.ToString() ?? result.ActiveRunId?.ToString() ?? "(none)",
             result.Problem?.Detail ?? result.Problem?.Title ?? "(no problem)");

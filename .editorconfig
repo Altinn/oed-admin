@@ -3,3 +3,28 @@ root = true
 [*.cs]
 # CA1873: Avoid potentially expensive logging argument evaluation.
 dotnet_diagnostic.CA1873.severity = none
+
+# CA1848: Use the LoggerMessage delegates. Low-traffic internal app; the allocation saving does not
+# justify moving every log statement into a source-generated partial method.
+dotnet_diagnostic.CA1848.severity = none
+
+# CA1707: Remove underscores from identifiers. The root namespace oed_admin comes from the
+# project name oed-admin.Server; renaming it would touch every file for no functional gain.
+dotnet_diagnostic.CA1707.severity = none
+
+# CA1716: Identifiers should not match keywords. Guards cross-language consumers (e.g. VB's Get);
+# this is a C#-only app that no other assembly references or implements.
+dotnet_diagnostic.CA1716.severity = none
+
+[oed-admin.Server/Features/Estate/Search/Endpoint.cs]
+# The ToLower calls run inside EF Core queries and translate to SQL lower(). The culture-aware
+# overloads and string.ToLowerInvariant, which these rules ask for, have no SQL translation and
+# fail at runtime.
+dotnet_diagnostic.CA1304.severity = none
+dotnet_diagnostic.CA1311.severity = none
+dotnet_diagnostic.CA1862.severity = none
+
+[oed-admin.Server/Infrastructure/DataMigration/Models/Declaration/DeclarationInstanceData.cs]
+# Signed means the heir has signed the declaration, not a signed number; the name mirrors the
+# oed-declaration data model and must keep matching ShouldSerializeSigned.
+dotnet_diagnostic.CA1720.severity = none

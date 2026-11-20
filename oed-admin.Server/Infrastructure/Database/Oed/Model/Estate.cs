@@ -18,17 +18,17 @@ public class Estate
     public string? CaseStatus { get; set; }
     public string? DistrictCourtName { get; set; }
 
-    public string? ProbateResult { get; set; } = null;
+    public string? ProbateResult { get; set; }
 
     public DateTimeOffset Created { get; set; }
-    public DateTimeOffset? ProbateDeadline { get; set; } = null;
-    public DateTimeOffset? FirstHeirReceived { get; set; } = null;
-    public DateTimeOffset? DelarationCreated { get; set; } = null;
-    public DateTimeOffset? DeclarationSubmitted { get; set; } = null;
-    public DateTimeOffset? ProbateIssued { get; set; } = null;
+    public DateTimeOffset? ProbateDeadline { get; set; }
+    public DateTimeOffset? FirstHeirReceived { get; set; }
+    public DateTimeOffset? DelarationCreated { get; set; }
+    public DateTimeOffset? DeclarationSubmitted { get; set; }
+    public DateTimeOffset? ProbateIssued { get; set; }
 
-    public DateTimeOffset? AccessDate { get; set; } = null;
-    public bool? IsCancelled { get; set; } = null;
+    public DateTimeOffset? AccessDate { get; set; }
+    public bool? IsCancelled { get; set; }
 }
 
 

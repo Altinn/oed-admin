@@ -16,7 +16,7 @@ public static class OedInstanceExtensions
             return heir switch
             {
                 null => false,
-                PersonHeirV2 personHeirV2 => personHeirV2.CourtRole?.StartsWith("urn:domstolene:digitaltdodsbo:") ?? false,
+                PersonHeirV2 personHeirV2 => personHeirV2.CourtRole?.StartsWith("urn:domstolene:digitaltdodsbo:", StringComparison.Ordinal) ?? false,
                 PersonHeir => true,
                 _ => false
             };
