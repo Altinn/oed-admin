@@ -96,13 +96,11 @@ const highlight = (source: string): ReactNode[] => {
   return nodes;
 };
 
-// prettifyXml throws on input DOMParser cannot transform, and yields a
-// parsererror document for input it can parse but not validate. In both cases
-// the raw payload is more useful to a caseworker than an empty panel.
+// prettifyXml throws on XML that does not parse. The raw payload is then more
+// useful to a caseworker than an empty panel.
 const safePrettify = (xml: string): string => {
   try {
-    const pretty = prettifyXml(xml);
-    return pretty.includes("<parsererror") ? xml : pretty;
+    return prettifyXml(xml);
   } catch {
     return xml;
   }
