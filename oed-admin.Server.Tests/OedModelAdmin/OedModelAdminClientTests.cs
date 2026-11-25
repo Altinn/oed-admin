@@ -197,6 +197,84 @@ public class OedModelAdminClientTests
         Assert.Equal("timed out", result.Problem!.Detail);
     }
 
+    // oed_model_orphan_soft_delete_contract.json is a copy of oed's snapshot (digdir/oed, commit 962802d, Altinn/oed#1905).
+    private static string OrphanSnapshotWith(string outcome, string? reason = null)
+    {
+        var body = JsonNode.Parse(Snapshot("orphan_soft_delete"))!.AsObject();
+        body["outcome"] = outcome;
+        body["reason"] = reason;
+        return body.ToJsonString();
+    }
+
+    [Fact]
+    public async Task SoftDeleteOrphan_200_ReadsEveryField()
+    {
+        _handler.Respond(HttpStatusCode.OK, Snapshot("orphan_soft_delete"));
+        var instanceGuid = Guid.NewGuid();
+
+        var result = await _client.SoftDeleteOedModelOrphan(50005681, instanceGuid, CancellationToken.None);
+
+        Assert.Equal(200, result.HttpStatus);
+        Assert.Null(result.Problem);
+        Assert.Null(result.RetryAfterSeconds);
+        var removal = result.Result!;
+        Assert.Equal("SoftDeleted", removal.Outcome);
+        Assert.Null(removal.Reason);
+        Assert.Equal(new DateTimeOffset(2022, 3, 3, 9, 36, 41, TimeSpan.FromHours(1)), removal.Created);
+        Assert.Equal(new DateTimeOffset(2023, 1, 18, 10, 10, 47, TimeSpan.FromHours(1)), removal.LastChanged);
+        Assert.Equal(HttpMethod.Post, _handler.Request!.Method);
+        Assert.Equal(
+            $"/digdir/oed/api/admin/oed-model/estates/50005681/{instanceGuid}/soft-delete-orphan",
+            _handler.Request.RequestUri!.AbsolutePath);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.OK, "AlreadyDeleted", null)]
+    [InlineData(HttpStatusCode.OK, "NotAnOrphan", "hasModelRow")]
+    [InlineData(HttpStatusCode.NotFound, "InstanceNotFound", null)]
+    [InlineData(HttpStatusCode.Conflict, "NotAllowed", null)]
+    [InlineData(HttpStatusCode.BadGateway, "StorageError", "PlatformHttpException")]
+    public async Task SoftDeleteOrphan_TheBodyIsTheResultForEveryStatus(HttpStatusCode status, string outcome, string? reason)
+    {
+        _handler.Respond(status, OrphanSnapshotWith(outcome, reason));
+
+        var result = await _client.SoftDeleteOedModelOrphan(50005681, Guid.NewGuid(), CancellationToken.None);
+
+        Assert.Equal((int)status, result.HttpStatus);
+        Assert.Equal(outcome, result.Result!.Outcome);
+        Assert.Equal(reason, result.Result.Reason);
+        Assert.Null(result.Problem);
+    }
+
+    [Fact]
+    public async Task SoftDeleteOrphan_503_GivesRetryAfterAndTheProblem()
+    {
+        _handler.Respond(
+            HttpStatusCode.ServiceUnavailable,
+            Problem(503, "The estate is busy", "The removal waited too long on another write to the same estate. Nothing was deleted; try again."),
+            response => response.Headers.RetryAfter = new System.Net.Http.Headers.RetryConditionHeaderValue(TimeSpan.FromSeconds(10)));
+
+        var result = await _client.SoftDeleteOedModelOrphan(50005681, Guid.NewGuid(), CancellationToken.None);
+
+        Assert.Equal(503, result.HttpStatus);
+        Assert.Null(result.Result);
+        Assert.Equal(10, result.RetryAfterSeconds);
+        Assert.Equal("The estate is busy", result.Problem!.Title);
+        Assert.Equal(1, _handler.Calls);
+    }
+
+    [Fact]
+    public async Task SoftDeleteOrphan_TransportFailure_GivesStatus0()
+    {
+        _handler.Throw(new TaskCanceledException("timed out"));
+
+        var result = await _client.SoftDeleteOedModelOrphan(50005681, Guid.NewGuid(), CancellationToken.None);
+
+        Assert.Equal(0, result.HttpStatus);
+        Assert.Null(result.Result);
+        Assert.Equal("timed out", result.Problem!.Detail);
+    }
+
     [Fact]
     public async Task Copy_UnparseableBody_GivesTheStatusOnly()
     {

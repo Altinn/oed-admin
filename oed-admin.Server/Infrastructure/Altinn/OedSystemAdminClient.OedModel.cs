@@ -14,7 +14,27 @@ public partial interface IOedSystemAdminClient
     Task<OedModelPhaseResult> SetOedModelPhase(string phase, string reason, CancellationToken cancellationToken);
 
     Task<OedModelCopyResult> CopyOedModel(int partyId, Guid instanceGuid, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Asks oed to soft-delete one instance the migration can never copy (Altinn/oed#1905). oed decides whether it is
+    /// an orphan, and refuses outside TT02.
+    /// </summary>
+    Task<OedModelOrphanSoftDeleteResult> SoftDeleteOedModelOrphan(int partyId, Guid instanceGuid, CancellationToken cancellationToken);
 }
+
+/// <param name="Outcome"><c>SoftDeleted</c>, <c>AlreadyDeleted</c>, <c>NotAnOrphan</c>, <c>InstanceNotFound</c>,
+/// <c>NotAllowed</c> or <c>StorageError</c>.</param>
+/// <param name="Reason">With <c>NotAnOrphan</c>: the first rule that failed (<c>appId</c>, <c>noOedElement</c>,
+/// <c>hasModelRow</c>, <c>hasEstateRow</c>, <c>hasDeceasedNin</c>, <c>unreadable</c>). With <c>StorageError</c>: the
+/// exception type.</param>
+public record OedModelOrphanSoftDelete(string Outcome, string? Reason, DateTimeOffset? Created, DateTimeOffset? LastChanged);
+
+/// <param name="HttpStatus">oed's status, or 0 when the call never produced a response.</param>
+/// <param name="Result">oed sends it for 200, 404, 409 and 502.</param>
+/// <param name="Problem">A ProblemDetails, as for 503, or the transport failure for status 0.</param>
+/// <param name="RetryAfterSeconds">The <c>Retry-After</c> of a 503.</param>
+public record OedModelOrphanSoftDeleteResult(
+    int HttpStatus, OedModelOrphanSoftDelete? Result, OedAdminProblem? Problem, int? RetryAfterSeconds);
 
 /// <param name="Phase"><c>Storage</c>, <c>Migrating</c> or <c>Database</c>.</param>
 /// <param name="ChangedBy">The <c>client_id</c> of the token that changed it, never a person.</param>
@@ -91,6 +111,30 @@ public partial class OedSystemAdminClient
             RetryAfterSeconds(message));
     }
 
+    public async Task<OedModelOrphanSoftDeleteResult> SoftDeleteOedModelOrphan(
+        int partyId, Guid instanceGuid, CancellationToken cancellationToken)
+    {
+        var response = await SendOrNull(
+            () => httpClient.PostAsync(
+                $"{OedModelPath}/estates/{partyId}/{instanceGuid}/soft-delete-orphan", null, cancellationToken),
+            cancellationToken);
+        if (response.Failure is { } failure)
+            return new OedModelOrphanSoftDeleteResult(0, null, failure, null);
+
+        using var message = response.Message!;
+        // As for the copy: the result for 200/404/409/502, a ProblemDetails for 503 and the rest.
+        var body = await ReadOrNull<OrphanBody>(message, cancellationToken);
+        var result = body?.Outcome is { } outcome
+            ? new OedModelOrphanSoftDelete(outcome, body.Reason, body.Created, body.LastChanged)
+            : null;
+
+        return new OedModelOrphanSoftDeleteResult(
+            (int)message.StatusCode,
+            result,
+            ProblemOrNull(body?.Title, body?.Detail, body?.Errors),
+            RetryAfterSeconds(message));
+    }
+
     private async Task<OedModelPhaseResult> SendPhase(Func<Task<HttpResponseMessage>> send, CancellationToken cancellationToken)
     {
         var response = await SendOrNull(send, cancellationToken);
@@ -157,6 +201,17 @@ public partial class OedSystemAdminClient
         public List<string>? DroppedElements { get; init; }
         public DateTimeOffset? StorageLastChanged { get; init; }
         public DateTimeOffset? Created { get; init; }
+        public string? Title { get; init; }
+        public string? Detail { get; init; }
+        public Dictionary<string, string[]>? Errors { get; init; }
+    }
+
+    private sealed record OrphanBody
+    {
+        public string? Outcome { get; init; }
+        public string? Reason { get; init; }
+        public DateTimeOffset? Created { get; init; }
+        public DateTimeOffset? LastChanged { get; init; }
         public string? Title { get; init; }
         public string? Detail { get; init; }
         public Dictionary<string, string[]>? Errors { get; init; }

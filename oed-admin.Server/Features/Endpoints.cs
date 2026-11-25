@@ -150,6 +150,8 @@ public static class Endpoints
             group.MapGet("/phase", Maintenance.OedModel.GetPhase.Endpoint.Get);
             group.MapPut("/phase", Maintenance.OedModel.SetPhase.Endpoint.Put);
             group.MapPost("/estates/{partyId:int}/{instanceGuid:guid}/copy", Maintenance.OedModel.CopyEstate.Endpoint.Post);
+            // TT02 only, decided by oed (Altinn/oed#1905): soft-deletes an estate the migration can never copy.
+            group.MapPost("/estates/{partyId:int}/{instanceGuid:guid}/soft-delete-orphan", Maintenance.OedModel.SoftDeleteOrphan.Endpoint.Post);
 
             // Sweep and verify runs (Altinn/oed#1902). No route carries an estateId: a run spans every estate, and the
             // items endpoint returns estate ids only as links. The audit log records the path and the user.

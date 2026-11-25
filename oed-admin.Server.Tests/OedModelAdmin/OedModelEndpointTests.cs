@@ -32,6 +32,7 @@ public sealed class OedModelEndpointTests(PostgresFixture fixture) : IAsyncLifet
     private const string UserObjectId = "0b5e2b8c-1111-2222-3333-444455556666";
     private const string InstanceGuid = "55555555-5555-5555-5555-555555555555";
     private const string RunId = "11111111-1111-1111-1111-111111111111";
+    private const string OrphanRoute = $"/api/maintenance/oedmodel/estates/50005681/{InstanceGuid}/soft-delete-orphan";
 
     private readonly FakeOedSystemAdminClient _oed = new();
     private readonly CapturingLoggerProvider _logs = new();
@@ -81,6 +82,7 @@ public sealed class OedModelEndpointTests(PostgresFixture fixture) : IAsyncLifet
         "GET phase" => client.GetAsync("/api/maintenance/oedmodel/phase"),
         "PUT phase" => client.PutAsJsonAsync("/api/maintenance/oedmodel/phase", new { phase = "Storage", reason = "pause" }),
         "POST copy" => client.PostAsync($"/api/maintenance/oedmodel/estates/512345/{InstanceGuid}/copy", null),
+        "POST orphan soft delete" => client.PostAsync(OrphanRoute, null),
         "POST run" => client.PostAsJsonAsync("/api/maintenance/oedmodel/runs", new { mode = "verify" }),
         "GET active run" => client.GetAsync("/api/maintenance/oedmodel/runs/active"),
         "GET latest verify" => client.GetAsync("/api/maintenance/oedmodel/runs/latest-verify"),
@@ -92,7 +94,7 @@ public sealed class OedModelEndpointTests(PostgresFixture fixture) : IAsyncLifet
 
     public static TheoryData<string> Routes =>
     [
-        "GET phase", "PUT phase", "POST copy",
+        "GET phase", "PUT phase", "POST copy", "POST orphan soft delete",
         "POST run", "GET active run", "GET latest verify", "GET run", "GET run items", "POST run cancel",
     ];
 
@@ -162,6 +164,7 @@ public sealed class OedModelEndpointTests(PostgresFixture fixture) : IAsyncLifet
     [Theory]
     [InlineData("PUT phase")]
     [InlineData("POST copy")]
+    [InlineData("POST orphan soft delete")]
     public async Task StateChangingCalls_AreNotCancelledWithTheRequest(string route)
     {
         // Once oed has the call it may commit; a closed tab must not cut it off before the log line.
@@ -226,6 +229,56 @@ public sealed class OedModelEndpointTests(PostgresFixture fixture) : IAsyncLifet
         var body = JsonNode.Parse(await response.Content.ReadAsStringAsync())!;
         Assert.Equal(409, body["status"]!.GetValue<int>());
         Assert.Equal("No verify run exists yet (#1902)", body["problem"]!["detail"]!.GetValue<string>());
+        Assert.Equal(1, _oed.Calls);
+    }
+
+    [Fact]
+    public async Task SoftDeleteOrphan_PutsTheUserTheInstanceAndOedsAnswerInTheLog()
+    {
+        _oed.OrphanAnswer = new OedModelOrphanSoftDeleteResult(
+            200, new OedModelOrphanSoftDelete("NotAnOrphan", "hasModelRow", null, null), null, null);
+
+        var response = await Client("Admin").PostAsync(OrphanRoute, null);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal((50005681, Guid.Parse(InstanceGuid)), _oed.LastOrphanSoftDelete);
+        var log = Assert.Single(_logs.Messages, m => m.Contains("OED_M orphan soft delete"));
+        Assert.Contains(UserName, log);
+        Assert.Contains(UserObjectId, log);
+        Assert.Contains($"50005681/{InstanceGuid}", log);
+        Assert.Contains("NotAnOrphan", log);
+        Assert.Contains("hasModelRow", log);
+    }
+
+    [Theory]
+    [InlineData(200, "SoftDeleted", null)]
+    [InlineData(404, "InstanceNotFound", null)]
+    [InlineData(409, "NotAllowed", null)]
+    [InlineData(502, "StorageError", "PlatformHttpException")]
+    public async Task SoftDeleteOrphan_HandsBackOedsStatusAndResult(int status, string outcome, string? reason)
+    {
+        _oed.OrphanAnswer = new OedModelOrphanSoftDeleteResult(
+            status, new OedModelOrphanSoftDelete(outcome, reason, null, null), null, null);
+
+        var response = await Client("Admin").PostAsync(OrphanRoute, null);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = JsonNode.Parse(await response.Content.ReadAsStringAsync())!;
+        Assert.Equal(status, body["status"]!.GetValue<int>());
+        Assert.Equal(outcome, body["result"]!["outcome"]!.GetValue<string>());
+        Assert.Equal(reason, body["result"]!["reason"]?.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task SoftDeleteOrphan_503_HandsBackRetryAfter()
+    {
+        _oed.OrphanAnswer = new OedModelOrphanSoftDeleteResult(503, null, new OedAdminProblem("The estate is busy", "try again", null), 10);
+
+        var response = await Client("Admin").PostAsync(OrphanRoute, null);
+
+        var body = JsonNode.Parse(await response.Content.ReadAsStringAsync())!;
+        Assert.Equal(503, body["status"]!.GetValue<int>());
+        Assert.Equal(10, body["retryAfterSeconds"]!.GetValue<int>());
         Assert.Equal(1, _oed.Calls);
     }
 
@@ -398,6 +451,20 @@ public sealed class OedModelEndpointTests(PostgresFixture fixture) : IAsyncLifet
             LastCopy = (partyId, instanceGuid);
             LastToken = cancellationToken;
             return Task.FromResult(CopyAnswer);
+        }
+
+        public (int PartyId, Guid InstanceGuid)? LastOrphanSoftDelete { get; private set; }
+
+        public OedModelOrphanSoftDeleteResult OrphanAnswer { get; set; } = new(
+            200, new OedModelOrphanSoftDelete("SoftDeleted", null, DateTimeOffset.UnixEpoch, DateTimeOffset.UnixEpoch), null, null);
+
+        public Task<OedModelOrphanSoftDeleteResult> SoftDeleteOedModelOrphan(
+            int partyId, Guid instanceGuid, CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref _calls);
+            LastOrphanSoftDelete = (partyId, instanceGuid);
+            LastToken = cancellationToken;
+            return Task.FromResult(OrphanAnswer);
         }
 
         public OedModelMigrationRunStart? LastStart { get; private set; }

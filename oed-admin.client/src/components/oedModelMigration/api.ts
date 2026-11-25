@@ -233,3 +233,49 @@ export const runOutcomes: Record<string, string[]> = {
   Sweep: ["Copied", "AlreadyMigrated", "SkippedSoftDeleted", "NoOedElement", "InstanceNotFound", "NotAllowed", "Failed", "Busy"],
   Verify: ["Ok", "Missing", "Broken", "Mismatch", "SampleMismatch", "NotLive"],
 };
+
+// --- Soft-deleting the estates a sweep can never copy, TT02 only (Altinn/oed#1905) ---
+
+export interface OedModelOrphanSoftDelete {
+  /** SoftDeleted, AlreadyDeleted, NotAnOrphan, InstanceNotFound, NotAllowed or StorageError. */
+  outcome: string;
+  /** With NotAnOrphan: the first rule that failed. With StorageError: the exception type. */
+  reason: string | null;
+  created: string | null;
+  lastChanged: string | null;
+}
+
+export interface OrphanSoftDeleteResult {
+  status: number;
+  result: OedModelOrphanSoftDelete | null;
+  problem: OedAdminProblem | null;
+  retryAfterSeconds: number | null;
+}
+
+export const softDeleteOrphan = async (partyId: number, instanceGuid: string): Promise<OrphanSoftDeleteResult> =>
+  readJson<OrphanSoftDeleteResult>(
+    await fetchWithMsal(`${baseUrl}/estates/${partyId}/${instanceGuid}/soft-delete-orphan`, { method: "POST" }),
+  );
+
+/** Every item of a run with this outcome, page by page. Throws if oed doesn't answer a page: never a short list. */
+export const getAllRunItems = async (runId: string, outcome: string): Promise<RunItem[]> => {
+  const all: RunItem[] = [];
+  for (let page = 1; ; page++) {
+    const answer = await getRunItems(runId, outcome, page);
+    if (answer.status !== 200 || answer.items === null) {
+      throw new Error(`oed svarte ${answer.status} på side ${page} av kjøringens dødsbo.`);
+    }
+    all.push(...answer.items);
+    if (answer.items.length < runItemsPageSize) return all;
+  }
+};
+
+/** A sweep run's item the sweep could never copy: Failed with NoDeceasedInfo. */
+export const isOrphanCandidate = (run: MigrationRun, item: RunItem) =>
+  run.mode === "Sweep" && item.run.outcome === "Failed" && item.run.failure === "NoDeceasedInfo";
+
+/** Only against TT02. oed refuses everywhere else as well. */
+export const orphanDeleteEnabled = () => import.meta.env.VITE_ENVIRONMENT === "staging";
+
+/** An answer every following call would get too: oed unreachable, oed-admin's token refused, or not TT02. */
+export const stopsTheLoop = (answer: OrphanSoftDeleteResult) => [0, 401, 403, 409].includes(answer.status);

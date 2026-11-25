@@ -5,6 +5,7 @@ import { Button, Field, Heading, Label, Paragraph, Table, ValidationMessage } fr
 import { formatDateTime } from "../../utils/formatters";
 import { copyMutationKey, getRunItems, isActiveStatus, runItemsPageSize, runOutcomes, runPollMs, runQueryKeys, type MigrationRun } from "./api";
 import { describeRunProblem } from "./texts";
+import { OrphanBulkDelete, OrphanRowDelete } from "./OrphanSoftDelete";
 
 interface Props {
   run: MigrationRun;
@@ -36,6 +37,7 @@ export default function RunItems({ run, onCopyInstance }: Props) {
       <Heading level={4} data-size="xs" id="items-heading">
         Dødsbo i kjøringen
       </Heading>
+      <OrphanBulkDelete run={run} />
       <Field>
         <Label htmlFor="run-items-outcome">Utfall</Label>
         <select
@@ -84,7 +86,8 @@ export default function RunItems({ run, onCopyInstance }: Props) {
                 </Table.Row>
               </Table.Head>
               <Table.Body>
-                {data.items.map(({ run: item, estateId }) => {
+                {data.items.map((runItem) => {
+                  const { run: item, estateId } = runItem;
                   const instanceId = `${item.instanceOwnerPartyId}/${item.instanceGuid}`;
                   return (
                     <Table.Row key={instanceId}>
@@ -101,6 +104,7 @@ export default function RunItems({ run, onCopyInstance }: Props) {
                         <Button variant="tertiary" data-size="sm" disabled={copying} onClick={() => onCopyInstance(instanceId)}>
                           Kopier …
                         </Button>
+                        <OrphanRowDelete run={run} item={runItem} />
                       </Table.Cell>
                     </Table.Row>
                   );
