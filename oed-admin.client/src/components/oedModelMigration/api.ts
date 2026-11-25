@@ -204,6 +204,14 @@ export const getActiveRun = async (): Promise<RunResult> =>
 export const getLatestVerifyRun = async (): Promise<RunResult> =>
   readJson<RunResult>(await fetchWithMsal(`${baseUrl}/runs/latest-verify`));
 
+const runIdPattern = /^\s*([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\s*$/i;
+
+/**
+ * A run id as oed writes it (the run's view, oed's log "OED_M migration run … started"), or null. oed-admin's route
+ * takes only a guid, so anything else would get oed-admin's own 404, never oed's.
+ */
+export const parseRunId = (value: string): string | null => runIdPattern.exec(value)?.[1].toLowerCase() ?? null;
+
 export const getRun = async (runId: string): Promise<RunResult> =>
   readJson<RunResult>(await fetchWithMsal(`${baseUrl}/runs/${runId}`));
 

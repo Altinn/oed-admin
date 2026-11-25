@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import OedModelMigration from ".";
 import type { MigrationRun, PhaseResult, RunItemsResult, RunResult } from "./api";
@@ -144,20 +144,27 @@ const lastIndexOf = (predicate: (url: string) => boolean) =>
 /** Lets the page's 15 s polls fire. */
 const poll = () => act(() => vi.advanceTimersByTimeAsync(15_000));
 
-const renderPage = () =>
+/** The page's current query string, so a test can see what a shared link would hold. */
+function Search() {
+  return <output data-testid="location-search">{useLocation().search}</output>;
+}
+
+const renderPage = (url = "/maintenance/oedmodel") =>
   render(
     // Mutations retry by default here, at once, so only the page's own `retry: false` keeps a call from being repeated.
     <QueryClientProvider
       client={new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: 3, retryDelay: 0 } } })}
     >
-      <MemoryRouter initialEntries={["/maintenance/oedmodel"]}>
+      <MemoryRouter initialEntries={[url]}>
         <OedModelMigration />
+        <Search />
       </MemoryRouter>
     </QueryClientProvider>,
   );
 
 afterEach(() => {
   vi.useRealTimers();
+  vi.unstubAllEnvs();
 });
 
 beforeEach(() => {
@@ -543,5 +550,93 @@ describe("a run's items", () => {
     await within(list).findByText("2 dødsbo.");
     const last = fetchMock.mock.calls.map(([url]) => String(url)).filter((url) => url.includes("/items")).at(-1);
     expect(last).toBe(`/api/maintenance/oedmodel/runs/${runId}/items?page=1&pageSize=100`);
+  });
+});
+
+describe("opening a run by id", () => {
+  const otherId = "22222222-2222-2222-2222-222222222222";
+  const runGets = () => fetchMock.mock.calls.map(([url]) => String(url)).filter((url) => /\/runs\/[0-9a-f-]{36}$/i.test(url));
+
+  it("shows the run in ?runId=, with its report and items", async () => {
+    gets[`/runs/${runId}`] = ok(completedSweep());
+    gets[`/runs/${runId}/items`] = { ...items, items: [] , total: 0 };
+    serve();
+    renderPage(`/maintenance/oedmodel?runId=${runId}`);
+
+    expect(await runs().findByTestId("run-report")).toHaveTextContent("Copied1190");
+    expect(runs().getByTestId("run-details")).toHaveTextContent(runId);
+    expect(await runs().findByTestId("run-items-total")).toHaveTextContent("0 dødsbo med utfall Failed");
+    expect(runs().queryByText("Ingen kjøring er aktiv.")).not.toBeInTheDocument();
+  });
+
+  it("shows oed's 404 answer for an unknown id", async () => {
+    gets[`/runs/${otherId}`] = { status: 404, run: null, problem: { title: "Not Found", detail: `No run ${otherId}.`, errors: null }, activeRunId: null };
+    serve();
+    renderPage(`/maintenance/oedmodel?runId=${otherId}`);
+
+    const problem = await runs().findByTestId("run-problem");
+    expect(problem).toHaveTextContent("oed fant ikke kjøringen.");
+    expect(problem).toHaveTextContent(`No run ${otherId}.`);
+  });
+
+  it("refuses a ?runId= that isn't a guid, and asks oed nothing", async () => {
+    serve();
+    renderPage("/maintenance/oedmodel?runId=not-a-run");
+
+    expect(await runs().findByText("Ingen kjøring er aktiv.")).toBeInTheDocument();
+    expect(runs().getByRole("textbox", { name: "Kjørings-id" })).toHaveValue("not-a-run");
+    expect(runs().getByText("Ikke en gyldig kjørings-id.")).toBeInTheDocument();
+    expect(runGets()).toHaveLength(0);
+  });
+
+  it("opens a run typed into the field, and puts it in the address", async () => {
+    const user = userEvent.setup();
+    gets[`/runs/${runId}`] = ok(completedSweep());
+    serve();
+    renderPage();
+    await runs().findByText("Ingen kjøring er aktiv.");
+
+    const field = runs().getByRole("textbox", { name: "Kjørings-id" });
+    await user.type(field, "x");
+    expect(runs().getByRole("button", { name: "Åpne" })).toBeDisabled();
+    await user.clear(field);
+    await user.type(field, ` ${runId.toUpperCase()} `);
+    await user.click(runs().getByRole("button", { name: "Åpne" }));
+
+    expect(await runs().findByTestId("run-report")).toHaveTextContent("Copied1190");
+    expect(runGets()).toEqual([`/api/maintenance/oedmodel/runs/${runId}`]);
+    expect(screen.getByTestId("location-search")).toHaveTextContent(`?runId=${runId}`);
+  });
+
+  it("keeps the address on the run shown when the person picks another", async () => {
+    const user = userEvent.setup();
+    gets["/runs/latest-verify"] = ok(verifyRun());
+    gets[`/runs/${runId}`] = ok(verifyRun());
+    serve();
+    renderPage(`/maintenance/oedmodel?instanceId=512345/${otherId}`);
+
+    await user.click(await screen.findByRole("button", { name: "Vis rapporten" }));
+
+    expect(await runs().findByTestId("run-report")).toBeInTheDocument();
+    const search = new URLSearchParams(screen.getByTestId("location-search").textContent ?? "");
+    expect(search.get("runId")).toBe(runId);
+    expect(search.get("instanceId")).toBe(`512345/${otherId}`);
+  });
+
+  it("shows the orphan buttons on an opened finished sweep's items, in TT02", async () => {
+    vi.stubEnv("VITE_ENVIRONMENT", "staging");
+    gets[`/runs/${runId}`] = ok(completedSweep());
+    gets[`/runs/${runId}/items`] = {
+      ...items,
+      items: [{ ...items.items![0], run: { ...items.items![0].run, outcome: "Failed", failure: "NoDeceasedInfo" } }],
+      total: 1,
+    };
+    serve();
+    renderPage(`/maintenance/oedmodel?runId=${runId}`);
+
+    const list = await runs().findByTestId("run-items");
+    expect(await within(list).findByTestId("run-items-total")).toHaveTextContent("1 dødsbo med utfall Failed");
+    expect(within(list).getByRole("button", { name: /Slett alle NoDeceasedInfo-dødsbo/ })).toBeInTheDocument();
+    expect(within(list).getByRole("button", { name: "Slett …" })).toBeInTheDocument();
   });
 });

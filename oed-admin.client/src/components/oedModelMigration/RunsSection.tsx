@@ -15,6 +15,7 @@ import {
   getRun,
   isAccepted,
   isActiveStatus,
+  parseRunId,
   runPollMs,
   runQueryKeys,
   startRun,
@@ -27,8 +28,10 @@ import { useFocusOnMount } from "./useFocusOnMount";
 import RunDetails, { RunProblem } from "./RunDetails";
 
 interface Props {
-  /** The run the person picked elsewhere on the page (the latest verify, or a continued run). */
+  /** The run in ?runId=: opened by id, from the latest verify, or from a continued run's link. */
   selectedRunId: string | null;
+  /** What «Åpne kjøring» starts with: a ?runId= that wasn't a run id, so the person sees why nothing opened. */
+  initialOpenRunId?: string;
   onShowRun: (runId: string | null) => void;
   onCopyInstance: (instanceId: string) => void;
 }
@@ -54,8 +57,10 @@ const parse = (field: NumberField, raw: string): number | null | undefined => {
   return value;
 };
 
-export default function RunsSection({ selectedRunId, onShowRun, onCopyInstance }: Props) {
+export default function RunsSection({ selectedRunId, initialOpenRunId = "", onShowRun, onCopyInstance }: Props) {
   const queryClient = useQueryClient();
+  const [openRunId, setOpenRunId] = React.useState(initialOpenRunId);
+  const parsedOpenRunId = parseRunId(openRunId);
   const [mode, setMode] = React.useState<RunMode | "">("");
   const [values, setValues] = React.useState<Record<NumberField, string>>({ limit: "", ratePerSecond: "", maxParallelism: "", sampleSize: "" });
   const [confirming, setConfirming] = React.useState(false);
@@ -241,6 +246,30 @@ export default function RunsSection({ selectedRunId, onShowRun, onCopyInstance }
           )}
         </>
       )}
+
+      {/* oed has no list of runs: a finished one is opened by its id, from its view, oed's log or the issue. */}
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (!parsedOpenRunId) return;
+          onShowRun(parsedOpenRunId);
+          setOpenRunId("");
+        }}
+      >
+        <Fieldset>
+          <Fieldset.Legend>Åpne kjøring</Fieldset.Legend>
+          <Textfield
+            label="Kjørings-id"
+            description="Står i kjøringens visning og i oed sin logg («OED_M migration run … started»)."
+            value={openRunId}
+            onChange={(event) => setOpenRunId(event.target.value)}
+            error={openRunId.trim() !== "" && !parsedOpenRunId ? "Ikke en gyldig kjørings-id." : undefined}
+          />
+          <Button type="submit" variant="secondary" disabled={!parsedOpenRunId}>
+            Åpne
+          </Button>
+        </Fieldset>
+      </form>
 
       {shown.error && (
         <ValidationMessage data-testid="run-fetch-error">
