@@ -285,5 +285,19 @@ export const isOrphanCandidate = (run: MigrationRun, item: RunItem) =>
 /** Only against TT02. oed refuses everywhere else as well. */
 export const orphanDeleteEnabled = () => import.meta.env.VITE_ENVIRONMENT === "staging";
 
+/**
+ * The two kinds of estate oed can soft-delete (Altinn/oed#1905, #1906):
+ * - `noDeceasedInfo`: a sweep run's Failed/NoDeceasedInfo item, TT02 only.
+ * - `empty`: a verify run's Broken item (no data elements, no rows), in any environment.
+ * For `empty`, oed itself also requires the instance to be over 30 days old and never changed.
+ */
+export type OrphanKind = "noDeceasedInfo" | "empty";
+
+export const orphanKind = (run: MigrationRun, item: RunItem): OrphanKind | null => {
+  if (isOrphanCandidate(run, item)) return orphanDeleteEnabled() ? "noDeceasedInfo" : null;
+  if (run.mode === "Verify" && item.run.outcome === "Broken") return "empty";
+  return null;
+};
+
 /** An answer every following call would get too: oed unreachable, oed-admin's token refused, or not TT02. */
 export const stopsTheLoop = (answer: OrphanSoftDeleteResult) => [0, 401, 403, 409].includes(answer.status);

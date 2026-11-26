@@ -5,22 +5,32 @@ import {
   getAllRunItems,
   isOrphanCandidate,
   orphanDeleteEnabled,
+  orphanKind,
   runQueryKeys,
   softDeleteOrphan,
   stopsTheLoop,
   type MigrationRun,
+  type OrphanKind,
   type OrphanSoftDeleteResult,
   type RunItem,
 } from "./api";
 import { useFocusOnMount } from "./useFocusOnMount";
 
-// Soft-deleting the estates a sweep can never copy (Failed with NoDeceasedInfo), TT02 only (Altinn/oed#1905).
+// Soft-deleting estates that can never be migrated. Two kinds (see orphanKind):
+// - a sweep run's Failed/NoDeceasedInfo items, TT02 only, one at a time or in bulk (Altinn/oed#1905);
+// - a verify run's Broken items, empty instances, in any environment and one at a time (Altinn/oed#1906).
 // oed checks every estate itself before it deletes; these buttons only ask.
 
-const consequence =
+const noDeceasedInfoConsequence =
   "Soft delete i TT02: Storage beholder instansen, men den regnes ikke lenger som levende. oed sjekker selv at dødsboet " +
   "ikke kan migreres (ingen rad i databasen, ingen Estate-rad, ingen avdød i modellen) før det slettes. Det kan ikke " +
   "angres herfra.";
+
+const emptyConsequence =
+  "Soft delete: Storage beholder instansen. oed sjekker selv at den er tom (ingen dataelementer, ingen rad, ingen " +
+  "Estate-rad), over 30 dager gammel og aldri endret, før den slettes. Kan ikke angres herfra.";
+
+const consequenceOf = (kind: OrphanKind) => (kind === "empty" ? emptyConsequence : noDeceasedInfoConsequence);
 
 /** oed's answer for one estate, in one line. */
 const describe = (answer: OrphanSoftDeleteResult): string => {
@@ -29,7 +39,7 @@ const describe = (answer: OrphanSoftDeleteResult): string => {
   if (outcome === "AlreadyDeleted") return "Var allerede slettet.";
   if (outcome === "NotAnOrphan") return `Ikke slettet: dødsboet kan migreres eller er i bruk (${answer.result?.reason ?? "ukjent"}).`;
   if (outcome === "InstanceNotFound") return "Instansen finnes ikke.";
-  if (outcome === "NotAllowed") return "oed nektet: dette er bare tillatt i TT02.";
+  if (outcome === "NotAllowed") return "oed nektet å slette i dette miljøet.";
   if (outcome === "StorageError") return `Storage feilet (${answer.result?.reason ?? "ukjent"}). Prøv igjen senere.`;
   if (answer.status === 503) return `Dødsboet var opptatt. Prøv igjen om ${answer.retryAfterSeconds ?? 10} s.`;
   if (answer.status === 0) return "Fikk ikke svar fra oed.";
@@ -46,7 +56,7 @@ interface RowProps {
   item: RunItem;
 }
 
-/** «Slett …» on one of a sweep run's NoDeceasedInfo items. Renders nothing elsewhere. */
+/** «Slett …» on a sweep run's NoDeceasedInfo item (TT02) or a verify run's Broken item. Renders nothing elsewhere. */
 export function OrphanRowDelete({ run, item }: RowProps) {
   const queryClient = useQueryClient();
   const focusOnMount = useFocusOnMount();
@@ -54,7 +64,8 @@ export function OrphanRowDelete({ run, item }: RowProps) {
   const [sending, setSending] = React.useState(false);
   const [result, setResult] = React.useState<string | null>(null);
 
-  if (!orphanDeleteEnabled() || !isOrphanCandidate(run, item)) return null;
+  const kind = orphanKind(run, item);
+  if (kind === null) return null;
 
   const instanceId = instanceIdOf(item);
   const send = async () => {
@@ -80,7 +91,7 @@ export function OrphanRowDelete({ run, item }: RowProps) {
           <Heading level={5} data-size="2xs" id={`orphan-confirm-${instanceId}`}>
             Slette {instanceId}?
           </Heading>
-          <Paragraph data-size="sm">{consequence}</Paragraph>
+          <Paragraph data-size="sm">{consequenceOf(kind)}</Paragraph>
           <div style={{ display: "flex", gap: "var(--ds-size-2)" }}>
             <Button ref={focusOnMount} data-size="sm" data-color="danger" onClick={send}>
               Ja, slett
@@ -198,7 +209,7 @@ export function OrphanBulkDelete({ run }: { run: MigrationRun }) {
           <Heading level={5} data-size="2xs" id="orphan-bulk-confirm">
             Slette {state.items.length} dødsbo med NoDeceasedInfo?
           </Heading>
-          <Paragraph data-size="sm">{consequence}</Paragraph>
+          <Paragraph data-size="sm">{noDeceasedInfoConsequence}</Paragraph>
           <Paragraph data-size="sm">
             Kallene går ett og ett. Du kan stoppe underveis, og en ny kjøring hopper over dem som allerede er slettet.
           </Paragraph>

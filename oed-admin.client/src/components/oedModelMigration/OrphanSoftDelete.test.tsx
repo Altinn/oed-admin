@@ -35,6 +35,12 @@ const item = (n: number, failure = "NoDeceasedInfo"): RunItem => ({
   estateId: null,
 });
 
+const broken = (n: number): RunItem => ({ ...item(n), run: { ...item(n).run, outcome: "Broken", failure: null } });
+
+const emptyConsequence =
+  "Soft delete: Storage beholder instansen. oed sjekker selv at den er tom (ingen dataelementer, ingen rad, ingen " +
+  "Estate-rad), over 30 dager gammel og aldri endret, før den slettes. Kan ikke angres herfra.";
+
 const answer = (status: number, outcome: string | null, reason: string | null = null): OrphanSoftDeleteResult => ({
   status,
   result: outcome ? { outcome, reason, created: null, lastChanged: null } : null,
@@ -117,6 +123,51 @@ describe("one row", () => {
     expect(await screen.findByText(/hasModelRow/)).toBeTruthy();
     expect(softDelete).toHaveBeenCalledTimes(1);
     expect(softDelete).toHaveBeenCalledWith(50000001, "00000000-0000-0000-0000-000000000001");
+  });
+});
+
+describe("a verify run's Broken item", () => {
+  it("offers «Slett …» in production, says what oed checks, and sends one call", async () => {
+    vi.stubEnv("VITE_ENVIRONMENT", "production");
+    softDelete.mockResolvedValue(answer(200, "SoftDeleted"));
+    wrap(<OrphanRowDelete run={verify} item={broken(1)} />);
+
+    await userEvent.click(screen.getByRole("button", { name: /^Slett …/ }));
+    const dialog = await screen.findByRole("alertdialog");
+    expect(within(dialog).getByText(emptyConsequence)).toBeTruthy();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Ja, slett" }));
+
+    expect(await screen.findByText("Slettet (soft delete).")).toBeTruthy();
+    expect(softDelete).toHaveBeenCalledTimes(1);
+    expect(softDelete).toHaveBeenCalledWith(50000001, "00000000-0000-0000-0000-000000000001");
+  });
+
+  it("is wired into a verify run's item table in production, on the Broken rows only", async () => {
+    vi.stubEnv("VITE_ENVIRONMENT", "production");
+    const missing: RunItem = { ...item(2), run: { ...item(2).run, outcome: "Missing", failure: null } };
+    runItems.mockResolvedValue({ status: 200, items: [broken(1), missing], page: 1, pageSize: 100, total: 2, problem: null });
+
+    wrap(<RunItems run={verify} onCopyInstance={() => {}} />);
+
+    expect(await screen.findAllByRole("button", { name: /^Slett …/ })).toHaveLength(1);
+    expect(screen.queryByRole("button", { name: /Slett alle/ })).toBeNull();
+  });
+
+  it("offers no bulk delete for a verify run", () => {
+    vi.stubEnv("VITE_ENVIRONMENT", "production");
+    wrap(<OrphanBulkDelete run={verify} />);
+
+    expect(screen.queryByRole("button")).toBeNull();
+  });
+
+  it("says oed refused in this environment on NotAllowed", async () => {
+    softDelete.mockResolvedValue(answer(409, "NotAllowed"));
+    wrap(<OrphanRowDelete run={verify} item={broken(1)} />);
+
+    await userEvent.click(screen.getByRole("button", { name: /^Slett …/ }));
+    await userEvent.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Ja, slett" }));
+
+    expect(await screen.findByText("oed nektet å slette i dette miljøet.")).toBeTruthy();
   });
 });
 

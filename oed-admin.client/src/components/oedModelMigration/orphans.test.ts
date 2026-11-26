@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   getAllRunItems,
   isOrphanCandidate,
+  orphanKind,
   orphanDeleteEnabled,
   softDeleteOrphan,
   stopsTheLoop,
@@ -105,6 +106,31 @@ describe("isOrphanCandidate", () => {
 
   it("is not a Failed item with another failure", () => {
     expect(isOrphanCandidate(run("Sweep"), item(1, "RoundTrip"))).toBe(false);
+  });
+});
+
+describe("orphanKind", () => {
+  it.each([
+    ["staging", "noDeceasedInfo"],
+    ["production", null],
+  ])("is noDeceasedInfo for a sweep run's Failed/NoDeceasedInfo item only in TT02 (%s)", (environment, kind) => {
+    vi.stubEnv("VITE_ENVIRONMENT", environment);
+    expect(orphanKind(run("Sweep"), item(1))).toBe(kind);
+  });
+
+  it.each(["staging", "production"])("is empty for a verify run's Broken item in any environment (%s)", (environment) => {
+    vi.stubEnv("VITE_ENVIRONMENT", environment);
+    expect(orphanKind(run("Verify"), item(1, null, "Broken"))).toBe("empty");
+  });
+
+  it.each(["staging", "production"])("is nothing for a sweep item that says Broken (%s)", (environment) => {
+    vi.stubEnv("VITE_ENVIRONMENT", environment);
+    expect(orphanKind(run("Sweep"), item(1, null, "Broken"))).toBeNull();
+  });
+
+  it.each(["staging", "production"])("is nothing for a verify run's Missing item (%s)", (environment) => {
+    vi.stubEnv("VITE_ENVIRONMENT", environment);
+    expect(orphanKind(run("Verify"), item(1, null, "Missing"))).toBeNull();
   });
 });
 
