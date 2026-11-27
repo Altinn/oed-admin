@@ -22,6 +22,7 @@ builder.Services.AddAuditLogging(builder.Environment, builder.Configuration);
 if (!builder.Environment.IsDevelopment())
 {
     builder.Services.AddTelemetry(builder.Configuration);
+    builder.Services.AddLogLevelFloor(LogLevel.Information);
 }
 builder.Services.AddOpenApi();
 builder.Services.AddOedDatabase(builder.Configuration.GetConnectionString("OedDb") ?? string.Empty);
