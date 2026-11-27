@@ -1,4 +1,5 @@
-﻿using Azure.Monitor.OpenTelemetry.AspNetCore;
+﻿using System.Diagnostics;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
@@ -12,10 +13,22 @@ public static class ServiceCollectionExtensions
             .ConfigureResource(resource => resource
                 .AddService("oed-admin-api")
             )
-            .WithTracing(tracing => tracing.AddEntityFrameworkCoreInstrumentation())
+            .WithTracing(tracing => tracing.AddEntityFrameworkCoreInstrumentation(options =>
+                options.EnrichWithIDbCommand = (activity, _) => RemoveQueryText(activity)))
             .UseAzureMonitor(ConfigureSampling);
 
         return services;
+    }
+
+    /// <summary>
+    /// Keeps a query's timing, but not its SQL. The instrumentation always sets the text, and Application Insights
+    /// shows it as the dependency's <c>data</c>. These queries are about the deceased and their heirs, so their text
+    /// stays out of telemetry, as their parameter values do.
+    /// </summary>
+    private static void RemoveQueryText(Activity activity)
+    {
+        activity.SetTag("db.statement", null);
+        activity.SetTag("db.query.text", null);
     }
 
     /// <summary>

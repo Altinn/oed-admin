@@ -67,6 +67,8 @@ public class LogLevelFloorTests
         Lowest("Microsoft.AspNetCore.Routing.EndpointMiddleware", LogLevel.Warning);
         Lowest("Microsoft.AspNetCore.Hosting.Diagnostics", LogLevel.Warning);
         Lowest("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
+        Lowest("Azure.Core", LogLevel.Warning);
+        Lowest("Azure.Identity", LogLevel.Warning);
     }
 
     [Fact]
