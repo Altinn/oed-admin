@@ -64,6 +64,7 @@ public class LogLevelFloorTests
         Lowest("oed_admin.Server.Features.Maintenance.OedModel.SetPhase.Endpoint", LogLevel.Information);
         Lowest("Microsoft.Hosting.Lifetime", LogLevel.Information);
         Lowest("System.Net.Http.HttpClient.Default", LogLevel.Information);
+        Lowest("Microsoft.AspNetCore.Routing.EndpointMiddleware", LogLevel.Warning);
         Lowest("Microsoft.AspNetCore.Hosting.Diagnostics", LogLevel.Warning);
         Lowest("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
     }
